@@ -2,6 +2,9 @@ package com.mycompany.projectdesign.Project;
 import com.mycompany.projectdesign.Project.FactoryMethodPattern.*;
 import com.mycompany.projectdesign.Project.Model.*;
 import com.mycompany.projectdesign.Project.ObserverPattern.*;
+
+import java.util.Arrays;
+
 import com.mycompany.projectdesign.Project.DecoratorPattern.*;
 public class Test {
 
@@ -15,9 +18,9 @@ public class Test {
         DepositFactory depositFactory = new DepositFactory();
 
         // สร้างห้อง
-        Room K1 = new Room("B078", "Double room", 3000, "empty","img1.png");
+        Room K1 = new Room("B078", "Double room", 3000, "empty","img1.png",4,Arrays.asList("WiFi","TV","AirConditioner"));
         roomRepo.addRoom(K1);
-        Room K2 = new Room("B099", "Suite", 5000, "booking","img1.png");
+        Room K2 = new Room("B099", "Suite", 5000, "booking","img1.png",2,Arrays.asList("TV", "WiFi"));
         roomRepo.addRoom(K2);
 
         //เซฟข้อมูลของห้องลง csv 

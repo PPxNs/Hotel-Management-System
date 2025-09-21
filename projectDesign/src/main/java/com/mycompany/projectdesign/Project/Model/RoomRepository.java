@@ -1,6 +1,9 @@
 package com.mycompany.projectdesign.Project.Model;
 import java.io.*;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 //อ่านด้วย : กรณีสร้างไฟล์แบบไม่มีตัวตั้งต้น ยังไม่จัดการ
 /*
@@ -50,15 +53,17 @@ public class RoomRepository {
         String s;
         while ((s = br.readLine()) != null) {
             String[] parts = s.split(",");
-            if (parts.length == 5) {
+            if (parts.length == 7) {
                 String numberRoom = parts[0];
                 String type = parts[1];
                 double price = Double.parseDouble(parts[2]);
                 String status = parts[3];
                 String imagePath = parts[4];
+                int people = Integer.parseInt(parts[5]);
+                List<String> properties = Arrays.asList(parts[6].split(";"));
 
                 if (!map.containsKey(numberRoom)) {
-                    map.put(numberRoom, new Room(numberRoom, type, price, status, imagePath));
+                    map.put(numberRoom, new Room(numberRoom, type, price, status, imagePath,people,properties));
                 }
             }
         }
@@ -88,7 +93,7 @@ public class RoomRepository {
         //มีการดึงข้อมูลจาก gui มา //รอ gui
         //map.put(numberRoom, new Room(numberRoom, type, price, status))
         if (!map.containsKey(room.getNumberRoom())) {
-            map.put(room.getNumberRoom(), new Room(room.getNumberRoom(), room.getType(), room.getPrice(), room.getStatus(),room.getImagePath()));
+            map.put(room.getNumberRoom(), new Room(room.getNumberRoom(), room.getType(), room.getPrice(), room.getStatus(),room.getImagePath(),room.getPeople(),room.getProperties()));
             return true;
         }
         return false;
@@ -115,7 +120,7 @@ public class RoomRepository {
 
     /*อาจจะเพิ่มให้แก้เฉพาะจุดก็ได้*/
     // แก้ไขรายละเอียดของห้อง เราเลือกแก้ไขที่ hash เข้าถึงผ่านคีย์ อาจจะต้องมีตัว gui ให้เข้าถึงได้โดยตรงไม่ต้องใช้งานผ่านตัวแอด
-    public boolean replaceRoom(String numberRoom, String type, double price,String status,String imagePath){
+    public boolean replaceRoom(String numberRoom, String type, double price,String status,String imagePath,int people, List<String> properties){
         //คิดว่าควรสามารถแก้ได้เฉพาะจุดนะ ถ้าคีย์ใหม่หมดทั้ง ๆ ที่แก้้เฉพาะจุดได้ อาจจะแก้ตรงส่วนของ ระบบ gui ให้โยนค่าที่ผู้ใช้ไม่เปลี่ยนมาด้วย
         //แก้ไขความไม่หยืดหยุ่นด้วย รับค่าที่โยนมา และ return เป็นค่าจริงเท็จแจ้งผลการทำงาน
         //คิดว่าน่าจะต้องมีอะไรเพิ่มความหยืดหยุ่นเจค แบบให้ไม่ยึดข้อมูลที่คีย์ผ่าน gui เผื่อกรณีต้องการปรับแต่งหน้า gui น่าจะลำบาก้ามามั่วแก้โค้ดในนี้
@@ -125,7 +130,7 @@ public class RoomRepository {
         if (!map.containsKey(numberRoom)) {
             return false;
         } else 
-            map.put(numberRoom, new Room(numberRoom, type, price, status,imagePath));
+            map.put(numberRoom, new Room(numberRoom, type, price, status,imagePath,people,properties));
         return true;
     }
 
@@ -161,7 +166,9 @@ public void saveRoomToCSV() {
                      room.getType() + "," +
                      room.getPrice() + "," +
                      room.getStatus() + "," +
-                     room.getImagePath());
+                     room.getImagePath()+ "," +
+                     room.getPeople() + "," +
+                     room.getProperties());
             bw.newLine();
         }
 
