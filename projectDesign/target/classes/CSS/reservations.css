@@ -1,0 +1,87 @@
+/*ตัวฐานหลัก*/
+.root {
+    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-background-color: #F8F9FA;
+}
+
+/* หัวข้อหลัก Reservation */
+.content-header-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #343a40;
+}
+
+/* ทำให้ Paneลอยเด่นขึ้นมา */
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 12px;
+    -fx-padding: 10px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 15, 0, 0, 4);
+}
+
+/*
+ * ช่องค้นหา
+ */
+
+.search-box {
+    -fx-alignment: CENTER_LEFT;
+}
+
+.search-field {
+    -fx-background-color: #F3F4F6;
+    -fx-background-radius: 10px;
+    -fx-border-color: transparent;
+    -fx-prompt-text-fill: #9CA3AF;
+    -fx-padding: 8px 15px 8px 35px; 
+    -fx-font-size: 13px;
+}
+
+.search-icon {
+    -fx-padding: 0 0 0 12px;
+}
+
+/*
+ * พื้นที่ทำงานหลัก
+ */
+.content-pane {
+    -fx-background-color: white;
+    -fx-background-radius: 12px;
+    -fx-padding: 25px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 15, 0, 0, 5);
+}
+
+/*
+ * TableView 
+ */
+
+/* ตารางให้ดูสะอาด ไม่มีเส้นขอบ */
+.table-view {
+    -fx-border-color: transparent;
+    -fx-background-color: transparent;
+}
+.table-view .column-header-background {
+    -fx-background-color: transparent;
+}
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-text-fill: #6B7280;
+    -fx-font-weight: bold;
+    -fx-padding: 12px;
+    -fx-font-size: 12px;
+}
+.table-view .table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-width: 0 0 1px 0;
+    -fx-border-color: #F3F4F6; 
+    -fx-padding: 15px 12px;
+}
+.table-view .table-row-cell:empty {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+}
+.table-view .table-row-cell:selected {
+    -fx-background-color: #EFF6FF; 
+}
+
+
+

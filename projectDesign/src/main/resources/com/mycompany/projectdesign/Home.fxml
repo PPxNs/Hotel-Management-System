@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.gluonhq.charm.glisten.control.ToggleButtonGroup?>
+<?import java.lang.String?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+
+<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="698.0" prefWidth="938.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.projectdesign.HomeController">
+   <children>
+      <BorderPane fx:id="mainPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="699.0" prefWidth="938.0" styleClass="root" stylesheets="@../../../CSS/home.css">
+         <right>
+            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="920.0" prefWidth="450.0" styleClass="form-field" BorderPane.alignment="CENTER">
+               <children>
+                  <Label maxWidth="1.7976931348623157E308" prefHeight="51.0" prefWidth="240.0" styleClass="form-title" text="Room Clean">
+                     <VBox.margin>
+                        <Insets left="20.0" />
+                     </VBox.margin>
+                     <font>
+                        <Font name="System Bold Italic" size="17.0" />
+                     </font>
+                  </Label>
+                  <TableView id="R0" fx:id="roomTableView1" prefHeight="212.0" prefWidth="408.0">
+                     <columns>
+                        <TableColumn id="R1" fx:id="imageColumn1" prefWidth="120.0" styleClass="column-header" text="Room #" />
+                        <TableColumn id="R2" fx:id="typeColumn1" minWidth="0.0" prefWidth="120.0" styleClass="column-header" text="Status" />
+                        <TableColumn id="R4" fx:id="rateColumn1" prefWidth="120.0" styleClass="column-header" text="Task" />
+                        <TableColumn id="R5" fx:id="statusColumn1" minWidth="1.0" prefWidth="120.0" styleClass="column-header" text="Assignee" />
+                     </columns>
+                     <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                     </columnResizePolicy>
+                     <VBox.margin>
+                        <Insets left="20.0" />
+                     </VBox.margin>
+                  </TableView>
+                  <Label maxWidth="1.7976931348623157E308" prefHeight="51.0" prefWidth="240.0" styleClass="form-title" text="Quick Action">
+                     <VBox.margin>
+                        <Insets left="20.0" />
+                     </VBox.margin>
+                     <font>
+                        <Font name="System Bold" size="17.0" />
+                     </font>
+                  </Label>
+                  <HBox prefHeight="23.0" prefWidth="353.0" styleClass="toggle-button-group">
+                     <VBox.margin>
+                        <Insets bottom="20.0" left="20.0" />
+                     </VBox.margin>
+                     <children>
+                        <ToggleButtonGroup fx:id="checkInOutToggleGroup" prefHeight="35.0" prefWidth="114.0" styleClass="toggle-button-group">
+                           <toggles>
+                              <ToggleButton text="Check in" />
+                              <ToggleButton selected="true" text="Check out" />
+                           </toggles>
+                        </ToggleButtonGroup>
+                     </children>
+                  </HBox>
+                  <GridPane prefHeight="59.0" prefWidth="180.0">
+                     <columnConstraints>
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                     </columnConstraints>
+                     <rowConstraints>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                     </rowConstraints>
+                     <children>
+                        <Label maxWidth="1.7976931348623157E308" text="Room Type">
+                           <GridPane.margin>
+                              <Insets />
+                           </GridPane.margin>
+                           <padding>
+                              <Insets left="20.0" />
+                           </padding>
+                        </Label>
+                        <Label maxWidth="1.7976931348623157E308" prefHeight="15.0" prefWidth="75.0" text="Room No." GridPane.columnIndex="1">
+                           <padding>
+                              <Insets left="10.0" />
+                           </padding>
+                        </Label>
+                        <ComboBox id="roomTypeComboBox" fx:id="roomTypeComboBox" prefHeight="25.0" prefWidth="160.0" GridPane.rowIndex="1">
+                           <padding>
+                              <Insets left="20.0" />
+                           </padding>
+                           <GridPane.margin>
+                              <Insets left="20.0" />
+                           </GridPane.margin>
+                           <styleClass>
+                              <String fx:value="form-field" />
+                              <String fx:value="status-allocated" />
+                              <String fx:value="status-not-allocated" />
+                              <String fx:value="type-special" />
+                           </styleClass>
+                        </ComboBox>
+                        <ComboBox id="roomTypeComboBox" fx:id="roomTypeComboBox1" prefHeight="25.0" prefWidth="160.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                           <padding>
+                              <Insets left="20.0" />
+                           </padding>
+                           <styleClass>
+                              <String fx:value="form-field" />
+                              <String fx:value="status-allocated" />
+                              <String fx:value="status-not-allocated" />
+                              <String fx:value="type-special" />
+                           </styleClass>
+                           <GridPane.margin>
+                              <Insets left="10.0" />
+                           </GridPane.margin>
+                        </ComboBox>
+                     </children>
+                  </GridPane>
+                  <HBox alignment="CENTER" prefHeight="53.0" prefWidth="353.0">
+                     <children>
+                        <Label maxWidth="1.7976931348623157E308" text="Guest Name">
+                           <padding>
+                              <Insets left="20.0" />
+                           </padding>
+                        </Label>
+                        <TextField fx:id="priceField" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="210.0" styleClass="form-field" HBox.hgrow="ALWAYS">
+                           <HBox.margin>
+                              <Insets left="10.0" />
+                           </HBox.margin>
+                        </TextField>
+                        <Button mnemonicParsing="false" text="+">
+                           <HBox.margin>
+                              <Insets left="5.0" />
+                           </HBox.margin>
+                        </Button>
+                     </children>
+                     <VBox.margin>
+                        <Insets top="10.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <TitledPane animated="false" prefHeight="103.0" prefWidth="408.0" text="Service List">
+                     <VBox.margin>
+                        <Insets left="20.0" />
+                     </VBox.margin>
+                     <content>
+                        <VBox prefHeight="85.0" prefWidth="304.0" spacing="10.0">
+                           <children>
+                              <HBox prefHeight="100.0" prefWidth="200.0">
+                                 <children>
+                                    <CheckBox mnemonicParsing="false" text="Insurance" />
+                                    <Pane prefHeight="16.0" prefWidth="174.0" HBox.hgrow="ALWAYS" />
+                                    <Label prefHeight="15.0" prefWidth="37.0" text="฿‎1000" />
+                                 </children>
+                                 <VBox.margin>
+                                    <Insets />
+                                 </VBox.margin>
+                              </HBox>
+                              <HBox prefHeight="100.0" prefWidth="200.0">
+                                 <children>
+                                    <CheckBox mnemonicParsing="false" text="Meal" />
+                                    <Pane prefHeight="16.0" prefWidth="198.0" HBox.hgrow="ALWAYS" />
+                                    <Label prefHeight="15.0" prefWidth="37.0" text="฿‎500" />
+                                 </children>
+                              </HBox>
+                              <HBox prefHeight="100.0" prefWidth="200.0">
+                                 <children>
+                                    <CheckBox mnemonicParsing="false" text="PickupService" />
+                                    <Pane prefHeight="16.0" prefWidth="154.0" HBox.hgrow="ALWAYS" />
+                                    <Label prefHeight="15.0" prefWidth="37.0" text="฿‎300" />
+                                 </children>
+                              </HBox>
+                           </children>
+                           <padding>
+                              <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                           </padding>
+                        </VBox>
+                     </content>
+                  </TitledPane>
+                  <HBox prefHeight="31.0" prefWidth="420.0">
+                     <children>
+                        <Label prefHeight="30.0" prefWidth="145.0" text="Total Charge">
+                           <HBox.margin>
+                              <Insets left="20.0" />
+                           </HBox.margin>
+                           <font>
+                              <Font name="System Bold" size="20.0" />
+                           </font>
+                        </Label>
+                        <Region prefHeight="22.0" prefWidth="207.0" HBox.hgrow="ALWAYS" />
+                        <Label prefHeight="15.0" prefWidth="109.0" text="฿‎______">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                     </children>
+                     <VBox.margin>
+                        <Insets bottom="5.0" top="10.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox alignment="CENTER_RIGHT" prefHeight="47.0" prefWidth="428.0" spacing="15.0">
+                     <children>
+                        <Button maxWidth="125.0" mnemonicParsing="false" prefHeight="120.0" text="Print Summary">
+                           <styleClass>
+                              <String fx:value="menu-button" />
+                              <String fx:value="secondary-button" />
+                           </styleClass>
+                        </Button>
+                        <Button maxWidth="100.0" mnemonicParsing="false" prefHeight="120.0" text="Proceed">
+                           <styleClass>
+                              <String fx:value="primary-button" />
+                              <String fx:value="menu-button" />
+                           </styleClass>
+                        </Button>
+                     </children>
+                     <VBox.margin>
+                        <Insets bottom="10.0" />
+                     </VBox.margin>
+                  </HBox>
+               </children>
+               <BorderPane.margin>
+                  <Insets bottom="20.0" left="20.0" right="20.0" />
+               </BorderPane.margin>
+               <padding>
+                  <Insets right="20.0" />
+               </padding>
+            </VBox>
+         </right>
+         <center>
+            <BorderPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+               <center>
+                  <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="920.0" prefWidth="910.0" styleClass="card" BorderPane.alignment="CENTER">
+                     <children>
+                        <HBox alignment="CENTER" prefHeight="108.0" prefWidth="870.0" styleClass="card">
+                           <children>
+                              <Label alignment="CENTER" prefHeight="28.0" prefWidth="131.0" styleClass="content-header-title" text="Guest List">
+                                 <font>
+                                    <Font name="Arial Bold" size="14.0" />
+                                 </font>
+                              </Label>
+                              <Pane prefHeight="33.0" prefWidth="350.0" HBox.hgrow="ALWAYS" />
+                           </children>
+                        </HBox>
+                        <TableView id="R0" fx:id="roomTableView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="580.0" prefWidth="398.0" styleClass="card">
+                           <columns>
+                              <TableColumn id="R1" fx:id="imageColumn" prefWidth="120.0" styleClass="column-header" text="New Guest" />
+                              <TableColumn id="R2" fx:id="typeColumn" minWidth="0.0" prefWidth="120.0" styleClass="column-header" text="Check in" />
+                              <TableColumn id="R4" fx:id="rateColumn" prefWidth="120.0" styleClass="column-header" text="Check out" />
+                              <TableColumn id="R5" fx:id="statusColumn" prefWidth="100.0" styleClass="column-header" text="Room Type" />
+                              <TableColumn id="R6" fx:id="actionColumn" prefWidth="125.0" styleClass="column-header" text="Allocated Room" />
+                              <TableColumn id="R6" fx:id="actionColumn1" prefWidth="110.0" styleClass="column-header" text="Due Amount" />
+                           </columns>
+                           <columnResizePolicy>
+                              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                           </columnResizePolicy>
+                           <VBox.margin>
+                              <Insets />
+                           </VBox.margin>
+                        </TableView>
+                     </children>
+                     <BorderPane.margin>
+                        <Insets />
+                     </BorderPane.margin>
+                  </VBox>
+               </center>
+               <BorderPane.margin>
+                  <Insets bottom="20.0" />
+               </BorderPane.margin>
+            </BorderPane>
+         </center>
+      </BorderPane>
+   </children>
+</VBox>
