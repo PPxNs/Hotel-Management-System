@@ -25,7 +25,7 @@ public class RoomRepository {
     //ดึงข้อมูลมาดึงข้อมูลของ csv เข้ามาเก็บใน hash
     // ค่อยเพิ่มเติมตรงจุด แจ้ง exception กรณีไม่เจอไฟล์
    public boolean loadRoomFromCSV() {
-    File fi = new File("src/main/resources/Room.csv");
+    File fi = new File("File/Room.csv");
     
     try {
         if (!fi.getParentFile().exists()) {
@@ -138,7 +138,7 @@ public class RoomRepository {
     //ตอนแรกจะเข้าด้วย Enumerating the elements of the dictionary แต่มัน error เลยเปลี่ยนใหม่
 public void saveRoomToCSV() {
     // ระบุ path ไฟล์
-    File fi = new File("src/main/resources/Room.csv");
+    File fi = new File("File/Room.csv");
     
 
     try {
