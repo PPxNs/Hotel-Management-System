@@ -77,7 +77,7 @@ public class CustomerRepository {
         FileWriter fw = null; 
         BufferedWriter bw = null;
         try {
-            fi = new File("\\java-projects\\src\\main\\resources\\Customer.csv");
+            fi = new File("File/Customer.csv");
             fw = new FileWriter(fi,false); //flase บันทึกใหม่เป็นไฟล์อัพเดท
             bw = new BufferedWriter(fw);
             //จะวน for เข้าถึงตัว key ทั้งหมด
@@ -119,7 +119,7 @@ public class CustomerRepository {
 
     public void UpdateHistory(){
         //กดปิดโปรแกรม จะเรียก method นี้ โหลดข้อมูลกลายเป็น CSV (ไว้ restore ตอนเปิดระบบใหม่)
-        File fi = new File("\\java-projects\\src\\main\\resources\\Customer_History.csv");
+        File fi = new File("File/Customer_History.csv");
         FileWriter fw = null; 
         BufferedWriter bw = null;
         try {
@@ -163,7 +163,7 @@ public class CustomerRepository {
 }
 
     public boolean loadCustomerFromCSV(){
-        File fi = new File("\\java-projects\\src\\main\\resources\\Customer.csv");
+        File fi = new File("File/Customer.csv");
         FileReader fr = null;
         BufferedReader br = null;
         try {
