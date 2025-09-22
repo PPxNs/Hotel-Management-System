@@ -17,8 +17,13 @@ C:\java-projects\projectDesign\src\main\java\com\mycompany\projectdesign\Project
 C:\java-projects\projectDesign\src\main\java\com\mycompany\projectdesign\Project\Model\CustomerRepository.java
 C:\java-projects\projectDesign\src\main\java\com\mycompany\projectdesign\Project\Model\Room.java
 C:\java-projects\projectDesign\src\main\java\com\mycompany\projectdesign\Project\Model\RoomRepository.java
+C:\java-projects\projectDesign\src\main\java\com\mycompany\projectdesign\Project\ObserverPattern\BillEvent.java
 C:\java-projects\projectDesign\src\main\java\com\mycompany\projectdesign\Project\ObserverPattern\BillObserver.java
-C:\java-projects\projectDesign\src\main\java\com\mycompany\projectdesign\Project\ObserverPattern\RoomObserver.java
+C:\java-projects\projectDesign\src\main\java\com\mycompany\projectdesign\Project\ObserverPattern\HotelEvent.java
+C:\java-projects\projectDesign\src\main\java\com\mycompany\projectdesign\Project\ObserverPattern\HotelNotifier.java
+C:\java-projects\projectDesign\src\main\java\com\mycompany\projectdesign\Project\ObserverPattern\HotelObserver.java
+C:\java-projects\projectDesign\src\main\java\com\mycompany\projectdesign\Project\ObserverPattern\MissedCheckoutEvent.java
+C:\java-projects\projectDesign\src\main\java\com\mycompany\projectdesign\Project\ObserverPattern\MissedCheckoutObserver.java
 C:\java-projects\projectDesign\src\main\java\com\mycompany\projectdesign\Project\StrategyPattern\CashPayment.java
 C:\java-projects\projectDesign\src\main\java\com\mycompany\projectdesign\Project\StrategyPattern\CreditCardPayment.java
 C:\java-projects\projectDesign\src\main\java\com\mycompany\projectdesign\Project\StrategyPattern\DefaultDiscount.java
