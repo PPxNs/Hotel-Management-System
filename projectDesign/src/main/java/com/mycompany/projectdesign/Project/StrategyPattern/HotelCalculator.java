@@ -5,9 +5,9 @@ import com.mycompany.projectdesign.Project.Model.*;
  * คำนวณราคาและส่วนลดห้องพัก ไม่รวมมัดจำและบริการเสริม
  */
 public class HotelCalculator {
-    public double calculateFinalPrice(Room room, Customer customer, DiscountStrategy strategy){
+    public double calculateFinalPrice(Room room, Bookings booking, DiscountStrategy strategy){
         double roomPrice = room.getPrice();
     
-        return strategy.applyDiscount(room, customer, roomPrice);
+        return strategy.applyDiscount(room, booking, roomPrice);
     }
 }

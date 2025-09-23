@@ -12,11 +12,12 @@ public class MissedCheckoutObserver implements HotelObserver {
             MissedCheckoutEvent missedEvent = (MissedCheckoutEvent) event;
             Customer customer = missedEvent.getCustomer();
             Room room = missedEvent.getRoom();
+            Bookings bookings = missedEvent.getBookings();
 
             LocalDateTime now = LocalDateTime.now();
 
             //แปลง String เวลา ให้เป็น LocalDateTime
-            LocalDateTime checkOut = LocalDateTime.of(customer.getDateCheckout(), customer.getTimeCheckout());
+            LocalDateTime checkOut = LocalDateTime.of(bookings.getDateCheckout(), bookings.getTimeCheckout());
 
             //เวลาเป็นนาทีที่เหลือ
             long minutesCheckout = ChronoUnit.MINUTES.between(now, checkOut);

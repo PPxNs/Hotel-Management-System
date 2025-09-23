@@ -10,11 +10,11 @@ public class EarlyBirdDiscount implements DiscountStrategy{
 
 
     @Override
-    public double applyDiscount(Room room, Customer customer, double totalPrice) {
-        if (customer.getDaysBeforeCheckin()>= 60) {
+    public double applyDiscount(Room room, Bookings booking, double totalPrice) {
+        if (booking.getDaysBeforeCheckin()>= 60) {
             return totalPrice * 0.75; // ลด 25 %
 
-        }else if (customer.getDaysBeforeCheckin()>= 30) {
+        }else if (booking.getDaysBeforeCheckin()>= 30) {
             return totalPrice * 0.85; // ลด 15 %
 
         } else return totalPrice;

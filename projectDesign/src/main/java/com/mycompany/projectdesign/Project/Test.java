@@ -1,111 +1,104 @@
 package com.mycompany.projectdesign.Project;
+
 import com.mycompany.projectdesign.Project.FactoryMethodPattern.*;
 import com.mycompany.projectdesign.Project.Model.*;
 import com.mycompany.projectdesign.Project.ObserverPattern.*;
 import com.mycompany.projectdesign.Project.DecoratorPattern.*;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 public class Test {
 
     public static void main(String[] args) {
         System.out.println("--- Hotel System Simulation ---");
 
-        // SETUP ฐานข้อมูลพื้นฐาน
-        RoomRepository roomRepo = new RoomRepository();
+        // SETUP: ข้อมูลฐานข้อมูล
+        // สร้าง Repository ทั้งหมด
+        RoomRepository roomRepo = RoomRepository.getInstance();
         CustomerRepository customerRepo = new CustomerRepository();
+        BookingRepository bookingRepo = new BookingRepository(); 
         DepositFactory depositFactory = new DepositFactory();
         
+        // สร้าง Notifier และลง Observers
         HotelNotifier notifier = new HotelNotifier();
-        
-        // สร้าง Observer
-        HotelObserver billPrinter = new BillObserver();
-        HotelObserver staffNotifier = new MissedCheckoutObserver();
-        
+        HotelObserver billPrinter = new BillObserver(); 
+        HotelObserver missedCheckoutObserver = new MissedCheckoutObserver();
         notifier.register(billPrinter);
-        notifier.register(staffNotifier);
+        notifier.register(missedCheckoutObserver);
 
-        // สร้างห้องพัก
-        Room roomB078 = new Room("B078", "Double room", 3000, "empty", "img1.png", 4, Arrays.asList("WiFi", "TV", "AirConditioner"));
-        Room roomB099 = new Room("B099", "Suite", 5000, "empty", "img2.png", 2, Arrays.asList("TV", "WiFi"));
+        // สร้างและเพิ่มห้องพัก
+        Room roomB078 = new Room("B078", "Double room", 3000, "img1.png", 4, Arrays.asList("WiFi", "TV"), RoomStatus.AVAILABLE);
+        Room roomB099 = new Room("B099", "Suite", 5000, "img2.png", 2, Arrays.asList("TV", "WiFi"), RoomStatus.AVAILABLE);
         roomRepo.addRoom(roomB078);
         roomRepo.addRoom(roomB099);
         roomRepo.saveRoomToCSV();
 
-        // เพิ่มข้อมูลลูกค้า
-
-        // สร้างข้อมูลลูกค้า ที่จองห้องล่วงหน้า (ใช้ตรวจโปรโมชัน)
-        Customer customerAlice = new Customer(
-            "2234567891234", "Alice", "Smith", "alice.smith@gmail.com", "0911111111", "Female", "Thailand", "Nakhon Pathom", "123/7",
-            "2025-09-21", "15:00", "2025-09-22", "11:00", "2025-08-11", "09:15", "Checked-out", "LUNA00000024");
-        
-        // สร้างข้อมูลลูกค้า Bob ที่มีเวลาเช็คเอาท์ "อีก 3 นาทีข้างหน้า"
-        //String checkoutDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        //String checkoutTime = LocalTime.now().plusMinutes(3).format(DateTimeFormatter.ofPattern("HH:mm"));
-        Customer customerBob = new Customer(
-            "987654321156", "Bob", "Johnson", "bob.j@gmail.com", "0987654321", "Male", "Thailand", "Bangkok", "456/8",
-            "2025-09-21", "14:00", "2025-09-20", "15:50", "2025-09-20", "18:32",
-            "Confirmed", "LUNA00000086");
-
-
-        // บันทึกลูกค้าลง Repository ในฐานข้อมูล
-        customerRepo.addCustomer(roomB078.getNumberRoom(), customerAlice);
-        customerRepo.addCustomer(roomB099.getNumberRoom(), customerBob);
-        customerRepo.UpdateHistory();
+        // สร้างและเพิ่มข้อมูลลูกค้า 
+        Customer customerAlice = new Customer("2234567891234", "Alice", "Smith", "alice.smith@gmail.com", "0911111111","Female", "Thailand", "Nakhon Pathom", "123/7");
+        Customer customerBob = new Customer("987654321156", "Bob", "Johnson", "bob.j@gmail.com", "0987654321", "Male", "Thailand", "Bangkok", "456/8");
+        customerRepo.addCustomer(roomB078.getNumberRoom(),customerAlice);
+        customerRepo.addCustomer(roomB099.getNumberRoom(),customerBob);
         customerRepo.saveCustomerToCSV();
 
-        // ตรวจสอบการพิมพ์บิล 
+        // สร้าง Booking
+        Bookings bookingForAlice = new Bookings(roomB078, customerAlice, "BK001", 
+            LocalDate.of(2025, 9, 21), LocalTime.of(15, 0), 
+            LocalDate.of(2025, 9, 22), LocalTime.of(11, 0),
+            LocalDate.of(2025, 8, 11), LocalTime.of(9, 15));
+        bookingForAlice.setStatus(BookingStatus.CHECKED_OUT); 
+
+        // สร้างการจองของ Bob จะให้เป็นคนที่ใกล้เวลา checkout 
+        Bookings bookingForBob = new Bookings(roomB099 ,customerBob,"BK002" , 
+            LocalDate.of(2025, 9, 21), LocalTime.of(15, 0), 
+            LocalDate.of(2025, 9, 23), LocalTime.of(21, 45),
+            LocalDate.of(2025, 8, 11), LocalTime.of(9, 15));
+        bookingForBob.setStatus(BookingStatus.CHECKED_IN); 
+
+        // เพิ่มการจองลงใน BookingRepository
+        bookingRepo.addBooking(bookingForAlice);
+        bookingRepo.addBooking(bookingForBob);
+        bookingRepo.saveBookingToCSV();
+
+        // พิมพ์บิลสำหรับการจองของ Alice
         System.out.println("\n--- SCENARIO 1: Bill Check ---");
-    
         DepositRoom depositForAlice = depositFactory.createSimpDepositRoom(roomB078);
         depositForAlice = new MealDecorator(depositForAlice, 2);
         depositForAlice = new PickupServiceDecorator(depositForAlice);
-
-        // สร้าง Event ของบิล
-        BillEvent billEvent = new BillEvent(roomB078, customerAlice, depositForAlice, LocalDateTime.now());
+        
+        // สร้าง Event จากข้อมูลการจองของ Alice
+        BillEvent billEvent = new BillEvent(bookingForAlice.getRoom(), bookingForAlice, depositForAlice, LocalDateTime.now());
         
         // สั่งให้ Notifier ส่งข่าว
         notifier.notifyObserver(billEvent);
 
-        
-        // ตรวจสอบการเช็คเอาท์อัตโนมัติ แจ้งเตือนพนักงาน
+        // ระบบตรวจสอบการเช็คเอาท์อัตโนมัติ 
         System.out.println("\n--- SCENARIO 2: System's Automated Checkout Check ---");
-        simulateSystemCheckoutCheck(notifier, customerRepo, roomRepo);
+        simulateSystemCheckoutCheck(notifier, bookingRepo);
     }
 
-    /**
-     * วนตรวจสอบลูกค้าทั้งหมดในระบบว่ามีใครใกล้ถึงเวลาเช็คเอาท์แล้วหรือยัง
-     */
-    public static void simulateSystemCheckoutCheck(HotelNotifier notifier, CustomerRepository customerRepo, RoomRepository roomRepo) {
-        System.out.println("System is now checking all rooms for imminent checkouts...");
+    public static void simulateSystemCheckoutCheck(HotelNotifier notifier, BookingRepository bookingRepo) {
+        System.out.println("System is now checking all bookings for imminent checkouts...");
         
-        // ดึงข้อมูลลูกค้าทั้งหมดในระบบออกมา
-        Map<String, List<Customer>> allCustomersMap = customerRepo.getMapCustomer();
+        // ดึงข้อมูล "การจอง" ทั้งหมดในระบบออกมา
+        List<Bookings> allBookings = bookingRepo.getAllBookings();
         
-        // วนลูปทุกห้องที่มีลูกค้า
-        for (Map.Entry<String, List<Customer>> entry : allCustomersMap.entrySet()) {
-            String roomNumber = entry.getKey();
-            List<Customer> customersInRoom = entry.getValue();
-            
-            // วนลูปเช็คลูกค้าทุกคนในห้องนั้นๆ
-            for (Customer customer : customersInRoom) {
-                // สนใจเฉพาะลูกค้าที่ยังไม่ได้เช็คเอาท์
-                if (customer.getStatusCustomer().equalsIgnoreCase("Confirmed")) {
-                    
-                    // ดึงข้อมูลลูกค้าและห้องจาก Repository เพื่อสร้าง Event 
-                    Room room = roomRepo.getRoom(roomNumber); 
-                    if (room != null) {
-                        // สร้าง Event สำหรับการแจ้งเตือน
-                        MissedCheckoutEvent alertEvent = new MissedCheckoutEvent(room, customer, LocalDateTime.now());
-                        // ส่ง Event ให้ Notifier ไปจัดการต่อ
-                        notifier.notifyObserver(alertEvent);
-                    }
-                }
+        // วนลูปทุกการจอง
+        for (Bookings booking : allBookings) {
+            // เราสนใจเฉพาะการจองที่แขกกำลังเข้าพักอยู่ (CHECKED_IN)
+            if (booking.getStatus() == BookingStatus.CHECKED_IN) {
+                
+                // ดึงข้อมูลลูกค้าและห้องจาก "การจอง" นั้นๆ เพื่อสร้าง Event
+                Customer customer = booking.getCustomer();
+                Room room = booking.getRoom();
+                
+                MissedCheckoutEvent alertEvent = new MissedCheckoutEvent(room, customer, booking,LocalDateTime.now());
+                
+                // ส่ง Event ให้ Notifier จัดการต่อ
+                notifier.notifyObserver(alertEvent);
             }
         }
     }

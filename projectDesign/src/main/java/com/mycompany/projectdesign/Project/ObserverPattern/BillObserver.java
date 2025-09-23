@@ -12,24 +12,24 @@ public class BillObserver implements HotelObserver{
         BillEvent billevent = (BillEvent) event;
             
         Room room = billevent.getRoom();
-        Customer customer = billevent.getCustomer();
+        Bookings bookings = billevent.getBookings();
         DepositRoom deposit = billevent.getDepositRoom();
 
         System.out.println("===== HOTEL BILL =====");
         System.out.println("Time Print: " + billevent.getFormattedTimestamp());
         System.out.println("Number Room: " + room.getNumberRoom());
         System.out.println("Type: " + room.getType());
-        System.out.println("Booking: " + customer.getDateBooking() + " " + customer.getTimeBooking());
-        System.out.println("Check-in: " + customer.getDateCheckin() + " " + customer.getTimeCheckin()) ;
-        System.out.println("Check-out: " + customer.getDateCheckout() + " " + customer.getTimeCheckout());
+        System.out.println("Booking: " + bookings.getDateBooking() + " " + bookings.getTimeBooking());
+        System.out.println("Check-in: " + bookings.getDateCheckin() + " " + bookings.getTimeCheckin()) ;
+        System.out.println("Check-out: " + bookings.getDateCheckout() + " " + bookings.getTimeCheckout());
         System.out.println("----------------------");
 
 
         System.out.println("Room Price: " + room.getPrice()); 
 
-        DiscountStrategy discountStrategy = DiscountSelector.getStrategy(room, customer);
+        DiscountStrategy discountStrategy = DiscountSelector.getStrategy(room, bookings);
         HotelCalculator calculator = new HotelCalculator();
-        double finalPriceRoom = calculator.calculateFinalPrice(room, customer, discountStrategy);
+        double finalPriceRoom = calculator.calculateFinalPrice(room, bookings, discountStrategy);
         double discount = room.getPrice() - finalPriceRoom ;
         System.out.printf("Discount: %.2f\n" ,discount);
         System.out.println("Deposit & Services Add-on: " );

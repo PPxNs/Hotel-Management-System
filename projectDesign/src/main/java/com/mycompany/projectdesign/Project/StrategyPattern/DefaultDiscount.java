@@ -8,7 +8,7 @@ import com.mycompany.projectdesign.Project.Model.*;
 public class DefaultDiscount implements DiscountStrategy{
     
     @Override
-    public double applyDiscount(Room room, Customer customer, double totalPrice) {
+    public double applyDiscount(Room room, Bookings booking, double totalPrice) {
        return totalPrice;
     }
     

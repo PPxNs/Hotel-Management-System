@@ -5,10 +5,10 @@
 package com.mycompany.projectdesign;
 
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
 
+import com.mycompany.projectdesign.Project.Model.BookingRepository;
+import com.mycompany.projectdesign.Project.Model.Bookings;
 import com.mycompany.projectdesign.Project.Model.Customer;
 import com.mycompany.projectdesign.Project.Model.CustomerRepository;
 import com.mycompany.projectdesign.Project.Model.Room;
@@ -37,7 +37,8 @@ public class ReservationsController implements Initializable {
 
     //new เพื่อจะเรียกโหลด csv มาใส่ใน column
     private CustomerRepository customerRepository = new CustomerRepository();
-    private RoomRepository roomRepository = new RoomRepository();
+    private RoomRepository roomRepository = RoomRepository.getInstance();
+    private BookingRepository bookingRepository = new BookingRepository();
 
 
     @Override
@@ -45,21 +46,26 @@ public class ReservationsController implements Initializable {
         BookingIDColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>  ("bookingID"));
         RoomNoColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>  ("numberRoom"));
         GuestColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String> ("fullnameCustomer"));
-        CheckInColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("Checkin"));
+        CheckInColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("checkin"));
         DateBookingColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("booking"));
        
         customerRepository.loadCustomerFromCSV();
         roomRepository.loadRoomFromCSV();
+        bookingRepository.loadBookingFromCSV(customerRepository, roomRepository);
+
+        System.out.println("Customers loaded: " + customerRepository.getAllCustomers().size());
+        System.out.println("Rooms loaded: " + roomRepository.getAllRooms().size());
+        System.out.println("Bookings loaded: " + bookingRepository.getAllBookings().size());
 
         //TableView ของ JavaFX ใช้ ObservableList
         ObservableList<ReservationsTableView> allCustomers = FXCollections.observableArrayList();
 
         //เราดึงข้อมูลจาก Hash มาเป็นลิส
-        for (Map.Entry<String, List<Customer>> entry : customerRepository.getMapCustomer().entrySet()) {
-        Room room = roomRepository.getRoom(entry.getKey());
-        for (Customer customer : entry.getValue()) {
-            allCustomers.add(new ReservationsTableView(room, customer));
-        }
+        for (Bookings booking : bookingRepository.getAllBookings()) {
+        Room room = booking.getRoom();
+        Customer customer = booking.getCustomer();
+        allCustomers.add(new ReservationsTableView(room, customer,booking));
+        
     }
 
         //เราข้อมูลทั้งหมดใส่ใน tableview

@@ -15,16 +15,17 @@ public class ReservationsTableView {
     // เก็บ object ต้นฉบับไว้ด้วย
     private final Room room;
     private final Customer customer;
+    private final Bookings bookings;
 
-    public ReservationsTableView(Room room, Customer customer) {
+    public ReservationsTableView(Room room, Customer customer, Bookings bookings) {
         this.room = room;
         this.customer = customer;
-        this.bookingID = new SimpleStringProperty(customer.getBookingID());
+        this.bookings = bookings;
+        this.bookingID = new SimpleStringProperty(bookings.getBookingID());
         this.numberRoom = new SimpleStringProperty(room.getNumberRoom());
         this.fullnameCustomer = new SimpleStringProperty(customer.getFullName());
-        this.Checkin = new SimpleStringProperty(customer.getCheckin());
-        this.booking = new SimpleStringProperty(customer.getBooking());
-
+        this.Checkin = new SimpleStringProperty(bookings.getCheckin());
+        this.booking = new SimpleStringProperty(bookings.getBooking());
     }
 
     //มันเป็น StringProperty จะต้องใช้ .get
@@ -38,4 +39,5 @@ public class ReservationsTableView {
     // getter object จริง
     public Room getRoom() { return room; }
     public Customer getCustomer() { return customer; }
+    public Bookings getBookings() { return bookings;}
 }

@@ -14,7 +14,7 @@ public class Room {
     private final String numberRoom ; // เก็บข้อมูลหมายเลยห้อง
     private final String type;    //เก็บข้อมูลประเภทของห้อง เช่น ห้องเดี่ยว ห้องคู่ หรือห้องชุด
     private final double price; // เก็บข้อมูลราคาห้องพัก
-    private final String status; // เก็บข้อมูลสถานะห้องว่าง ไม่ว่าง มีคนจองแล้ว หรือกำลังทำความสะอาด
+    private RoomStatus status; // เก็บข้อมูลสถานะห้องว่าง ไม่ว่าง มีคนจองแล้ว หรือกำลังทำความสะอาด
     private final String imagePath; // เพิ่มเก็บรูปห้อง
     private final int people; //จำนวนที่สามารถเข้าพักในห้องได้
     private final List<String> properties ;
@@ -25,14 +25,14 @@ public class Room {
     //private DepositRoom depositRoom; // เก็บข้อมูลเกี่ยวกับการมัดจำ โดยอันนี้จะรับค่าแยกจากส่วนแรก
 
     //constuctor รับค่าข้อมูลมาเก็บในตัวแปร เหมือนเข้ามาแล้วไม่สามารถแก้ไขเปลี่ยนแปลงเองได้ เนื่องจากเราเก็บเป็น final
-    public Room(String numberRoom, String type, double price , String status, String imagePath,int people, List<String> properties){
+    public Room(String numberRoom, String type, double price , String imagePath,int people, List<String> properties, RoomStatus status){
         this.numberRoom = numberRoom;
         this.type = type;
         this.price = price;
-        this.status = status;
         this.imagePath = imagePath; 
         this.people = people;
-        this.properties = new ArrayList<>();
+        this.properties = new ArrayList<>(properties);
+        this.status = status;
     }
 
     // พวกด้านล่างนี้มีไว้ดึงค่าที่เก็บในตัวแปรดังกล่าวในระบบอื่นสามารถเรียกใช้ได้
@@ -48,19 +48,6 @@ public class Room {
         return price;
     }
 
-    public String getStatus(){
-        return status;
-    }
-
-    //เสียดายค่อยลบ
-    /*public void setDepositRoom(DepositRoom depositRoom) {
-        this.depositRoom = depositRoom;
-    }
-
-    public DepositRoom getDepositRoom() {
-        return depositRoom;
-    }*/
-
     public String getImagePath() {
         return imagePath;
     }
@@ -73,6 +60,10 @@ public class Room {
         return new ArrayList<>(properties);
     }
 
-    
+    public RoomStatus getStatus(){
+        return status;
+    }
+
+    public void setStatus(RoomStatus status) {this.status = status; }
 
 }

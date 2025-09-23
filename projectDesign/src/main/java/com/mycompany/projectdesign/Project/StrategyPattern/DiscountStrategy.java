@@ -6,5 +6,5 @@ import com.mycompany.projectdesign.Project.Model.*;
  */
 // น่าจะมีความหยืดหยุ่นกว่านี้ที่ แอดมินสามารถยกเลิกส่วนลดหรือโปรได้
 public interface DiscountStrategy{
-    public double applyDiscount(Room room, Customer customer, double totalPrice);
+    public double applyDiscount(Room room, Bookings booking, double totalPrice);
 }

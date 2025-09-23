@@ -4,24 +4,24 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import com.mycompany.projectdesign.Project.FactoryMethodPattern.DepositRoom;
-import com.mycompany.projectdesign.Project.Model.Customer;
+import com.mycompany.projectdesign.Project.Model.Bookings;
 import com.mycompany.projectdesign.Project.Model.Room;
 
 // ข้อมูลสำหรับการพิมพ์
 public class BillEvent implements HotelEvent {
     private final Room room;
-    private final Customer customer;
+    private final Bookings booking;
     private final DepositRoom depositRoom;
     private final LocalDateTime timetamp; 
     
-    public BillEvent(Room room, Customer customer, DepositRoom depositRoom, LocalDateTime timetamp){
+    public BillEvent(Room room, Bookings booking, DepositRoom depositRoom, LocalDateTime timetamp){
         this.room = room;
-        this.customer = customer;
+        this.booking = booking;
         this.depositRoom = depositRoom;
         this.timetamp = timetamp;
     }
     public Room getRoom(){ return room; }
-    public Customer getCustomer(){return customer;}
+    public Bookings getBookings(){return booking;}
     public DepositRoom getDepositRoom(){ return depositRoom;}
 
     @Override

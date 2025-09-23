@@ -9,11 +9,11 @@ public class StayMoreDiscount implements DiscountStrategy {
 
     
     @Override
-    public double applyDiscount(Room room, Customer customer, double totalPrice) {
-        if (customer.getDateStay() >= 3) {
+    public double applyDiscount(Room room, Bookings booking, double totalPrice) {
+        if (booking.getDateStay() >= 3) {
             return totalPrice * 0.8; // ลด 20 %
 
-        }else if (customer.getDateStay() == 2) {
+        }else if (booking.getDateStay() == 2) {
             return totalPrice * 0.9; // ลด 10 %
 
         } else return totalPrice;

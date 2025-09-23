@@ -51,7 +51,8 @@ public class GuestsController implements Initializable{
 
     //new เพื่อจะเรียกโหลด csv มาใส่ใน column
     private CustomerRepository customerRepository = new CustomerRepository();
-    private RoomRepository roomRepository = new RoomRepository();
+    private RoomRepository roomRepository = RoomRepository.getInstance();
+    private BookingRepository bookingRepository = new BookingRepository();
 
 
     @Override
@@ -59,26 +60,31 @@ public class GuestsController implements Initializable{
 
         RoomNoColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("numberRoom"));
         IdCardColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("idCard"));
-        GuestColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("fullnameCustomer")); //ทดสอบแก้ไข
-        CheckInColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("Checkin"));
-        CheckOutColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("Checkout"));
-        StatusColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("statusCustomer"));
+        GuestColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("fullnameCustomer"));
+        CheckInColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("checkin"));
+        CheckOutColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("checkout"));
+        StatusColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("status"));
 
         //โหลดข้อมูลจาก csv
         customerRepository.loadCustomerFromCSV();
         roomRepository.loadRoomFromCSV();
+        bookingRepository.loadBookingFromCSV(customerRepository, roomRepository);
 
         //TableView ของ JavaFX ใช้ ObservableList
         ObservableList<GuestsTableView> allCustomers = FXCollections.observableArrayList();
 
         //เราดึงข้อมูลจาก Hash มาเป็นลิส
-        for (Map.Entry<String, List<Customer>> entry : customerRepository.getMapCustomer().entrySet()) {
-        Room room = roomRepository.getRoom(entry.getKey());
-        for (Customer customer : entry.getValue()) {
-            allCustomers.add(new GuestsTableView(room, customer));
+        for (Map.Entry<String, List<Customer>> entry : customerRepository.getAllCustomers().entrySet()) {
+            Room room = roomRepository.getRoom(entry.getKey());
+
+            for (Customer customer : entry.getValue()) {
+                Bookings booking = bookingRepository.getBookingByRoom(room.getNumberRoom());
+
+            if (booking != null) {
+                allCustomers.add(new GuestsTableView(room, customer, booking));
+            }
         }
     }
-
         //เราข้อมูลทั้งหมดใส่ใน tableview
         guestTable.setItems(allCustomers);
         guestTable.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<GuestsTableView>() {
