@@ -20,6 +20,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -68,11 +69,15 @@ public class RoomsController implements Initializable {
     private List<CheckBox> allCheckbox;
     private final List<String> seselectedProperties = new ArrayList<>();
     private RoomRepository roomRepository = RoomRepository.getInstance();
+    private ObservableList<RoomsTableView> roomList = FXCollections.observableArrayList();
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 
-        roomRepository.loadRoomFromCSV();
+            System.out.println("ขนาดของข้อมูลห้องพักที่โหลดมาคือ: " + roomRepository.getAllRooms().size());
+
+
+        /*roomRepository.loadRoomFromCSV();*/
 
         //อันนี้ set item ใน combobox     
         ObservableList<String> roomType = FXCollections.observableArrayList(
@@ -106,7 +111,7 @@ public class RoomsController implements Initializable {
 
 
         //Lambda Expression หลักการ (parameter) -> { statements }
-        imageColumn.setCellFactory(Col -> new TableCell<RoomsTableView,String>() {
+        imageColumn.setCellFactory(col -> new TableCell<RoomsTableView,String>() {
             private final ImageView imageView = new ImageView();{
                 imageView.setFitHeight(80);
                 imageView.setFitWidth(100);
@@ -132,14 +137,13 @@ public class RoomsController implements Initializable {
 
     
 
-        ObservableList<RoomsTableView> allRoom = FXCollections.observableArrayList();
 
         for (Room room : roomRepository.getAllRooms()) {
-            allRoom.add(new RoomsTableView(room)); 
+            roomList.add(new RoomsTableView(room)); 
         }
 
         //เราข้อมูลทั้งหมดใส่ใน tableview
-        roomTable.setItems(allRoom);
+        roomTable.setItems(roomList);
         
     }   
     
@@ -152,7 +156,7 @@ public class RoomsController implements Initializable {
 
         } else{
 
-        String rooomNo = roomNoField.getText();
+        String rooomNo = roomNoField.getText().toUpperCase();
         String roomType = roomTypeComboBox.getValue();
         String roomImage = imagePartField.getText();
         double roomPrice = 0.0;
@@ -173,36 +177,42 @@ public class RoomsController implements Initializable {
             }
         }
 
+        if (roomRepository.findByRoomNo(rooomNo)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("ข้อมูลซ้ำ");
+            alert.setHeaderText(null);
+            alert.setContentText("ห้องเลข " + rooomNo + " ถูกลงทะเบียนแล้ว");
+            alert.showAndWait();
+            return null;
+        }
+
         return new Room(rooomNo, roomType, roomPrice, roomImage ,numberOfpeople,seselectedProperties,RoomStatus.AVAILABLE);
         }
     }
 
     @FXML private void  handleSaveButtonAction(){
         Room newRoom = getRoomDatafromFome();
+        if (newRoom != null) { 
         roomRepository.addRoom(newRoom);
         roomRepository.saveRoomToCSV();
 
+        roomList.add(new RoomsTableView(newRoom));
+
         //เคลียร์หลัง save
-        roomNoField.clear();
-        priceField.clear();
-        peopleField.clear();
-        imagePartField.clear();
-        roomTypeComboBox.getSelectionModel().clearSelection();
-        for(CheckBox cb : allCheckbox){
-            cb.setSelected(false);
-        }
+        clearForm();
+    }
 
     }
 
     @FXML private void saveRoom(ActionEvent event) {
         handleSaveButtonAction();
         //หลัง save ให้นางแสดงผล
-        ObservableList<RoomsTableView> updatedList = FXCollections.observableArrayList();
+        /*ObservableList<RoomsTableView> updatedList = FXCollections.observableArrayList();
         for (Room room : roomRepository.getAllRooms()) {
             updatedList.add(new RoomsTableView(room));
         }
         
-        roomTable.setItems(updatedList);
+        roomTable.setItems(updatedList);*/
 
     }
 
@@ -217,6 +227,18 @@ public class RoomsController implements Initializable {
         if (selectedFile != null) {
             //เก็บ path ใน textfield
             imagePartField.setText(selectedFile.getAbsolutePath());
+        }
+    }
+
+    private void clearForm(){
+        roomNoField.clear();
+        priceField.clear();
+        peopleField.clear();
+        imagePartField.clear();
+        roomTypeComboBox.getSelectionModel().clearSelection();
+
+        for(CheckBox cb : allCheckbox){
+            cb.setSelected(false);
         }
     }
 

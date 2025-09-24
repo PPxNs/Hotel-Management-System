@@ -9,12 +9,26 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+import com.mycompany.projectdesign.Project.Model.BookingRepository;
+import com.mycompany.projectdesign.Project.Model.CustomerRepository;
+import com.mycompany.projectdesign.Project.Model.RoomRepository;
+
 public class App extends Application {
 
     private static Scene scene;
 
     @Override
     public void start(Stage stage) throws IOException {
+        RoomRepository roomRepo = RoomRepository.getInstance();
+        roomRepo.loadRoomFromCSV();
+
+        CustomerRepository customerRepo = CustomerRepository.getInstance();
+        customerRepo.loadCustomerFromCSV();
+
+        BookingRepository bookingRepo = BookingRepository.getInstance();
+        bookingRepo.initialize(customerRepo, roomRepo); 
+        bookingRepo.loadBookingFromCSV();
+
         scene = new Scene(loadFXML("MainView"), 1410, 780); 
         stage.setScene(scene);
         stage.setTitle("Hotel Management System");

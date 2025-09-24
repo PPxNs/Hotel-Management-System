@@ -11,9 +11,28 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+
 
 public class BookingRepository {
+
+    private static final BookingRepository instance = new BookingRepository();
     private Map<String, Bookings> bookingByID = new HashMap<>();
+
+    private CustomerRepository customerRepository;
+    private RoomRepository roomRepository;
+
+    private BookingRepository(){}
+    
+    public static BookingRepository getInstance(){
+        return instance;
+    }
+
+    public void initialize(CustomerRepository customerRepo, RoomRepository roomRepo) {
+        this.customerRepository = customerRepo;
+        this.roomRepository = roomRepo;
+        loadBookingFromCSV();
+    }
 
     public void addBooking(Bookings booking){
         bookingByID.put(booking.getBookingID(), booking);
@@ -61,7 +80,27 @@ public class BookingRepository {
         return false ; //ไม่ทับกัน
     }
 
- public void saveBookingToCSV() {
+    public String generateNextBookingId() {
+    String prefix = "LUNA";
+
+    int maxId = bookingByID.values().stream()
+        .map(Bookings::getBookingID)                     
+        .filter(Objects::nonNull)                         
+        .filter(id -> id.startsWith(prefix))             
+        .map(id -> id.substring(prefix.length()))       
+        .filter(num -> num.matches("\\d+"))            
+        .mapToInt(Integer::parseInt)                      
+        .max()
+        .orElse(0);                                      
+
+        int nextId = maxId + 1;
+        return prefix + String.format("%016d", nextId);       
+    }
+
+
+
+
+    public void saveBookingToCSV() {
     File fi = new File("File/Booking.csv");
     try {
         // ถ้าโฟลเดอร์ยังไม่มี → สร้างขึ้นมา
@@ -103,7 +142,7 @@ public class BookingRepository {
 
     //ดึงข้อมูลมาดึงข้อมูลของ csv เข้ามาเก็บใน hash
     // ค่อยเพิ่มเติมตรงจุด แจ้ง exception กรณีไม่เจอไฟล์
-   public boolean loadBookingFromCSV(CustomerRepository customerRepo, RoomRepository roomRepo) {
+   public boolean loadBookingFromCSV() {
     File fi = new File("File/Booking.csv");
     try {
         if (!fi.getParentFile().exists()) {
@@ -140,8 +179,8 @@ public class BookingRepository {
                 LocalTime timeBooking = LocalTime.parse(parts[8]);
                 BookingStatus status = BookingStatus.valueOf(parts[9]);
 
-                Customer customer = customerRepo.getCustomerById(idCard);
-                Room room = roomRepo.getRoom(numberRoom);
+                Customer customer = this.customerRepository.getCustomerById(idCard);
+                Room room = this.roomRepository.getRoom(numberRoom);
                
                 if (customer != null && room != null) {
                     Bookings booking = new Bookings(room, customer, bookingID, dateCheckin, timeCheckin, dateCheckout, timeCheckout, dateBooking, timeBooking);

@@ -36,9 +36,10 @@ public class ReservationsController implements Initializable {
 
 
     //new เพื่อจะเรียกโหลด csv มาใส่ใน column
-    private CustomerRepository customerRepository = new CustomerRepository();
+    private CustomerRepository customerRepository = CustomerRepository.getInstance();
     private RoomRepository roomRepository = RoomRepository.getInstance();
-    private BookingRepository bookingRepository = new BookingRepository();
+    private BookingRepository bookingRepository = BookingRepository.getInstance();
+    private ObservableList<ReservationsTableView> bookingList = FXCollections.observableArrayList();
 
 
     @Override
@@ -49,29 +50,52 @@ public class ReservationsController implements Initializable {
         CheckInColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("checkin"));
         DateBookingColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("booking"));
        
-        customerRepository.loadCustomerFromCSV();
+        /*customerRepository.loadCustomerFromCSV();
         roomRepository.loadRoomFromCSV();
-        bookingRepository.loadBookingFromCSV(customerRepository, roomRepository);
-
-        System.out.println("Customers loaded: " + customerRepository.getAllCustomers().size());
-        System.out.println("Rooms loaded: " + roomRepository.getAllRooms().size());
-        System.out.println("Bookings loaded: " + bookingRepository.getAllBookings().size());
+        bookingRepository.loadBookingFromCSV();*/
 
         //TableView ของ JavaFX ใช้ ObservableList
-        ObservableList<ReservationsTableView> allCustomers = FXCollections.observableArrayList();
 
         //เราดึงข้อมูลจาก Hash มาเป็นลิส
-        for (Bookings booking : bookingRepository.getAllBookings()) {
+        /*for (Bookings booking : bookingRepository.getAllBookings()) {
         Room room = booking.getRoom();
         Customer customer = booking.getCustomer();
-        allCustomers.add(new ReservationsTableView(room, customer,booking));
-        
-    }
+        allCustomers.add(new ReservationsTableView(room, customer,booking));*/
 
         //เราข้อมูลทั้งหมดใส่ใน tableview
-        ReservationsTable.setItems(allCustomers);
+        loadReservationsData();
+        ReservationsTable.setItems(bookingList);
+    }
+
+    private void loadReservationsData() {
+
+        bookingList.clear();
+
+       
+        for (Bookings booking : bookingRepository.getAllBookings()) {
+            
+            Room room = booking.getRoom();
+            Customer customer = booking.getCustomer();
+
+            if (room != null && customer != null) {
+                bookingList.add(new ReservationsTableView(room, customer, booking));
+            } else {
+                System.out.println("Booking " + booking.getBookingID() + " is missing Room or Customer data.");
+            }
+        }
+    }
+
+    public void refreshTable() {
+        loadReservationsData();
     }
 
 
 }
+
+        
+    
+
+
+
+
 

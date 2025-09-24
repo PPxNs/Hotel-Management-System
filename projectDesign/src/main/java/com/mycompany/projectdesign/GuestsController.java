@@ -50,9 +50,9 @@ public class GuestsController implements Initializable{
     
 
     //new เพื่อจะเรียกโหลด csv มาใส่ใน column
-    private CustomerRepository customerRepository = new CustomerRepository();
+    private CustomerRepository customerRepository = CustomerRepository.getInstance();
     private RoomRepository roomRepository = RoomRepository.getInstance();
-    private BookingRepository bookingRepository = new BookingRepository();
+    private BookingRepository bookingRepository = BookingRepository.getInstance();
 
 
     @Override
@@ -66,33 +66,39 @@ public class GuestsController implements Initializable{
         StatusColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("status"));
 
         //โหลดข้อมูลจาก csv
-        customerRepository.loadCustomerFromCSV();
+        /*customerRepository.loadCustomerFromCSV();
         roomRepository.loadRoomFromCSV();
-        bookingRepository.loadBookingFromCSV(customerRepository, roomRepository);
+        bookingRepository.loadBookingFromCSV();*/
 
         //TableView ของ JavaFX ใช้ ObservableList
         ObservableList<GuestsTableView> allCustomers = FXCollections.observableArrayList();
 
         //เราดึงข้อมูลจาก Hash มาเป็นลิส
-        for (Map.Entry<String, List<Customer>> entry : customerRepository.getAllCustomers().entrySet()) {
-            Room room = roomRepository.getRoom(entry.getKey());
+    for (Map.Entry<String, List<Customer>> entry : customerRepository.getAllCustomers().entrySet()) {
+        String roomNo = entry.getKey(); 
+        Room room = roomRepository.getRoom(roomNo); // ใช้ roomNo ไปหา
 
-            for (Customer customer : entry.getValue()) {
-                Bookings booking = bookingRepository.getBookingByRoom(room.getNumberRoom());
+     if (room != null) {   // กัน null
+        for (Customer customer : entry.getValue()) {
+            Bookings booking = bookingRepository.getBookingByRoom(roomNo);
 
             if (booking != null) {
                 allCustomers.add(new GuestsTableView(room, customer, booking));
             }
         }
+    } else {
+        System.out.println("ห้อง " + roomNo + " ไม่มีใน roomRepository");
+    }
+
+
     }
         //เราข้อมูลทั้งหมดใส่ใน tableview
         guestTable.setItems(allCustomers);
         guestTable.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<GuestsTableView>() {
             @Override
             public void changed(ObservableValue<? extends GuestsTableView> observable, GuestsTableView oldValue, GuestsTableView newValue) {
-            // newValue คือแถวใหม่ที่ถูกเลือก (อาจจะเป็น null ถ้าไม่มีแถวไหนถูกเลือก)
+            
             if (newValue != null) {
-            // ดึงอ็อบเจกต์ Customer จากแถวที่เลือก แล้วส่งไปแสดงผล
             showCustomerDetails(newValue.getCustomer(), newValue.getRoom());
         }}});
        

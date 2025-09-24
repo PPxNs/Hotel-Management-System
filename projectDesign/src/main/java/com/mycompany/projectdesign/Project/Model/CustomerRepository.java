@@ -8,6 +8,18 @@ import java.util.*;
 
 public class CustomerRepository {
 
+    private static final CustomerRepository instance = new CustomerRepository();
+    HashMap<String, Room > allRoomsByKey = new HashMap<String, Room>(); // สร้าง hash map มีตัวของ key เป็น Integer และ value เป็น Room (เริ่มแรกจะใช้ String แต่น่าจะเข้าถึงข้อมูลลำบากขึ้น)
+    
+    //เปิดให้ใช้ CustomerRepository เดียวทั้งแอป ไม่ให้ new ด้านนอก
+    private CustomerRepository(){
+        loadCustomerFromCSV();
+    }
+    
+    public static CustomerRepository getInstance(){
+        return instance;
+    }
+
     private HashMap<String, List<Customer>> customersByRoom = new HashMap<>();
 
     public List<Customer> getCustomersByRoom(String roomNo) {

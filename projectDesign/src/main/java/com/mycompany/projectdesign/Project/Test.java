@@ -19,8 +19,8 @@ public class Test {
         // SETUP: ข้อมูลฐานข้อมูล
         // สร้าง Repository ทั้งหมด
         RoomRepository roomRepo = RoomRepository.getInstance();
-        CustomerRepository customerRepo = new CustomerRepository();
-        BookingRepository bookingRepo = new BookingRepository(); 
+        CustomerRepository customerRepo = CustomerRepository.getInstance();
+        BookingRepository bookingRepo = BookingRepository.getInstance(); 
         DepositFactory depositFactory = new DepositFactory();
         
         // สร้าง Notifier และลง Observers

@@ -35,8 +35,9 @@ public class RoomRepository {
 
     // เพิ่มห้อง 
     public boolean addRoom(Room room){
-        if (!allRoomsByKey.containsKey(room.getNumberRoom())) {
-            allRoomsByKey.put(room.getNumberRoom(), room);
+        String key = room.getNumberRoom().toUpperCase();
+        if (!allRoomsByKey.containsKey(key)) {
+            allRoomsByKey.put(key, room);
             return true;
         }
         return false;
@@ -61,16 +62,21 @@ public class RoomRepository {
     // แก้ไขรายละเอียดของห้อง เราเลือกแก้ไขที่ hash เข้าถึงผ่านคีย์ อาจจะต้องมีตัว gui ให้เข้าถึงได้โดยตรงไม่ต้องใช้งานผ่านตัวแอด
     public boolean replaceRoom(String numberRoom, String type, double price,String imagePath,int people, List<String> properties, RoomStatus status){
 
-        if (!allRoomsByKey.containsKey(numberRoom)) {
+        String key = numberRoom.toUpperCase();
+        if (!allRoomsByKey.containsKey(key)) {
             return false;
         } else 
-            allRoomsByKey.put(numberRoom, new Room(numberRoom, type, price,imagePath,people,properties,status));
+            allRoomsByKey.put(key, new Room(key, type, price,imagePath,people,properties,status));
         return true;
     }
 
     //เคลียร์ hash รีเซ็ตคลังข้อมูล
     public void removeAllRoom(){
         allRoomsByKey.clear();
+    }
+
+    public boolean findByRoomNo(String rooomNo){
+        return allRoomsByKey.containsKey(rooomNo.toUpperCase());
     }
 
     //มีระบบเหมือนปิดโปรแกรมแล้วเรา hash ไปเป็น csv ตอนปรับหรือ update database น่าจะง่ายขึ้น
