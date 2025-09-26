@@ -12,12 +12,12 @@ public class Room {
 
     //เราจะทำการเก็บตัวของข้อมูลของห้องพักทั้งหมด โดยอาศัยการรับข้อมูลจาก ฝั่งของ RoomRepository
     private final String numberRoom ; // เก็บข้อมูลหมายเลยห้อง
-    private final String type;    //เก็บข้อมูลประเภทของห้อง เช่น ห้องเดี่ยว ห้องคู่ หรือห้องชุด
-    private final double price; // เก็บข้อมูลราคาห้องพัก
+    private String type;    //เก็บข้อมูลประเภทของห้อง เช่น ห้องเดี่ยว ห้องคู่ หรือห้องชุด
+    private double price; // เก็บข้อมูลราคาห้องพัก
     private RoomStatus status; // เก็บข้อมูลสถานะห้องว่าง ไม่ว่าง มีคนจองแล้ว หรือกำลังทำความสะอาด
-    private final String imagePath; // เพิ่มเก็บรูปห้อง
-    private final int people; //จำนวนที่สามารถเข้าพักในห้องได้
-    private final List<String> properties ;
+    private String imagePath; // เพิ่มเก็บรูปห้อง
+    private int people; //จำนวนที่สามารถเข้าพักในห้องได้
+    private List<String> properties ;
     //private final ArrayList<String> property ; //ลิสคุณสมบัติห้องพัก
 
     
@@ -64,6 +64,10 @@ public class Room {
         return status;
     }
 
+    public void setRoomType(String roomType) { this.type = roomType;}
+    public void setPrice(Double price) { this.price = price; }
+    public void setImagePath(String imagePath){ this.imagePath = imagePath; }
+    public void setPeople(int people) { this.people = people;}
     public void setStatus(RoomStatus status) {this.status = status; }
-
+    public void setProperties (List<String> properties ){ this.properties = properties;} 
 }

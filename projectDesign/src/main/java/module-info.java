@@ -4,6 +4,7 @@ module com.mycompany.projectdesign {
     // VVV --- 1. เปลี่ยนเป็น transitive เพื่อแก้ปัญหา Stage --- VVV
     requires transitive javafx.graphics; 
     requires java.base;
+    requires com.github.librepdf.openpdf;
 
     // VVV --- 2. เปิด Package หลักและ Package ย่อยเพื่อให้ FXML เข้าถึงได้ --- VVV
     opens com.mycompany.projectdesign to javafx.fxml;

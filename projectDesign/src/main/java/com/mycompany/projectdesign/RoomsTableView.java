@@ -5,40 +5,28 @@ import javafx.beans.property.*;
 
 public class RoomsTableView {
 
-    private final StringProperty numberRoom;
-    private final StringProperty image;
-    private final StringProperty roomType;
-    private final StringProperty price;
-    private final StringProperty people;
-    private final StringProperty property;
-    private final StringProperty status;
-    
-
+    //ตอนแรกให้มันเป็นฐานดึงเข้า TableView ต้องเปลี่ยนเป็นตัวกลางแทน จะได้ขึ้นทันที
     // เก็บ object ต้นฉบับไว้ด้วย
     private final Room room;
 
+
     public RoomsTableView(Room room) {
         this.room = room;
-        this.numberRoom = new SimpleStringProperty(room.getNumberRoom());
-        this.image = new SimpleStringProperty(room.getImagePath()); 
-        this.roomType = new SimpleStringProperty(room.getType());
-        this.price = new SimpleStringProperty(String.valueOf(room.getPrice()));
-        this.people = new SimpleStringProperty(String.valueOf(room.getPeople()));
-        this.property = new SimpleStringProperty(String.join(", ", room.getProperties()));
-        this.status = new SimpleStringProperty(room.getStatus().name());
     }
-
-    //มันเป็น StringProperty จะต้องใช้ .get
-    public String getNumberRoom() { return numberRoom.get(); }
-    public String getImage() { return image.get();}
-    public String getRoomType() { return roomType.get(); }
-    public String getPrice() { return price.get(); }
-    public String getPeople() { return people.get(); }
-    public String getProperty() { return property.get(); }
-    public String getStatus() { return status.get(); }
 
     // getter object จริง
     public Room getRoom() { return room; }
+
+    //มันเป็น StringProperty จะต้องใช้ .get
+    public String getNumberRoom() { return this.room.getNumberRoom(); }
+    public String getImage() { return this.room.getImagePath();}
+    public String getRoomType() { return this.room.getType(); }
+    public String getPrice() { return String.valueOf(this.room.getPrice()); }
+    public String getPeople() { return String.valueOf(this.room.getPeople()); }
+    public String getProperty() { return String.join(", ",this.room.getProperties()); }
+    public String getStatus() { return this.room.getStatus().toString(); }
+
+    
 
 
 
