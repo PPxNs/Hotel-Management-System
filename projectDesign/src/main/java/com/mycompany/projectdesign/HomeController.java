@@ -23,6 +23,8 @@ import com.mycompany.projectdesign.Project.DecoratorPattern.MealDecorator;
 import com.mycompany.projectdesign.Project.DecoratorPattern.PickupServiceDecorator;
 import com.mycompany.projectdesign.Project.FactoryMethodPattern.DepositFactory;
 import com.mycompany.projectdesign.Project.FactoryMethodPattern.DepositRoom;
+import com.mycompany.projectdesign.Project.Model.AmountPaid;
+import com.mycompany.projectdesign.Project.Model.AmountPaidRepository;
 import com.mycompany.projectdesign.Project.Model.BookingRepository;
 import com.mycompany.projectdesign.Project.Model.Bookings;
 import com.mycompany.projectdesign.Project.Model.Customer;
@@ -70,6 +72,8 @@ public class HomeController implements Initializable {
     @FXML private ComboBox<Integer> numberPeopleComboBox;
     @FXML private ComboBox<String> checkinTimeCombobox;
     @FXML private ComboBox<String> checkoutTimeCombobox;
+    @FXML private ComboBox<String> checkinTimeCombobox1;
+    @FXML private ComboBox<String> checkoutTimeCombobox1;
     @FXML private ComboBox<String> countryCombobox;
 
     @FXML private RadioButton maleRadioButton;
@@ -89,6 +93,8 @@ public class HomeController implements Initializable {
 
     @FXML private DatePicker checkinDatePicker;
     @FXML private DatePicker checkoutDatePicker;
+    @FXML private DatePicker checkinDatePicker1;
+    @FXML private DatePicker checkoutDatePicker1;
 
     @FXML private TableView<HomeTableView> bookingTable;
 
@@ -102,14 +108,16 @@ public class HomeController implements Initializable {
     @FXML private TableColumn<HomeTableView,String> statusColumn;   
 
     private List<Room> allRooms;
-    private List<Bookings> bookings;
+    private List<Bookings> bookings = new ArrayList<>();
     private RoomRepository roomRepository = RoomRepository.getInstance();
     private CustomerRepository customerRepository = CustomerRepository.getInstance();
     private BookingRepository bookingRepository = BookingRepository.getInstance();
+    private AmountPaidRepository amountPaidRepository = AmountPaidRepository.getInstance();
     private List<CheckBox> allCheckbox;
     private ToggleGroup genderToggleGroup;
     private HotelEventManager eventManager = new HotelEventManager();
     private ObservableList<HomeTableView> homeBookingList = FXCollections.observableArrayList();
+    
 
 
     public HomeController(){
@@ -166,24 +174,49 @@ public class HomeController implements Initializable {
         checkinColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("checkin"));
         checkoutColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("checkout"));
         statusColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("status"));
-        amountPaidColumn.setCellValueFactory(null);
+        amountPaidColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("amount"));
         
-        for (Bookings booking : bookingRepository.getAllBookings()){
+        /*for (Bookings booking : bookingRepository.getAllBookings()){
             homeBookingList.add(new HomeTableView(booking));
+        }*/
+
+            for (Bookings booking : bookingRepository.getAllBookings()) {
+                AmountPaid paid = amountPaidRepository.getAmountByBookingID(booking.getBookingID());
+            if (paid != null) {
+                homeBookingList.add(new HomeTableView(booking, paid));
+            } else {
+                // ถ้า booking นี้ยังไม่มีการจ่ายแสดง 0
+                homeBookingList.add(new HomeTableView(booking, new AmountPaid(booking, 0.0)));
+            }
         }
 
-
         bookingTable.setItems(homeBookingList);
-
         checkinTimeCombobox.setItems(timeCheckin);
         checkoutTimeCombobox.setItems(timeCheckout);
+        checkinTimeCombobox1.setItems(timeCheckin);
+        checkoutTimeCombobox1.setItems(timeCheckout);
         roomTypeComboBox.setItems(roomType);
         numberPeopleComboBox.setItems(people);
         loadCountriesFromCSV();
         addFiterListeners();
         updateAvailableRoom();
 
-    }    
+        roomNoComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                getDataFormRoomSelected(newVal);
+            }
+        });
+
+    }
+    
+    private void addBookingToTable(HomeTableView newEntry){
+    boolean exists = homeBookingList.stream()
+        .anyMatch(h -> h.getBookingID().equals(newEntry.getBookingID()));
+    if (!exists) {
+        homeBookingList.add(newEntry);
+        }
+    }
+
 
     private void loadCountriesFromCSV() {
         ObservableList<String> countryList = FXCollections.observableArrayList();
@@ -315,6 +348,8 @@ public class HomeController implements Initializable {
             availableRooms.stream().map(Room::getNumberRoom).toList()
         ));
        
+
+        
         
     }
 
@@ -396,8 +431,8 @@ public class HomeController implements Initializable {
         String roomNo = roomNoComboBox.getValue();
         Room room = roomRepository.getRoom(roomNo);
 
-        if (checkinDatePicker.getValue() == null || checkoutDatePicker.getValue() == null ||
-            checkinTimeCombobox.getValue() == null || checkoutTimeCombobox.getValue() == null) {
+        if (checkinDatePicker1.getValue() == null || checkoutDatePicker1.getValue() == null ||
+            checkinTimeCombobox1.getValue() == null || checkoutTimeCombobox1.getValue() == null) {
             
                 System.out.println("เขียนข้อมูลไม่ครบ"); //อาจจะเพิ่ม pop up แจ้ง 
                 return null ;
@@ -405,10 +440,10 @@ public class HomeController implements Initializable {
         } else{
 
         String bookingID = bookingRepository.generateNextBookingId();
-        LocalDate checkinDate = checkinDatePicker.getValue();
-        LocalDate checkoutDate = checkoutDatePicker.getValue();
-        LocalTime checkinTime = LocalTime.parse(checkinTimeCombobox.getValue());
-        LocalTime checkoutTime = LocalTime.parse(checkoutTimeCombobox.getValue());
+        LocalDate checkinDate = checkinDatePicker1.getValue();
+        LocalDate checkoutDate = checkoutDatePicker1.getValue();
+        LocalTime checkinTime = LocalTime.parse(checkinTimeCombobox1.getValue());
+        LocalTime checkoutTime = LocalTime.parse(checkoutTimeCombobox1.getValue());
         LocalDate bookingDate = LocalDate.now();
         LocalTime bookingTime = LocalTime.now();
 
@@ -435,11 +470,12 @@ public class HomeController implements Initializable {
         bookingRepository.addBooking(newBookings);
         bookingRepository.saveBookingToCSV();
 
-        homeBookingList.add(new HomeTableView(newBookings)); 
+        AmountPaid amountObj = new AmountPaid(newBookings, 0.0);
+        amountPaidRepository.addAmount(amountObj);
+        addBookingToTable(new HomeTableView(newBookings, amountObj));
 
         clearForm();
         updateAvailableRoom();
-
     }
 
     @FXML private void saveBooking(ActionEvent event) {
@@ -461,8 +497,9 @@ public class HomeController implements Initializable {
         customerRepository.saveCustomerToCSV();
         bookingRepository.saveBookingToCSV();
 
-        homeBookingList.add(new HomeTableView(newBookings));
-
+        AmountPaid amountObj = new AmountPaid(newBookings, 0.0);
+        amountPaidRepository.addAmount(amountObj);
+        addBookingToTable(new HomeTableView(newBookings, amountObj));
         clearForm();
         updateAvailableRoom();
     }
@@ -474,7 +511,12 @@ public class HomeController implements Initializable {
         customerRepository.saveCustomerToCSV();
         bookingRepository.saveBookingToCSV();;
 
-        homeBookingList.add(new HomeTableView(booking));
+        AmountPaid amountObj = amountPaidRepository.getAmountByBookingID(booking.getBookingID());
+        if (amountObj == null) {
+            amountObj = new AmountPaid(booking, 0.0);
+            amountPaidRepository.addAmount(amountObj);
+        }
+        addBookingToTable(new HomeTableView(booking, amountObj));
 
         clearForm();
         updateAvailableRoom();
@@ -501,11 +543,14 @@ public class HomeController implements Initializable {
         DiscountStrategy discountStrategy = DiscountSelector.getStrategy(roomForBill, newBookings);
         HotelCalculator calculator = new HotelCalculator();
         double finalPriceRoom = calculator.calculateFinalPrice(roomForBill, newBookings, discountStrategy);
-        double totalCostAfterDiscount = finalPriceRoom + depositRoom.getCost(); 
-    
+        double totalCostAfterDiscount = finalPriceRoom + depositRoom.getCost();
+        
+        
+        AmountPaid amountObj = new AmountPaid(newBookings, totalCostAfterDiscount);
+        amountPaidRepository.addAmount(amountObj);
+        amountPaidRepository.saveAmountPaidToCSV();
+        addBookingToTable(new HomeTableView(newBookings, amountObj));
 
-
-    
         Alert confirmationDialog = new Alert(Alert.AlertType.CONFIRMATION);
             confirmationDialog.setTitle("ยืนยันการจอง");
             confirmationDialog.setHeaderText("กรุณาตรวจสอบรายละเอียดการจองก่อนบันทึก");
@@ -571,6 +616,50 @@ public class HomeController implements Initializable {
         for(CheckBox cb : allCheckbox){
             cb.setSelected(false);
         }
+    }
+
+    //set หลังเลือกห้อง
+    private void getDataFormRoomSelected(String roomNumber){
+        String roomtype = roomRepository.getRoom(roomNumber).getType();
+        int numPeople = roomRepository.getRoom(roomNumber).getPeople();
+        List<String> properties = roomRepository.getRoom(roomNumber).getProperties();
+
+        for(CheckBox cb : allCheckbox){
+            cb.setSelected(false);
+        }
+
+        roomTypeComboBox.setValue(roomtype);
+        numberPeopleComboBox.setValue(numPeople);
+        if (properties != null) {
+            if(properties.contains("Jacuzii")) jacuzziCheckBox.setSelected(true);
+            if(properties.contains("Lake View")) lakeViewCheckBox.setSelected(true);
+            if(properties.contains("Pet-Friendly")) petFriendlyCheckBox.setSelected(true);
+            if(properties.contains("Private Pool")) privatePoolCheckBox.setSelected(true);
+            if(properties.contains("TV 58” 4K UHD LED")) tvCheckBox.setSelected(true);
+            if(properties.contains("WIFI")) wifiCheckBox.setSelected(true);
+        }
+
+        LocalDate checkinDate = checkinDatePicker.getValue();
+        LocalDate checkoutDate = checkoutDatePicker.getValue();
+        String checkinTime = checkinTimeCombobox.getValue();
+        String checkoutTime = checkoutTimeCombobox.getValue();
+
+        if (checkinDate != null) {
+            checkinDatePicker1.setValue(checkinDate);
+        }
+
+        if (checkinTime != null) {
+            checkinTimeCombobox1.setValue(checkinTime);
+        }
+
+        if (checkoutDate != null) {
+            checkoutDatePicker1.setValue(checkoutDate);
+        }
+
+        if (checkoutTime != null) {
+            checkoutTimeCombobox1.setValue(checkoutTime);
+        }
+        
     }
 
     

@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+import com.mycompany.projectdesign.Project.Model.AmountPaidRepository;
 import com.mycompany.projectdesign.Project.Model.BookingRepository;
 import com.mycompany.projectdesign.Project.Model.CustomerRepository;
 import com.mycompany.projectdesign.Project.Model.RoomRepository;
@@ -28,6 +29,10 @@ public class App extends Application {
         BookingRepository bookingRepo = BookingRepository.getInstance();
         bookingRepo.initialize(customerRepo, roomRepo); 
         bookingRepo.loadBookingFromCSV();
+
+        AmountPaidRepository amountPaid = AmountPaidRepository.getInstance();
+        amountPaid.setBookingRepository(bookingRepo); 
+        amountPaid.loadAmountPaidFromCSV();
 
         scene = new Scene(loadFXML("MainView"), 1410, 780); 
         stage.setScene(scene);

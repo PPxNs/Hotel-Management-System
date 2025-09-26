@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.function.Predicate;
 
 import com.mycompany.projectdesign.Project.Model.Room;
 import com.mycompany.projectdesign.Project.Model.RoomRepository;
@@ -17,6 +18,8 @@ import com.mycompany.projectdesign.Project.Model.RoomStatus;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -28,10 +31,15 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
+import javafx.scene.layout.HBox;
+import java.util.Optional;
+import javafx.scene.control.ButtonType;
+import javafx.util.Callback; 
 
 
 
@@ -43,6 +51,7 @@ public class RoomsController implements Initializable {
     @FXML private ComboBox<String> roomTypeComboBox;
     @FXML private ComboBox<String> allTypeComboBox;
     @FXML private ComboBox<String> statusComboBox;
+    @FXML private TextField searchField;
     @FXML private TextField roomNoField;
     @FXML private TextField priceField;
     @FXML private TextField peopleField;
@@ -62,14 +71,18 @@ public class RoomsController implements Initializable {
     @FXML private TableColumn<RoomsTableView,String> peopleColumn;
     @FXML private TableColumn<RoomsTableView,String> propertyColumn;
     @FXML private TableColumn<RoomsTableView,String> statusColumn;
+    @FXML private TableColumn<RoomsTableView, Void> actionColumn;
 
     //ปุ่ม
     @FXML private Button addImgButton;
+    @FXML private Button AddRoomButton;
+    @FXML private Button SaveEditButton;
 
     private List<CheckBox> allCheckbox;
     private final List<String> seselectedProperties = new ArrayList<>();
     private RoomRepository roomRepository = RoomRepository.getInstance();
     private ObservableList<RoomsTableView> roomList = FXCollections.observableArrayList();
+    private Room currentEditRoom = null ; //ตัวแปรเก็บข้อมูลเพื่อแก้ไข
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -87,8 +100,17 @@ public class RoomsController implements Initializable {
             "suite"
         );
 
-        ObservableList<String> statusRoom = FXCollections.observableArrayList(
-       "AVAILABLE",     
+        ObservableList<String> allType = FXCollections.observableArrayList(
+   "All Types",
+            "Single room",
+            "Double room",
+            "Twin room",
+            "suite"
+        );
+
+        ObservableList<String> allStatus = FXCollections.observableArrayList(
+       "All Status",
+                "AVAILABLE",     
                 "OCCUPIED",      
                 "CLEANING",        
                 "MAINTENANCE"      
@@ -96,8 +118,10 @@ public class RoomsController implements Initializable {
 
         //อันนี้เซตค่าใน combobox 
         roomTypeComboBox.setItems(roomType);
-        allTypeComboBox.setItems(roomType);
-        statusComboBox.setItems(statusRoom);
+        allTypeComboBox.setItems(allType);
+        allTypeComboBox.setValue("All Types");
+        statusComboBox.setItems(allStatus);
+        statusComboBox.setValue("All status");
         
         allCheckbox = Arrays.asList(jacuzziCheckBox, lakeViewCheckBox,petFriendlyCheckBox,privatePoolCheckBox,tvCheckBox,wifiCheckBox);
 
@@ -107,8 +131,23 @@ public class RoomsController implements Initializable {
         priceColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("price"));
         peopleColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("people"));
         propertyColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("property"));
-        statusColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("status"));
 
+        ObservableList<String> statusObtions = FXCollections.observableArrayList();
+        for(RoomStatus status : RoomStatus.values()){
+            statusObtions.add(status.name());
+        }
+
+        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+        statusColumn.setCellFactory(ComboBoxTableCell.forTableColumn(statusObtions));
+
+        statusColumn.setOnEditCommit(event -> {
+            RoomsTableView roomView = event.getRowValue();
+            Room roomUpdate = roomView.getRoom();
+            RoomStatus newStatus = RoomStatus.valueOf(event.getNewValue());
+            roomUpdate.setStatus(newStatus);
+            roomRepository.saveRoomToCSV();
+            roomTable.refresh();
+        });
 
         //Lambda Expression หลักการ (parameter) -> { statements }
         imageColumn.setCellFactory(col -> new TableCell<RoomsTableView,String>() {
@@ -135,17 +174,156 @@ public class RoomsController implements Initializable {
         }
         );
 
-    
-
 
         for (Room room : roomRepository.getAllRooms()) {
             roomList.add(new RoomsTableView(room)); 
         }
 
-        //เราข้อมูลทั้งหมดใส่ใน tableview
-        roomTable.setItems(roomList);
+        roomTable.setEditable(true); //แก้ตารางได้
+        statusColumn.setEditable(true); //แก้สเตตัสได้
+        //set เรื่องการค้นหา
+        FilteredList<RoomsTableView> filteredData = new FilteredList<>(roomList, p -> true);
+        searchField.textProperty().addListener((obs, oldVal,newVal) ->{
+            filteredData.setPredicate(createPredicate(newVal, allTypeComboBox.getValue(), statusComboBox.getValue()));
+        });
+
+        allTypeComboBox.valueProperty().addListener((obs, oldVal,newVal) ->{
+            filteredData.setPredicate(createPredicate(searchField.getText(), newVal, statusComboBox.getValue()));
+        });
+
+        statusComboBox.valueProperty().addListener((obs, oldVal,newVal) ->{
+            filteredData.setPredicate(createPredicate(searchField.getText(), allTypeComboBox.getValue(), newVal));
+        });
         
-    }   
+        SortedList<RoomsTableView> sortedData = new SortedList<>(filteredData);
+        sortedData.comparatorProperty().bind(roomTable.comparatorProperty());
+        //เราข้อมูลทั้งหมดใส่ใน tableview
+
+        roomTable.setItems(sortedData);
+        
+        //สร้างปุ่มใน action
+        setupActionColumn();
+    } 
+
+    
+    private Predicate<RoomsTableView> createPredicate(String searchText, String type, String status){
+        //ส่งข้อมูลก็ต่อเมื่อ ....
+        return room -> {
+            boolean searchMatch = true;
+            if (searchText != null && !searchText.isEmpty()) {
+                searchMatch = room.getNumberRoom().toLowerCase().contains(searchText.toLowerCase());
+            }
+
+            boolean typeMatch = true;
+            if (type != null && !type.equals("All Types")) {
+                typeMatch = room.getRoomType().equalsIgnoreCase(type);
+            }
+
+            boolean statusMatch = true;
+            if (status != null && !status.equalsIgnoreCase("All status")) {
+                statusMatch = room.getStatus().equalsIgnoreCase(status);
+            }
+
+            return searchMatch && typeMatch && statusMatch;
+        };
+    }
+
+    private void setupActionColumn() {
+        Callback<TableColumn<RoomsTableView, Void>, TableCell<RoomsTableView, Void>> cellFactory = new Callback<>() {
+            @Override
+            public TableCell<RoomsTableView, Void> call(final TableColumn<RoomsTableView, Void> param) {
+                final TableCell<RoomsTableView, Void> cell = new TableCell<>() {
+
+                    private final Button editButton = new Button();
+                    private final Button deleteButton = new Button();
+
+                    //ออกแบบตัวปุ่ม
+                    {
+                       
+                        ImageView editIcon = new ImageView(new Image(getClass().getResourceAsStream("/img/icons8-edit-64.png")));
+                        editIcon.setFitHeight(16);
+                        editIcon.setFitWidth(16);
+
+                        ImageView deleteIcon = new ImageView(new Image(getClass().getResourceAsStream("/img/icons8-trash-60.png")));
+                        deleteIcon.setFitHeight(16);
+                        deleteIcon.setFitWidth(16);
+
+                        editButton.setGraphic(editIcon);
+                        deleteButton.setGraphic(deleteIcon);
+
+                        //ใส่ใน styclass ส่งต่อให้เจ้เจ๊แต่ง css
+                        editButton.getStyleClass().add("action-button");
+                        deleteButton.getStyleClass().add("action-button");
+                    }
+
+	                //ใช้ Instance Initializer Block {...} เพื่อกำหนด Action ให้กับปุ่ม //ทำงานครั้งเดียว
+                    {
+                        editButton.setOnAction(event -> {
+                            RoomsTableView roomView = getTableView().getItems().get(getIndex());
+                            populateFormForEdit(roomView.getRoom()); 
+                        });
+
+                        deleteButton.setOnAction(event -> {
+                            RoomsTableView roomView = getTableView().getItems().get(getIndex());
+                            deleteRoom(roomView); //
+                        });
+                    }
+
+                    private final HBox pane = new HBox(10, editButton, deleteButton);
+
+                    @Override
+                    public void updateItem(Void item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty) {
+                            setGraphic(null);
+                        } else {
+                            setGraphic(pane);
+                        }
+                    }
+                };
+                return cell;
+            }
+        };
+
+        actionColumn.setCellFactory(cellFactory);
+    }
+
+    private void populateFormForEdit(Room room){
+        currentEditRoom = room;
+        roomNoField.setText(room.getNumberRoom());
+        roomTypeComboBox.setValue(room.getType());
+        priceField.setText(String.valueOf(room.getPrice()));
+        peopleField.setText(String.valueOf(room.getPeople()));
+        imagePartField.setText(room.getImagePath());
+
+        List<String> features = room.getProperties();
+        for(CheckBox cb : allCheckbox){
+            cb.setSelected(features.contains(cb.getText()));
+        }
+
+        roomNoField.setDisable(true); // ไม่ให้แก้เลขห้อง
+        AddRoomButton.setDisable(true);
+        SaveEditButton.setDisable(false);
+    }
+
+    private void deleteRoom(RoomsTableView roomsTableViewToDelete){
+        Room roomToDelete = roomsTableViewToDelete.getRoom();
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm Deletion");
+        alert.setHeaderText("ห้องที่ต้องการลบ " + roomsTableViewToDelete.getNumberRoom());
+        alert.setContentText("คุณแน่ใจใช่ไหมที่จะลบห้องนี้ !?");
+
+        Optional <ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            roomRepository.removeRoom(roomToDelete.getNumberRoom());
+            roomRepository.saveRoomToCSV();
+            roomList.remove(roomsTableViewToDelete);
+        }
+    }
+
+
+
     
     public Room getRoomDatafromFome(){
         if (roomNoField.getText().isEmpty() || roomTypeComboBox.getValue() == null ||
@@ -177,14 +355,7 @@ public class RoomsController implements Initializable {
             }
         }
 
-        if (roomRepository.findByRoomNo(rooomNo)) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("ข้อมูลซ้ำ");
-            alert.setHeaderText(null);
-            alert.setContentText("ห้องเลข " + rooomNo + " ถูกลงทะเบียนแล้ว");
-            alert.showAndWait();
-            return null;
-        }
+
 
         return new Room(rooomNo, roomType, roomPrice, roomImage ,numberOfpeople,seselectedProperties,RoomStatus.AVAILABLE);
         }
@@ -192,15 +363,25 @@ public class RoomsController implements Initializable {
 
     @FXML private void  handleSaveButtonAction(){
         Room newRoom = getRoomDatafromFome();
+
+        if (roomRepository.findByRoomNo(newRoom.getNumberRoom())) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("ข้อมูลซ้ำ");
+            alert.setHeaderText(null);
+            alert.setContentText("ห้องเลข " + newRoom.getNumberRoom() + " ถูกลงทะเบียนแล้ว");
+            alert.showAndWait();
+            return ;
+        }
+
         if (newRoom != null) { 
-        roomRepository.addRoom(newRoom);
-        roomRepository.saveRoomToCSV();
+            roomRepository.addRoom(newRoom);
+            roomRepository.saveRoomToCSV();
 
-        roomList.add(new RoomsTableView(newRoom));
+            roomList.add(new RoomsTableView(newRoom));
 
-        //เคลียร์หลัง save
-        clearForm();
-    }
+            //เคลียร์หลัง save
+            clearForm();
+        }
 
     }
 
@@ -241,6 +422,49 @@ public class RoomsController implements Initializable {
             cb.setSelected(false);
         }
     }
+
+    @FXML private void handleSaveEditButtonAction(){
+        updateRoomDataFromForm();
+        roomRepository.saveRoomToCSV();
+        roomTable.refresh();
+        clearFormAndResetMode();
+
+    }
+
+    private void updateRoomDataFromForm(){
+        if (currentEditRoom != null) {
+            try {
+                // อัพเดทข้อมูล
+                currentEditRoom.setRoomType(roomTypeComboBox.getValue());
+                currentEditRoom.setPrice(Double.parseDouble(priceField.getText()));
+                currentEditRoom.setPeople(Integer.parseInt(peopleField.getText()));
+                currentEditRoom.setImagePath(imagePartField.getText());
+
+                seselectedProperties.clear();
+                for(CheckBox cb : allCheckbox){
+                    if (cb != null && cb.isSelected()) {
+                        seselectedProperties.add(cb.getText());
+                    }
+                }
+
+                currentEditRoom.setProperties(new ArrayList<>(seselectedProperties));
+
+            } catch (Exception e) {
+                System.out.println(e.getMessage()); // ค่อยทำ popup 
+            }
+        }
+    }
+
+    private void clearFormAndResetMode(){
+        clearForm();
+        currentEditRoom = null;
+        roomNoField.setDisable(false); //ให้กรอกเลขห้องได้
+        AddRoomButton.setDisable(false);
+        SaveEditButton.setDisable(true);
+
+    }
+
+
 
     
     

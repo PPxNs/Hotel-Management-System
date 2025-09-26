@@ -74,21 +74,22 @@ public class GuestsController implements Initializable{
         ObservableList<GuestsTableView> allCustomers = FXCollections.observableArrayList();
 
         //เราดึงข้อมูลจาก Hash มาเป็นลิส
-    for (Map.Entry<String, List<Customer>> entry : customerRepository.getAllCustomers().entrySet()) {
-        String roomNo = entry.getKey(); 
-        Room room = roomRepository.getRoom(roomNo); // ใช้ roomNo ไปหา
+        for (Map.Entry<String, List<Customer>> entry : customerRepository.getAllCustomers().entrySet()) {
+        String roomNo = entry.getKey();
+        Room room = roomRepository.getRoom(roomNo);
 
-     if (room != null) {   // กัน null
-        for (Customer customer : entry.getValue()) {
-            Bookings booking = bookingRepository.getBookingByRoom(roomNo);
+            if (room != null && !entry.getValue().isEmpty()) { 
+       
+                Customer primaryCustomer = entry.getValue().get(0); 
+                Bookings booking = bookingRepository.getBookingByRoom(roomNo);
 
             if (booking != null) {
-                allCustomers.add(new GuestsTableView(room, customer, booking));
-            }
+                allCustomers.add(new GuestsTableView(room, primaryCustomer, booking));
         }
-    } else {
-        System.out.println("ห้อง " + roomNo + " ไม่มีใน roomRepository");
+        } else {
+            System.out.println("ห้อง " + roomNo + " ไม่มีใน roomRepository หรือไม่มีข้อมูลลูกค้า");
     }
+
 
 
     }
