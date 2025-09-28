@@ -7,16 +7,22 @@ package com.mycompany.projectdesign;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import javafx.scene.control.Label;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
+import javafx.util.Callback; 
 
 import com.mycompany.projectdesign.Project.DecoratorPattern.CleaningRoomDecorator;
 import com.mycompany.projectdesign.Project.DecoratorPattern.MealDecorator;
@@ -34,6 +40,7 @@ import com.mycompany.projectdesign.Project.Model.RoomRepository;
 import com.mycompany.projectdesign.Project.ObserverPattern.BillEvent;
 import com.mycompany.projectdesign.Project.ObserverPattern.BillObserver;
 import com.mycompany.projectdesign.Project.ObserverPattern.HotelEventManager;
+import com.mycompany.projectdesign.Project.Service.BookingScheduler;
 import com.mycompany.projectdesign.Project.StrategyPattern.DiscountSelector;
 import com.mycompany.projectdesign.Project.StrategyPattern.DiscountStrategy;
 import com.mycompany.projectdesign.Project.StrategyPattern.HotelCalculator;
@@ -47,6 +54,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TableColumn;
@@ -66,6 +74,7 @@ public class HomeController implements Initializable {
     @FXML private TextField phoneField;
     @FXML private TextField addressField;
     @FXML private TextField cityField;
+    @FXML private TextField dayMealTextfield;
 
     @FXML private ComboBox<String> roomNoComboBox;
     @FXML private ComboBox<String> roomTypeComboBox;
@@ -96,6 +105,9 @@ public class HomeController implements Initializable {
     @FXML private DatePicker checkinDatePicker1;
     @FXML private DatePicker checkoutDatePicker1;
 
+    @FXML private Label totalLabel;
+    @FXML private Label dayMealLabel;
+
     @FXML private TableView<HomeTableView> bookingTable;
 
     //ดึงแต่ละ coluumn
@@ -115,30 +127,20 @@ public class HomeController implements Initializable {
     private AmountPaidRepository amountPaidRepository = AmountPaidRepository.getInstance();
     private List<CheckBox> allCheckbox;
     private ToggleGroup genderToggleGroup;
-    private HotelEventManager eventManager = new HotelEventManager();
+    private HotelEventManager eventManager = HotelEventManager.getInstance();
+    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private ObservableList<HomeTableView> homeBookingList = FXCollections.observableArrayList();
     
-
-
-    public HomeController(){
-        eventManager.addObserver(new BillObserver());
-    }
+    //แก้บัค
+    private boolean isUpdatingFromSelection = false;
+    private BookingScheduler bookingScheduler;
     
-
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        /*roomRepository = RoomRepository.getInstance();
-        roomRepository.loadRoomFromCSV();
-
-        customerRepository = CustomerRepository.getInstance();
-        customerRepository.loadCustomerFromCSV();
-
-        bookingRepository = BookingRepository.getInstance();
-        bookingRepository.initialize(customerRepository, roomRepository);*/
 
 
         allRooms = new ArrayList<>(roomRepository.getAllRooms());
-       // bookings = new ArrayList<>(bookingRepository.getAllBookings());
+
         //เซตเวลาของ checkin
         ObservableList<String> timeCheckin = FXCollections.observableArrayList(
   "14:00" , "14:30", "15:00" , "15:30", "16:00" , "16:30", "17:00" , 
@@ -176,12 +178,8 @@ public class HomeController implements Initializable {
         statusColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("status"));
         amountPaidColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("amount"));
         
-        /*for (Bookings booking : bookingRepository.getAllBookings()){
-            homeBookingList.add(new HomeTableView(booking));
-        }*/
-
-            for (Bookings booking : bookingRepository.getAllBookings()) {
-                AmountPaid paid = amountPaidRepository.getAmountByBookingID(booking.getBookingID());
+        for (Bookings booking : bookingRepository.getAllBookings()) {
+            AmountPaid paid = amountPaidRepository.getAmountByBookingID(booking.getBookingID());
             if (paid != null) {
                 homeBookingList.add(new HomeTableView(booking, paid));
             } else {
@@ -207,6 +205,12 @@ public class HomeController implements Initializable {
             }
         });
 
+        addPriceUpdateListeners();
+        setupDatePickers();
+
+        
+        bookingScheduler = new BookingScheduler();
+        bookingScheduler.start();
     }
     
     private void addBookingToTable(HomeTableView newEntry){
@@ -240,8 +244,12 @@ public class HomeController implements Initializable {
     }
 
     private void updateAvailableRoom(){
+        
+        if (isUpdatingFromSelection) {
+            return;
+        }
+
         //ดึงข้อมูลมาเพื่อจะเช็ค
-    
         String selectedRoomType = roomTypeComboBox.getValue();
         Integer selectedNumberPeople = numberPeopleComboBox.getValue();
 
@@ -358,12 +366,7 @@ public class HomeController implements Initializable {
         //ต่อวันกับเวลาเข้ากัน
         LocalDateTime checkin = checkinDate.atTime(checkinTime);
         LocalDateTime checkout = checkoutDate.atTime(checkoutTime);
-        
-        if (bookings.isEmpty()) {
-                return true;
-        }
-
-        for(Bookings booking : bookings){
+        for(Bookings booking : bookingRepository.getAllBookings()){
             
             if (booking.getRoom().getNumberRoom().equals(room.getNumberRoom())) {
 
@@ -376,6 +379,31 @@ public class HomeController implements Initializable {
             }
         }
         return true; //ว่าง ไม่มีเวลาทับซ้อน
+    }
+
+    //ให้ปฎิทินเลือกวันในอดีตไม่ได้
+    private void setupDatePickers(){
+        checkinDatePicker1.setDayCellFactory(picker -> new DateCell(){
+            @Override
+            public void updateItem(LocalDate date, boolean empty){
+                super.updateItem(date, empty);
+                setDisable(empty || date.isBefore(LocalDate.now()));
+            }
+            
+        });
+
+        checkinDatePicker1.valueProperty().addListener((obs, oldDate, newDate) -> {
+            final Callback<DatePicker, DateCell> dayCellFactory = picker -> new DateCell() {
+                @Override
+                public void updateItem(LocalDate date, boolean empty) {
+                    super.updateItem(date, empty);
+                    if (newDate != null) {
+                        setDisable(empty || !date.isAfter(newDate));
+                    }
+                }
+            };
+            checkoutDatePicker1.setDayCellFactory(dayCellFactory);
+        });
     }
 
     private void addFiterListeners(){
@@ -398,12 +426,30 @@ public class HomeController implements Initializable {
         wifiCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> updateAvailableRoom());
     }
 
+        //เวลาคีย์พวกนี้จำนวนเงินก็จะขึ้นทันที
+    private void addPriceUpdateListeners(){
+        cleaningRoomCheckBox.selectedProperty().addListener((obs, o, n) -> updateTotalLabel());
+        pickupServiceCheckbox.selectedProperty().addListener((obs, o, n) -> updateTotalLabel());
+        roomNoComboBox.valueProperty().addListener((obs, o, n) -> updateTotalLabel());
+        checkinDatePicker1.valueProperty().addListener((obs, o, n) -> updateTotalLabel());
+        checkoutDatePicker1.valueProperty().addListener((obs, o, n) -> updateTotalLabel());
+        mealCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            dayMealTextfield.setDisable(!newVal);
+            if(!newVal){
+                dayMealTextfield.clear();
+            }
+            updateTotalLabel();
+        });
+        dayMealTextfield.textProperty().addListener((obs, oldVal, newVal) -> updateTotalLabel());
+    }
+
     public Customer getCustomerDatafromFome(){
         
         if (idCardField.getText().isEmpty() || firstNameField.getText().isEmpty() || lastNameField.getText().isEmpty() ||
             emailField.getText().isEmpty() || phoneField.getText().isEmpty() || genderToggleGroup.getSelectedToggle() == null ||addressField.getText().isEmpty() ||
             cityField.getText().isEmpty() || countryCombobox.getValue() == null) {
-                System.out.println("เขียนข้อมูลไม่ครบ"); //อาจจะเพิ่ม pop up แจ้ง 
+                Alert alert = new Alert(Alert.AlertType.WARNING, "โปรดกรอกข้อมูลให้ครบถ้วน");
+                alert.showAndWait();
                 return null ;
 
         } else{
@@ -429,6 +475,11 @@ public class HomeController implements Initializable {
 
     public Bookings getBookingDatafromFome(Customer customer){
         String roomNo = roomNoComboBox.getValue();
+        if (roomNo == null || roomNo.isEmpty()) {
+            //รอทำ pop up
+            return null;
+        }
+
         Room room = roomRepository.getRoom(roomNo);
 
         if (checkinDatePicker1.getValue() == null || checkoutDatePicker1.getValue() == null ||
@@ -452,76 +503,84 @@ public class HomeController implements Initializable {
     }
 
 
-    @FXML private void  handleProceedButtonAction(){
+    private void processAndSaveBooking(){
         Customer newCustomer = getCustomerDatafromFome();
         if (newCustomer == null) {
             //รอทำ pop up แจ้ง
             return ;
         }
-        customerRepository.addCustomer(roomNoComboBox.getValue(), newCustomer);
-        customerRepository.saveCustomerToCSV();
 
         Bookings newBookings = getBookingDatafromFome(newCustomer);
         if (newBookings == null) {
             System.out.println("ข้อมูล Booking ไม่ครบ ไม่สามารถบันทึกได้");
-        return; 
+            return;
         }
 
-        bookingRepository.addBooking(newBookings);
-        bookingRepository.saveBookingToCSV();
+        if (mealCheckBox.isSelected()) {
+            int mealDay = 0;   
+            try {
+                    mealDay = Integer.parseInt(dayMealTextfield.getText());
+                    if (mealDay <=0) throw new NumberFormatException();
+                
+                
+            } catch (NumberFormatException e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "กรุณากรอกจำนวนวันสำหรับบริการอาหารเป็นตัวเลขที่มากกว่า 0");
+                alert.showAndWait();
+                return;
+            }
 
-        AmountPaid amountObj = new AmountPaid(newBookings, 0.0);
-        amountPaidRepository.addAmount(amountObj);
-        addBookingToTable(new HomeTableView(newBookings, amountObj));
+            long stayDays = getNumberOfStayDay();
+            if (mealDay > stayDays) {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "จำนวนวันสำหรับบริการอาหาร (" + mealDay + " วัน) ต้องไม่เกินจำนวนวันที่เข้าพัก (" + stayDays + " วัน)");
+                alert.showAndWait();
+                return;
+            }
 
-        clearForm();
-        updateAvailableRoom();
+        }
+        
+
+        double totalCostAfterDiscount = calculateTotalCost();
+
+        Alert confirmationDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmationDialog.setTitle("ยืนยันการจอง");
+        confirmationDialog.setHeaderText("กรุณาตรวจสอบรายละเอียดการจองก่อนบันทึก");
+        confirmationDialog.setContentText("ลูกค้า: " + newCustomer.getFullName() + "\n" +
+                                     "ห้อง: " + newBookings.getRoom().getNumberRoom() + "\n\n" +
+                                     "ยอดรวม: " + totalCostAfterDiscount+ " บาท\n\n" +
+                                     "ยืนยันเพื่อบันทึกข้อมูล");
+
+        Optional<ButtonType> result = confirmationDialog.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            // บันทึกข้อมูลทั้งหมด
+            AmountPaid amountObj = new AmountPaid(newBookings, totalCostAfterDiscount);
+            saveBookingData(newCustomer, newBookings, amountObj);
+
+            Alert successAlert = new Alert(Alert.AlertType.INFORMATION, "บันทึกข้อมูลการจองเรียบร้อยแล้ว");
+            successAlert.showAndWait();
+        } 
+    }
+
+
+    @FXML private void  handleProceedButtonAction(){
+        processAndSaveBooking();
     }
 
     @FXML private void saveBooking(ActionEvent event) {
-        Customer newCustomer = getCustomerDatafromFome();
-        if (newCustomer == null) {
-            System.out.println("ข้อมูลลูกค้าไม่ครบ");
-            return;
-        }
+        processAndSaveBooking();
+    }
 
-        Bookings newBookings = getBookingDatafromFome(newCustomer);
-        if (newBookings == null) {
-            System.out.println("ข้อมูลการจองไม่ครบ");
-            return;
-        }
-
-        customerRepository.addCustomer(newBookings.getRoom().getNumberRoom(), newCustomer);
-        bookingRepository.addBooking(newBookings);
+    private void saveBookingData(Customer customer, Bookings booking,AmountPaid amount) {
+        customerRepository.addCustomer(booking.getRoom().getNumberRoom(), customer);
+        bookingRepository.addBooking(booking);
+        amountPaidRepository.addAmount(amount);
 
         customerRepository.saveCustomerToCSV();
         bookingRepository.saveBookingToCSV();
+        amountPaidRepository.saveAmountPaidToCSV();
 
-        AmountPaid amountObj = new AmountPaid(newBookings, 0.0);
-        amountPaidRepository.addAmount(amountObj);
-        addBookingToTable(new HomeTableView(newBookings, amountObj));
+        addBookingToTable(new HomeTableView(booking, amount));
         clearForm();
         updateAvailableRoom();
-    }
-
-    private void saveBookingData(Customer customer, Bookings booking) {
-        customerRepository.addCustomer(booking.getRoom().getNumberRoom(), customer);
-        bookingRepository.addBooking(booking);
-
-        customerRepository.saveCustomerToCSV();
-        bookingRepository.saveBookingToCSV();;
-
-        AmountPaid amountObj = amountPaidRepository.getAmountByBookingID(booking.getBookingID());
-        if (amountObj == null) {
-            amountObj = new AmountPaid(booking, 0.0);
-            amountPaidRepository.addAmount(amountObj);
-        }
-        addBookingToTable(new HomeTableView(booking, amountObj));
-
-        clearForm();
-        updateAvailableRoom();
-
-        System.out.println("Booking " + booking.getBookingID() + " has been saved successfully.");
     }
 
     @FXML private void  handlePrintBillButtonAction(){
@@ -533,44 +592,35 @@ public class HomeController implements Initializable {
             return;
         }
 
-        /* 
-        DepositRoom depositRoom = builDepositRoom(newBookings);
-        double totalCost = depositRoom.getCost() + newBookings.getRoom().getPrice();*/
-        //String billDetails = depositRoom.getDescription();
-
         Room roomForBill = newBookings.getRoom();
         DepositRoom depositRoom = builDepositRoom(newBookings);
         DiscountStrategy discountStrategy = DiscountSelector.getStrategy(roomForBill, newBookings);
         HotelCalculator calculator = new HotelCalculator();
         double finalPriceRoom = calculator.calculateFinalPrice(roomForBill, newBookings, discountStrategy);
-        double totalCostAfterDiscount = finalPriceRoom + depositRoom.getCost();
-        
-        
-        AmountPaid amountObj = new AmountPaid(newBookings, totalCostAfterDiscount);
-        amountPaidRepository.addAmount(amountObj);
-        amountPaidRepository.saveAmountPaidToCSV();
-        addBookingToTable(new HomeTableView(newBookings, amountObj));
+        double totalCostAfterDiscount = finalPriceRoom + depositRoom.getCost();  
 
         Alert confirmationDialog = new Alert(Alert.AlertType.CONFIRMATION);
-            confirmationDialog.setTitle("ยืนยันการจอง");
-            confirmationDialog.setHeaderText("กรุณาตรวจสอบรายละเอียดการจองก่อนบันทึก");
-            confirmationDialog.setContentText("ลูกค้า: " + newCustomer.getFullName() + "\n" +
+        confirmationDialog.setTitle("ยืนยันการจองและต้องการปรินต์ใบเสร็จ");
+        confirmationDialog.setHeaderText("กรุณาตรวจสอบรายละเอียดการจองก่อนบันทึก");
+        confirmationDialog.setContentText("ลูกค้า: " + newCustomer.getFullName() + "\n" +
                                      "ห้อง: " + newBookings.getRoom().getNumberRoom() + "\n\n" +
                                      "ยอดรวม: " + totalCostAfterDiscount+ " บาท\n\n" +
                                      "ยืนยันเพื่อบันทึกข้อมูลและพิมพ์ใบเสร็จ?");
 
-            Optional<ButtonType> result = confirmationDialog.showAndWait();
+        Optional<ButtonType> result = confirmationDialog.showAndWait();
 
-            if (result.isPresent() && result.get() == ButtonType.OK) {
-                saveBookingData(newCustomer, newBookings);
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            // บันทึกข้อมูลทั้งหมด
+            AmountPaid amountObj = new AmountPaid(newBookings, totalCostAfterDiscount);
+            saveBookingData(newCustomer, newBookings, amountObj);
 
             System.out.println("Printing bill...");
             BillEvent event = new BillEvent(newBookings.getRoom(), newBookings, depositRoom, LocalDateTime.now());
             eventManager.notifyObserver(event);
 
-            } else {
+        } else {
                 System.out.println("User cancelled the action.");
-            }
+        }
     }
 
     private DepositRoom builDepositRoom(Bookings booking){
@@ -582,7 +632,15 @@ public class HomeController implements Initializable {
         }
 
         if (mealCheckBox.isSelected()) {
-            deposit = new MealDecorator(deposit, 1);
+            int mealDay = 0;
+            try {
+                if (dayMealTextfield.getText() != null && !dayMealTextfield.getText().isEmpty()) {
+                    mealDay = Integer.parseInt(dayMealTextfield.getText());
+                }
+            } catch (NumberFormatException e) {
+                mealDay = 0;
+            }
+            deposit = new MealDecorator(deposit, mealDay);
         }
 
         if (pickupServiceCheckbox.isSelected()) {
@@ -591,6 +649,103 @@ public class HomeController implements Initializable {
 
         return deposit;
     }
+
+    private long getNumberOfStayDay(){
+        LocalDate checkin = checkinDatePicker1.getValue();
+        LocalDate checkout = checkoutDatePicker1.getValue();
+        if (checkin != null && checkout != null && !checkout.isBefore(checkin)) {
+            return ChronoUnit.DAYS.between(checkin, checkout);
+            
+        }
+        //ในอนาคตอาจจะมี popup แจ้งเตือน
+        return 0;
+    }
+
+    private double calculateTotalCost(){
+        String roomNo = roomNoComboBox.getValue();
+        if (roomNo == null || roomNo.isEmpty()) {
+            return 0.0;
+        }
+
+        Room selectedRoom = roomRepository.getRoom(roomNo);
+        long nights = getNumberOfStayDay();
+        if (nights == 0) {
+            nights = 1;
+        }
+
+        LocalDate checkinDate;
+        LocalDate checkoutDate;
+
+        if (checkinDatePicker1.getValue() != null) {
+            checkinDate = checkinDatePicker1.getValue();
+        }else{
+            checkinDate = LocalDate.now();
+        }
+
+        if (checkinDatePicker1.getValue() != null) {
+            checkoutDate = checkinDatePicker1.getValue().plusDays(nights);
+        }else{
+            checkoutDate = LocalDate.now().plusDays(nights);
+        }
+
+        Bookings booking = new Bookings(selectedRoom, null, "", checkinDate, LocalTime.MIDNIGHT, checkoutDate, LocalTime.MIDNIGHT, LocalDate.now(), LocalTime.now());
+
+        //Room roomForBill = booking.getRoom();
+        //DepositRoom deposit = builDepositRoom(booking);
+        DepositFactory factory = new DepositFactory();
+        DepositRoom deposit = factory.createSimpDepositRoom(selectedRoom);
+        DiscountStrategy discountStrategy = DiscountSelector.getStrategy(selectedRoom, booking);
+        HotelCalculator calculator = new HotelCalculator();
+        double finalPrice = calculator.calculateFinalPrice(selectedRoom, booking, discountStrategy);
+        
+        if (cleaningRoomCheckBox.isSelected()) {
+            deposit = new CleaningRoomDecorator(deposit);
+        }
+        if (mealCheckBox.isSelected()) {
+            int mealDays = 0;
+            try {
+                mealDays = Integer.parseInt(dayMealTextfield.getText());
+            } catch (NumberFormatException e) {
+                mealDays = 0;
+            }
+            deposit = new MealDecorator(deposit, mealDays);
+        }
+        if (pickupServiceCheckbox.isSelected()) {
+            deposit = new PickupServiceDecorator(deposit);
+        }  
+    
+        return finalPrice + deposit.getCost();
+    } 
+    
+    private void updateTotalLabel(){
+        double totalCost = calculateTotalCost();
+        totalLabel.setText("฿ " + String.format("%.2f", totalCost));
+
+        if (mealCheckBox.isSelected()) {
+            int mealDay = 0;
+            try {
+                
+                mealDay = Integer.parseInt(dayMealTextfield.getText());
+
+            } catch (NumberFormatException e) {
+                mealDay = 0;
+            }
+
+            if (mealDay > 0) {
+                dayMealLabel.setText("฿" + String.format("%.2f", 500.0*mealDay));
+                dayMealLabel.setVisible(true);
+            }else {
+                dayMealLabel.setVisible(true);
+            }
+        }else{
+            dayMealLabel.setText("฿500/day" );
+            dayMealLabel.setVisible(true);
+        }
+
+
+    }
+
+
 
     private void clearForm(){
         //เคลียร์หลัง save
@@ -611,8 +766,13 @@ public class HomeController implements Initializable {
         genderToggleGroup.selectToggle(null);
         addressField.clear();
         cityField.clear();
-        countryCombobox.getSelectionModel().clearSelection();     
+        countryCombobox.getSelectionModel().clearSelection(); 
         
+        checkinDatePicker1.setValue(null);
+        checkinTimeCombobox1.getSelectionModel().clearSelection();
+        checkoutDatePicker1.setValue(null);
+        checkoutTimeCombobox1.getSelectionModel().clearSelection();
+
         for(CheckBox cb : allCheckbox){
             cb.setSelected(false);
         }
@@ -620,6 +780,10 @@ public class HomeController implements Initializable {
 
     //set หลังเลือกห้อง
     private void getDataFormRoomSelected(String roomNumber){
+        //ดักบัค 
+        isUpdatingFromSelection = true;
+        try{
+       
         String roomtype = roomRepository.getRoom(roomNumber).getType();
         int numPeople = roomRepository.getRoom(roomNumber).getPeople();
         List<String> properties = roomRepository.getRoom(roomNumber).getProperties();
@@ -631,7 +795,7 @@ public class HomeController implements Initializable {
         roomTypeComboBox.setValue(roomtype);
         numberPeopleComboBox.setValue(numPeople);
         if (properties != null) {
-            if(properties.contains("Jacuzii")) jacuzziCheckBox.setSelected(true);
+            if(properties.contains("Jacuzzi")) jacuzziCheckBox.setSelected(true);
             if(properties.contains("Lake View")) lakeViewCheckBox.setSelected(true);
             if(properties.contains("Pet-Friendly")) petFriendlyCheckBox.setSelected(true);
             if(properties.contains("Private Pool")) privatePoolCheckBox.setSelected(true);
@@ -659,12 +823,10 @@ public class HomeController implements Initializable {
         if (checkoutTime != null) {
             checkoutTimeCombobox1.setValue(checkoutTime);
         }
+        }finally {
+            isUpdatingFromSelection = false;
+        }
         
     }
 
-    
-
-
-    
-    
 }

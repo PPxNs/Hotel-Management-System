@@ -4,11 +4,34 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 import com.mycompany.projectdesign.Project.Model.*;
+
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
 public class MissedCheckoutObserver implements HotelObserver {
     //แจ้งเตือนก่อนถึงเวลา checkout 5 นาที
     @Override
     public void update(HotelEvent event) {
         if (event instanceof MissedCheckoutEvent) {
+            Bookings missedEvent = ((MissedCheckoutEvent) event).getBookings();
+            LocalDateTime checkout = LocalDateTime.of(missedEvent.getDateCheckout(), missedEvent.getTimeCheckout());
+            long minutesCheckout = ChronoUnit.MINUTES.between(LocalDateTime.now(), checkout);
+
+            if (minutesCheckout <=5 && minutesCheckout >=0) {
+                Platform.runLater(() ->{
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("ตรวจสอบลูกค้าเช็คเอาส์");
+                    alert.setHeaderText("ห้องที่จะมีการเช็คเอาส์เร็ว ๆ นี้ : " + missedEvent.getRoom().getNumberRoom());
+                    alert.setContentText(
+                        "ลูกค้า : " + missedEvent.getCustomer().getFullName() + "\n" +
+                        "เบอร์โทรศัพท์ : " + missedEvent.getCustomer().getPhone() + "\n" +
+                        "กำหนดเวลาที่เช็คเอาส์ : " + missedEvent.getTimeCheckin().toString()
+                    );
+                    alert.showAndWait();
+                });
+            }
+        }
+
+        /*if (event instanceof MissedCheckoutEvent) {
             MissedCheckoutEvent missedEvent = (MissedCheckoutEvent) event;
             Customer customer = missedEvent.getCustomer();
             Room room = missedEvent.getRoom();
@@ -32,7 +55,7 @@ public class MissedCheckoutObserver implements HotelObserver {
                 System.out.println("=============================\n");  
             }
               
-        }
+        }*/
     }
 }
 

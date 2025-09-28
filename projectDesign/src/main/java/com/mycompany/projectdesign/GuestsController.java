@@ -4,24 +4,26 @@
  */
 package com.mycompany.projectdesign;
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
-
-
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import com.mycompany.projectdesign.Project.Model.*;
 
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.beans.value.ChangeListener;
+import javafx.scene.control.cell.TextFieldTableCell;
 
 
 public class GuestsController implements Initializable{
@@ -32,10 +34,18 @@ public class GuestsController implements Initializable{
     //ดึงแต่ละ coluumn
     @FXML private TableColumn<GuestsTableView,String> RoomNoColumn;
     @FXML private TableColumn<GuestsTableView,String> IdCardColumn;
-    @FXML private TableColumn<GuestsTableView,String> GuestColumn;
+    @FXML private TableColumn<GuestsTableView,String> FirstNameColumn;
+    @FXML private TableColumn<GuestsTableView,String> LastNameColumn;
     @FXML private TableColumn<GuestsTableView,String> CheckInColumn;
     @FXML private TableColumn<GuestsTableView,String> CheckOutColumn;
-    @FXML private TableColumn<GuestsTableView,String> StatusColumn;   
+    @FXML private TableColumn<GuestsTableView,String> StatusColumn;
+    @FXML private TableColumn<GuestsTableView,String> EmailColumn;
+    @FXML private TableColumn<GuestsTableView,String> PhoneColumn;
+    @FXML private TableColumn<GuestsTableView,String> GenderColumn;
+    @FXML private TableColumn<GuestsTableView,String> AddressColumn;
+    @FXML private TableColumn<GuestsTableView,String> CityColumn;
+    @FXML private TableColumn<GuestsTableView,String> CountryColumn;
+
 
     //ดึงไว้แก้ข้อมูลฝั่งซ้าย
     @FXML private Label LabelFullname;
@@ -48,76 +58,194 @@ public class GuestsController implements Initializable{
     @FXML private Label LabelCity;
     @FXML private Label LabelAddress;
     
+    @FXML private ComboBox<String> statusComboBox;
+
+    @FXML private TextField searchField;
 
     //new เพื่อจะเรียกโหลด csv มาใส่ใน column
     private CustomerRepository customerRepository = CustomerRepository.getInstance();
     private RoomRepository roomRepository = RoomRepository.getInstance();
     private BookingRepository bookingRepository = BookingRepository.getInstance();
 
+    //ลิสจัดการข้อมูล
+    private ObservableList<GuestsTableView> masterData = FXCollections.observableArrayList();
+    private FilteredList<GuestsTableView> filteredData;
+    private SortedList<GuestsTableView> sortedData;
+
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 
+        setupTableColumns();
+        ObservableList<String> allStatus = FXCollections.observableArrayList(
+       "All Status",
+                "CONFIRMED",      
+                "CHECKED_IN"    
+        );
+
+        statusComboBox.setItems(allStatus);
+        statusComboBox.setValue("All Status");
+
+        masterData.setAll(bookingRepository.getAllBookings().stream()
+                        .map(booking -> new GuestsTableView(booking.getRoom(), booking.getCustomer(), booking))
+                        .collect(Collectors.toList())
+        );
+
+        filteredData = new FilteredList<>(masterData, guest -> 
+                guest.getStatus().equalsIgnoreCase("CONFIRMED") ||
+                guest.getStatus().equalsIgnoreCase("CHECKED_IN")
+        );        
+        sortedData = new SortedList<>(filteredData);
+
+        sortedData.comparatorProperty().bind(guestTable.comparatorProperty());
+        guestTable.setItems(sortedData);
+
+        searchField.textProperty().addListener((obs,oldVal,newVal)-> applyFilters() );
+        statusComboBox.valueProperty().addListener((obs,oldVal,newVal)-> applyFilters() );
+
+        
+
+        guestTable.getSelectionModel().selectedItemProperty().addListener((obs,oldVal,newVal)-> {
+            if (newVal != null) {
+                showCustomerDetails(newVal.getCustomer(), newVal.getRoom());
+            }
+        } );
+    }
+
+    private void applyFilters(){
+        String searchText = searchField.getText();
+        String status = statusComboBox.getValue();
+        filteredData.setPredicate(createPredicate(searchText, status));
+    }
+
+    private Predicate<GuestsTableView> createPredicate(String searchText, String status){
+        //ส่งข้อมูลก็ต่อเมื่อ ....
+        return guest -> {
+
+            //ใช้ startsWith เพราะ ตอนค้นด้วย a มันดันเอาตัวที่ไม่ขึ้นต้นด้วย a มาด้วย 
+            boolean searchMatch = true;
+            if (searchText != null && !searchText.isEmpty()) {
+                String lowercase = searchText.toLowerCase();
+                searchMatch = guest.getCustomer().getFirstnameCustomer().toLowerCase().startsWith(lowercase) ||
+                              guest.getCustomer().getLastnameCustomer().toLowerCase().startsWith(lowercase) ||
+                              guest.getNumberRoom().toLowerCase().startsWith(lowercase)||
+                              guest.getCustomer().getidCard().toLowerCase().startsWith(lowercase);
+                }
+
+            boolean statusMatch = true;
+            if (status != null && !status.equalsIgnoreCase("All status")) {
+                statusMatch = guest.getStatus().equalsIgnoreCase(status);
+            }
+
+            return searchMatch && statusMatch;
+        };
+    }
+
+    //อันนี้ที่แยกออกมาเพราะตาลาย
+    private void setupTableColumns(){
+        guestTable.setEditable(true);
         RoomNoColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("numberRoom"));
         IdCardColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("idCard"));
-        GuestColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("fullnameCustomer"));
         CheckInColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("checkin"));
         CheckOutColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("checkout"));
         StatusColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("status"));
 
-        //โหลดข้อมูลจาก csv
-        /*customerRepository.loadCustomerFromCSV();
-        roomRepository.loadRoomFromCSV();
-        bookingRepository.loadBookingFromCSV();*/
+        // กำหนดสิ่งที่แก้ได้
+        FirstNameColumn.setCellValueFactory(new PropertyValueFactory<>("firstName"));
+        FirstNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        FirstNameColumn.setOnEditCommit(event -> {
+            GuestsTableView guest = event.getRowValue();
+            guest.setFirstName(event.getNewValue());
+            guest.getCustomer().setFirstnameCustomer(event.getNewValue());
+            customerRepository.saveCustomerToCSV();
+        });
 
-        //TableView ของ JavaFX ใช้ ObservableList
-        ObservableList<GuestsTableView> allCustomers = FXCollections.observableArrayList();
+        LastNameColumn.setCellValueFactory(new PropertyValueFactory<>("lastName"));
+        LastNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        LastNameColumn.setOnEditCommit(event -> {
+            GuestsTableView guest = event.getRowValue();
+            guest.setLastName(event.getNewValue());
+            guest.getCustomer().setLastnameCustomer(event.getNewValue());
+            customerRepository.saveCustomerToCSV();
+        });
 
-        //เราดึงข้อมูลจาก Hash มาเป็นลิส
-        for (Map.Entry<String, List<Customer>> entry : customerRepository.getAllCustomers().entrySet()) {
-        String roomNo = entry.getKey();
-        Room room = roomRepository.getRoom(roomNo);
+        EmailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
+        EmailColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        EmailColumn.setOnEditCommit(event -> {
+            GuestsTableView guest = event.getRowValue();
+            guest.setEmail(event.getNewValue());
+            guest.getCustomer().setEmail(event.getNewValue());
+            customerRepository.saveCustomerToCSV();
+        });
 
-            if (room != null && !entry.getValue().isEmpty()) { 
-       
-                Customer primaryCustomer = entry.getValue().get(0); 
-                Bookings booking = bookingRepository.getBookingByRoom(roomNo);
+        PhoneColumn.setCellValueFactory(new PropertyValueFactory<>("phone"));
+        PhoneColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        PhoneColumn.setOnEditCommit(event -> {
+            GuestsTableView guest = event.getRowValue();
+            guest.setPhone(event.getNewValue());
+            guest.getCustomer().setPhone(event.getNewValue());
+            customerRepository.saveCustomerToCSV();
+        });
 
-            if (booking != null) {
-                allCustomers.add(new GuestsTableView(room, primaryCustomer, booking));
-        }
-        } else {
-            System.out.println("ห้อง " + roomNo + " ไม่มีใน roomRepository หรือไม่มีข้อมูลลูกค้า");
+        AddressColumn.setCellValueFactory(new PropertyValueFactory<>("address"));
+        AddressColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        AddressColumn.setOnEditCommit(event -> {
+            GuestsTableView guest = event.getRowValue();
+            guest.setAddress(event.getNewValue());
+            guest.getCustomer().setAddress(event.getNewValue());
+            customerRepository.saveCustomerToCSV();
+        });
+
+        CityColumn.setCellValueFactory(new PropertyValueFactory<>("city"));
+        CityColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        CityColumn.setOnEditCommit(event -> {
+            GuestsTableView guest = event.getRowValue();
+            guest.setCity(event.getNewValue());
+            guest.getCustomer().setCity(event.getNewValue());
+            customerRepository.saveCustomerToCSV();
+        });
+
+        CountryColumn.setCellValueFactory(new PropertyValueFactory<>("country"));
+        CountryColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        CountryColumn.setOnEditCommit(event -> {
+            GuestsTableView guest = event.getRowValue();
+            guest.setCountry(event.getNewValue());
+            guest.getCustomer().setCountry(event.getNewValue());
+            customerRepository.saveCustomerToCSV();
+        });
+
+        ObservableList<String> allgender = FXCollections.observableArrayList(
+       "male",
+                "Female",      
+                "Other"    
+        );
+
+        GenderColumn.setCellValueFactory(new PropertyValueFactory<>("gender"));
+        GenderColumn.setCellFactory(ComboBoxTableCell.forTableColumn(allgender));
+        GenderColumn.setOnEditCommit(event -> {
+            GuestsTableView guest = event.getRowValue();
+            String newGuest = event.getNewValue();
+            guest.setGender(newGuest);
+            guest.getCustomer().setGender(newGuest);
+            customerRepository.saveCustomerToCSV();
+        });
     }
 
-
-
-    }
-        //เราข้อมูลทั้งหมดใส่ใน tableview
-        guestTable.setItems(allCustomers);
-        guestTable.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<GuestsTableView>() {
-            @Override
-            public void changed(ObservableValue<? extends GuestsTableView> observable, GuestsTableView oldValue, GuestsTableView newValue) {
-            
-            if (newValue != null) {
-            showCustomerDetails(newValue.getCustomer(), newValue.getRoom());
-        }}});
-       
-
-    }
 
     //ข้อมูลสำหรับฝั่งซ้าย
     private void showCustomerDetails(Customer customer, Room room) {
-    LabelFullname.setText("Room | " + room.getNumberRoom());
-    LabelFirstName.setText(customer.getFirstnameCustomer());
-    LabelLastName.setText(customer.getLastnameCustomer());
-    LabelEmail.setText(customer.getEmail());
-    LabelPhone.setText(customer.getPhone());
-    LabelGender.setText(customer.getGender());
-    LabelCountry.setText(customer.getCountry());
-    LabelCity.setText(customer.getCity());
-    LabelAddress.setText(customer.getAddress());
+        LabelFullname.setText("Room | " + room.getNumberRoom());
+        LabelFirstName.setText(customer.getFirstnameCustomer());
+        LabelLastName.setText(customer.getLastnameCustomer());
+        LabelEmail.setText(customer.getEmail());
+        LabelPhone.setText(customer.getPhone());
+        LabelGender.setText(customer.getGender());
+        LabelCountry.setText(customer.getCountry());
+        LabelCity.setText(customer.getCity());
+        LabelAddress.setText(customer.getAddress());
     }
+
+
 
 
 }
