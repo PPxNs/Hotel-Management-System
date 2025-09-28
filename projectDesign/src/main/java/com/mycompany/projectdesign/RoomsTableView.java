@@ -1,7 +1,6 @@
 package com.mycompany.projectdesign;
 
 import com.mycompany.projectdesign.Project.Model.*;
-import javafx.beans.property.*;
 
 public class RoomsTableView {
 

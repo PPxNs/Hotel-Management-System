@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
@@ -36,12 +38,12 @@
                                     <Font name="Arial Bold" size="14.0" />
                                  </font>
                               </Label>
-                              <Pane prefHeight="45.0" prefWidth="289.0" HBox.hgrow="ALWAYS" />
-                              <HBox alignment="CENTER" prefHeight="45.0" prefWidth="479.0" styleClass="profile-menu-button">
+                              <Pane prefHeight="35.0" prefWidth="139.0" HBox.hgrow="ALWAYS" />
+                              <HBox alignment="CENTER" prefHeight="35.0" prefWidth="599.0" styleClass="profile-menu-button">
                                  <children>
-                                    <StackPane prefHeight="35.0" prefWidth="450.0" styleClass="search-box">
+                                    <StackPane prefHeight="35.0" prefWidth="850.0" styleClass="search-box">
                                        <children>
-                                          <TextField prefHeight="35.0" prefWidth="348.0" styleClass="search-field" />
+                                          <TextField fx:id="searchField" prefHeight="35.0" prefWidth="657.0" promptText="search room number or idCard" styleClass="search-field" />
                                           <Label prefHeight="18.0" prefWidth="24.0" styleClass="search-icon">
                                              <StackPane.margin>
                                                 <Insets />
@@ -58,21 +60,40 @@
                                     </StackPane>
                                  </children>
                               </HBox>
+                              <ComboBox fx:id="statusComboBox" prefHeight="27.0" prefWidth="195.0" promptText="All Status" styleClass="filter-combo-box">
+                                 <HBox.margin>
+                                    <Insets left="20.0" />
+                                 </HBox.margin>
+                              </ComboBox>
                            </children>
                         </HBox>
-                        <TableView id="R0" fx:id="guestTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="779.0" prefWidth="765.0" styleClass="card">
-                           <columns>
-                              <TableColumn id="R5" fx:id="RoomNoColumn" prefWidth="150.0" styleClass="column-header" text="Room No." />
-                              <TableColumn id="R6" fx:id="IdCardColumn" prefWidth="150.0" styleClass="column-header" text="ID Card" />
-                              <TableColumn id="R1" fx:id="GuestColumn" prefWidth="150.0" styleClass="column-header" text="Guest" />
-                              <TableColumn id="R2" fx:id="CheckInColumn" minWidth="0.0" prefWidth="150.0" styleClass="column-header" text="Check in" />
-                              <TableColumn id="R4" fx:id="CheckOutColumn" prefWidth="150.0" styleClass="column-header" text="Check out" />
-                              <TableColumn id="R1" fx:id="StatusColumn" prefWidth="150.0" styleClass="column-header" text="Status" />
-                           </columns>
-                           <columnResizePolicy>
-                              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                           </columnResizePolicy>
-                        </TableView>
+                        <ScrollPane hbarPolicy="ALWAYS" vbarPolicy="NEVER">
+                           <VBox.margin>
+                              <Insets top="20.0" />
+                           </VBox.margin>
+                           <content>
+                              <TableView id="R0" fx:id="guestTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="779.0" prefWidth="2111.0" styleClass="card">
+                                 <columns>
+                                    <TableColumn id="R5" fx:id="RoomNoColumn" prefWidth="100.0" styleClass="column-header" text="Room No." />
+                                    <TableColumn id="R6" fx:id="IdCardColumn" prefWidth="100.0" styleClass="column-header" text="ID Card" />
+                                    <TableColumn id="R1" fx:id="FirstNameColumn" prefWidth="150.0" styleClass="column-header" text="First Name " />
+                                    <TableColumn id="R1" fx:id="LastNameColumn" prefWidth="150.0" styleClass="column-header" text="Last Name " />
+                                    <TableColumn id="R2" fx:id="CheckInColumn" minWidth="0.0" prefWidth="150.0" styleClass="column-header" text="Check in" />
+                                    <TableColumn id="R4" fx:id="CheckOutColumn" prefWidth="150.0" styleClass="column-header" text="Check out" />
+                                    <TableColumn id="R1" fx:id="EmailColumn" prefWidth="200.0" styleClass="column-header" text="Email" />
+                                    <TableColumn id="R1" fx:id="PhoneColumn" prefWidth="200.0" styleClass="column-header" text="Phone" />
+                                    <TableColumn id="R1" fx:id="GenderColumn" prefWidth="200.0" styleClass="column-header" text="Gender" />
+                                    <TableColumn id="R1" fx:id="AddressColumn" prefWidth="150.0" styleClass="column-header" text="Address" />
+                                    <TableColumn id="R1" fx:id="CityColumn" prefWidth="150.0" styleClass="column-header" text="City" />
+                                    <TableColumn id="R1" fx:id="CountryColumn" prefWidth="150.0" styleClass="column-header" text="Country" />
+                                    <TableColumn id="R1" fx:id="StatusColumn" prefWidth="150.0" styleClass="column-header" text="Status" />
+                                 </columns>
+                                 <columnResizePolicy>
+                                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                 </columnResizePolicy>
+                              </TableView>
+                           </content>
+                        </ScrollPane>
                      </children>
                   </VBox>
                </center>
@@ -82,7 +103,7 @@
             </BorderPane>
          </center>
          <right>
-            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="796.0" prefWidth="429.0" styleClass="form-field">
+            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="865.0" prefWidth="323.0" styleClass="form-field">
                <children>
                   <Label fx:id="LabelFullname" maxWidth="1.7976931348623157E308" prefHeight="51.0" prefWidth="240.0" styleClass="details-header-name" text="ROOM XXXXXX">
                      <font>

@@ -286,6 +286,9 @@
                                  </HBox.margin>
                               </TextField>
                            </children>
+                           <VBox.margin>
+                              <Insets top="10.0" />
+                           </VBox.margin>
                         </HBox>
                         <HBox alignment="CENTER" prefHeight="53.0" prefWidth="353.0">
                            <children>
@@ -446,25 +449,26 @@
                                     <HBox prefHeight="100.0" prefWidth="200.0">
                                        <children>
                                           <CheckBox fx:id="cleaningRoomCheckBox" mnemonicParsing="false" text="CleaningRoom" />
-                                          <Pane prefHeight="16.0" prefWidth="174.0" HBox.hgrow="ALWAYS" />
-                                          <Label prefHeight="15.0" prefWidth="37.0" text="฿‎1000" />
+                                          <Pane prefHeight="18.0" prefWidth="174.0" HBox.hgrow="ALWAYS" />
+                                          <Label prefHeight="17.0" prefWidth="65.0" text="฿‎1000" />
                                        </children>
                                        <VBox.margin>
                                           <Insets />
                                        </VBox.margin>
                                     </HBox>
-                                    <HBox prefHeight="100.0" prefWidth="200.0">
+                                    <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0">
                                        <children>
-                                          <CheckBox fx:id="mealCheckBox" mnemonicParsing="false" text="Meal" />
-                                          <Pane prefHeight="16.0" prefWidth="198.0" HBox.hgrow="ALWAYS" />
-                                          <Label prefHeight="15.0" prefWidth="37.0" text="฿‎500" />
+                                          <CheckBox fx:id="mealCheckBox" mnemonicParsing="false" prefHeight="26.0" prefWidth="74.0" text="Meal" />
+                                          <TextField fx:id="dayMealTextfield" prefHeight="27.0" prefWidth="82.0" promptText="day" />
+                                          <Pane prefHeight="27.0" prefWidth="91.0" HBox.hgrow="ALWAYS" />
+                                          <Label fx:id="dayMealLabel" prefHeight="17.0" prefWidth="65.0" text="฿500/day" />
                                        </children>
                                     </HBox>
                                     <HBox prefHeight="100.0" prefWidth="200.0">
                                        <children>
                                           <CheckBox fx:id="pickupServiceCheckbox" mnemonicParsing="false" text="PickupService" />
                                           <Pane prefHeight="16.0" prefWidth="154.0" HBox.hgrow="ALWAYS" />
-                                          <Label prefHeight="15.0" prefWidth="37.0" text="฿‎300" />
+                                          <Label prefHeight="17.0" prefWidth="65.0" text="฿‎300" />
                                        </children>
                                     </HBox>
                                  </children>
@@ -485,7 +489,7 @@
                                  </font>
                               </Label>
                               <Region prefHeight="22.0" prefWidth="207.0" HBox.hgrow="ALWAYS" />
-                              <Label prefHeight="15.0" prefWidth="109.0" text="฿‎______">
+                              <Label fx:id="totalLabel" prefHeight="15.0" prefWidth="109.0" text="฿‎______">
                                  <font>
                                     <Font size="20.0" />
                                  </font>
@@ -500,7 +504,7 @@
                         </HBox>
                         <HBox alignment="CENTER_RIGHT" prefHeight="47.0" prefWidth="428.0" spacing="15.0">
                            <children>
-                              <Button maxWidth="125.0" mnemonicParsing="false" onAction="#handlePrintBillButtonAction" prefHeight="120.0" text="Print Summary">
+                              <Button maxWidth="188.0" mnemonicParsing="false" onAction="#handlePrintBillButtonAction" prefHeight="35.0" prefWidth="188.0" text="Print Summary and Save">
                                  <styleClass>
                                     <String fx:value="menu-button" />
                                     <String fx:value="secondary-button" />

@@ -15,8 +15,6 @@ import com.mycompany.projectdesign.Project.Model.Customer;
 import com.mycompany.projectdesign.Project.Model.CustomerRepository;
 import com.mycompany.projectdesign.Project.Model.Room;
 import com.mycompany.projectdesign.Project.Model.RoomRepository;
-import com.mycompany.projectdesign.Project.Model.RoomStatus;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -100,7 +98,9 @@ public class ReservationsController implements Initializable {
         StatusColumn.setEditable(true); //แก้สเตตัสได้
 
         //set เรื่องการค้นหา
-        FilteredList<ReservationsTableView> filteredData = new FilteredList<>(bookingList, p -> true);
+        FilteredList<ReservationsTableView> filteredData = new FilteredList<>(bookingList, reservations ->                 
+                reservations.getStatus().equalsIgnoreCase("CONFIRMED") ||
+                reservations.getStatus().equalsIgnoreCase("CHECKED_IN"));
         searchField.textProperty().addListener((obs, oldVal,newVal) ->{
             filteredData.setPredicate(createPredicate(newVal, statusComboBox.getValue()));
         });

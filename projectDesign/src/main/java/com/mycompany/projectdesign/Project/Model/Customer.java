@@ -6,16 +6,16 @@ package com.mycompany.projectdesign.Project.Model;
 
 public class Customer {
     private final String idCard ; // เก็บข้อมูลเลขบัตรประชาชน
-    private final String firstnameCustomer ; // เก็บข้อมูลชื่อจริงลูกค้า
-    private final String lastnameCustomer ; // เก็บข้อมูลนามสกุลลูกค้า
+    private String firstnameCustomer ; // เก็บข้อมูลชื่อจริงลูกค้า
+    private String lastnameCustomer ; // เก็บข้อมูลนามสกุลลูกค้า
     
     //เพิ่มข้อมูลส่วนตัวของลูกค้า
-    private final String email;
-    private final String phone;
-    private final String gender;
-    private final String country;
-    private final String city;
-    private final String address;
+    private String email;
+    private String phone;
+    private String gender;
+    private String country;
+    private String city;
+    private String address;
 
     //constuctor รับค่าข้อมูลมาเก็บในตัวแปร เหมือนเข้ามาแล้วไม่สามารถแก้ไขเปลี่ยนแปลงเองได้ เนื่องจากเราเก็บเป็น final
     public Customer(String idCard, String firstnameCustomer,String lastnameCustomer, String email,
@@ -76,22 +76,36 @@ public class Customer {
         return address;
     }
 
+    public void setFirstnameCustomer(String firstnameCustomer){
+        this.firstnameCustomer = firstnameCustomer;
+    }
+
+    public void setLastnameCustomer(String lastnameCustomer){
+        this.lastnameCustomer = lastnameCustomer;
+    }
+
+    public void setEmail(String email){
+        this.email = email;
+    }
+    public void setPhone(String phone){
+        this.phone = phone;
+    }
+
+    public void setGender(String gender){
+        this.gender = gender;
+    }
+
+    public void setCountry(String country){
+        this.country = country;
+    }
+
+    public void setCity(String city){
+        this.city = city;
+    }
+
+    public void setAddress(String address){
+        this.address = address;
+    }
 }
 
-    //อันนี้ไม่ใช้ แต่เก็บไว้ก่อน จารย์บอกว่าไม่ต้องกำหนดรูปแบบการจ่าย
-    /*// ค่อยปรับวิธีการชำระเงินข้อลูกค้าในฐานของมูล CSV
-    // ในส่วนข้อฐานลูกค้า รูปแบบการชำระเงินน่าจะเข้ามาในนี้เพื่อจะได้สะดวกในการดึงฐานข้อมูลของลูกค้า
-    private PaymentStrategy paymentStrategy;
-    public void setPaymentStrategy(PaymentStrategy paymentStrategy){
-        this.paymentStrategy = paymentStrategy;
-    }
-
-    //อันนี้ให้ customerRepository บันทึกข้อมูลใน csv //ยังไม่จัดการ
-    public String getPayment(){
-        return paymentStrategy.getName();
-    }
-
-    //อันนี้มีให้ตัวของผู้ประกาศใช้งาน
-    public PaymentStrategy getPaymentStrategy(){
-        return paymentStrategy ;
-    }*/
+    

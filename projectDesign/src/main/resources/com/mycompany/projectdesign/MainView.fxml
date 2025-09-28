@@ -88,6 +88,24 @@
          <BorderPane.margin>
             <Insets bottom="20.0" />
          </BorderPane.margin>
+         <children>
+            <HBox alignment="CENTER_RIGHT" prefHeight="56.0" prefWidth="1384.0" styleClass="profile-menu-button">
+               <children>
+                  <Button fx:id="notificationButton" mnemonicParsing="false" styleClass="notification-button">
+                     <graphic>
+                        <ImageView fx:id="handleBellChick" fitHeight="30.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../../../img/icons8-bell-50.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+               </children>
+               <HBox.margin>
+                  <Insets right="50.0" />
+               </HBox.margin>
+            </HBox>
+         </children>
       </HBox>
    </top>
 </BorderPane>

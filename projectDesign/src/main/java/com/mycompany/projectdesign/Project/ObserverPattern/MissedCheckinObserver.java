@@ -4,14 +4,36 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 import com.mycompany.projectdesign.Project.Model.Bookings;
-import com.mycompany.projectdesign.Project.Model.Customer;
-import com.mycompany.projectdesign.Project.Model.Room;
+
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
 
 public class MissedCheckinObserver implements HotelObserver {
     
     //แจ้งเตือนก่อนถึงเวลา checkin 10 นาที
     public void update(HotelEvent event) {
+
         if (event instanceof MissedCheckinEvent) {
+            Bookings missedEvent = ((MissedCheckinEvent) event).getBookings();
+            LocalDateTime checkin = LocalDateTime.of(missedEvent.getDateCheckin(), missedEvent.getTimeCheckin());
+            long minutesCheckin = ChronoUnit.MINUTES.between(LocalDateTime.now(), checkin);
+
+            if (minutesCheckin <=10 && minutesCheckin >=0) {
+                Platform.runLater(() ->{
+                    
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("ตรวจสอบลูกค้าเช็คอิน");
+                    alert.setHeaderText("ห้องที่จะมีการเช็คอินเร็ว ๆ นี้ : " + missedEvent.getRoom().getNumberRoom());
+                    alert.setContentText(
+                        "ลูกค้า : " + missedEvent.getCustomer().getFullName() + "\n" +
+                        "เบอร์โทรศัพท์ : " + missedEvent.getCustomer().getPhone() + "\n" +
+                        "กำหนดเวลาที่เช็คอิน : " + missedEvent.getTimeCheckin().toString()
+                    );
+                    alert.showAndWait();
+                });
+            }
+        }
+        /*if (event instanceof MissedCheckinEvent) {
             MissedCheckinEvent missedEvent = (MissedCheckinEvent) event;
             Customer customer = missedEvent.getCustomer();
             Room room = missedEvent.getRoom();
@@ -35,6 +57,6 @@ public class MissedCheckinObserver implements HotelObserver {
                 System.out.println("=============================\n");  
             }
               
-        }
+        }*/
     }
 }
