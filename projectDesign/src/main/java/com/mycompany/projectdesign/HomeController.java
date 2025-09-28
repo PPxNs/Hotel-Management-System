@@ -32,15 +32,18 @@ import com.mycompany.projectdesign.Project.FactoryMethodPattern.DepositRoom;
 import com.mycompany.projectdesign.Project.Model.AmountPaid;
 import com.mycompany.projectdesign.Project.Model.AmountPaidRepository;
 import com.mycompany.projectdesign.Project.Model.BookingRepository;
+import com.mycompany.projectdesign.Project.Model.BookingStatus;
 import com.mycompany.projectdesign.Project.Model.Bookings;
 import com.mycompany.projectdesign.Project.Model.Customer;
 import com.mycompany.projectdesign.Project.Model.CustomerRepository;
 import com.mycompany.projectdesign.Project.Model.Room;
 import com.mycompany.projectdesign.Project.Model.RoomRepository;
+import com.mycompany.projectdesign.Project.Model.RoomStatus;
 import com.mycompany.projectdesign.Project.ObserverPattern.BillEvent;
 import com.mycompany.projectdesign.Project.ObserverPattern.BillObserver;
 import com.mycompany.projectdesign.Project.ObserverPattern.HotelEventManager;
 import com.mycompany.projectdesign.Project.Service.BookingScheduler;
+import com.mycompany.projectdesign.Project.Service.RoomService;
 import com.mycompany.projectdesign.Project.StrategyPattern.DiscountSelector;
 import com.mycompany.projectdesign.Project.StrategyPattern.DiscountStrategy;
 import com.mycompany.projectdesign.Project.StrategyPattern.HotelCalculator;
@@ -61,6 +64,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 public class HomeController implements Initializable {
@@ -130,7 +134,8 @@ public class HomeController implements Initializable {
     private HotelEventManager eventManager = HotelEventManager.getInstance();
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private ObservableList<HomeTableView> homeBookingList = FXCollections.observableArrayList();
-    
+    private final RoomService roomService = new RoomService();
+
     //แก้บัค
     private boolean isUpdatingFromSelection = false;
     private BookingScheduler bookingScheduler;
@@ -334,11 +339,16 @@ public class HomeController implements Initializable {
                     }
                 }
 
+                RoomStatus realTimeStatus = roomService.getRealTimeStatus(room);
+                if (realTimeStatus == RoomStatus.MAINTENANCE || realTimeStatus == RoomStatus.OCCUPIED) {
+                    match = false;
+                }
+
                 if (checkinDate != null && checkoutDate != null && checkinTime != null && checkoutTime != null){
                     if (!isRoomAvailable(room, checkinDate, checkinTime, checkoutDate, checkoutTime)) {
                         match = false;
                     }
-                }
+                }  
 
                 if (match) {
                     availableRooms.add(room);
@@ -369,13 +379,16 @@ public class HomeController implements Initializable {
         for(Bookings booking : bookingRepository.getAllBookings()){
             
             if (booking.getRoom().getNumberRoom().equals(room.getNumberRoom())) {
-
-                LocalDateTime existingStart = booking.getDateCheckin().atTime(booking.getTimeCheckin());
-                LocalDateTime existingEnd = booking.getDateCheckout().atTime(booking.getTimeCheckout());
-                // เงื่อนไขการทับซ้อน: (StartA < EndB) and (EndA > StartB)
-                if (checkin.isBefore(existingEnd) && checkout.isAfter(existingStart)) {
+                if (booking.getStatus() == BookingStatus.CONFIRMED || booking.getStatus() == BookingStatus.CHECKED_IN) {
+                    LocalDateTime existingStart = booking.getDateCheckin().atTime(booking.getTimeCheckin());
+                    LocalDateTime existingEnd = booking.getDateCheckout().atTime(booking.getTimeCheckout());
+                
+                    // เงื่อนไขการทับซ้อน: (StartA < EndB) and (EndA > StartB)
+                    if (checkin.isBefore(existingEnd) && checkout.isAfter(existingStart)) {
                     return false; //ทับกัน
+                    }                    
                 }
+
             }
         }
         return true; //ว่าง ไม่มีเวลาทับซ้อน
@@ -514,6 +527,12 @@ public class HomeController implements Initializable {
         if (newBookings == null) {
             System.out.println("ข้อมูล Booking ไม่ครบ ไม่สามารถบันทึกได้");
             return;
+        }
+
+        if (!isRoomAvailable(newBookings.getRoom(), newBookings.getDateCheckin(), newBookings.getTimeCheckin(), newBookings.getDateCheckout(), newBookings.getTimeCheckout())) {
+            new Alert(Alert.AlertType.ERROR, "ขอโทษค่ะ ห้องหมายเลข : " + newBookings.getRoom().getNumberRoom() + " ไม่สามารถจองได้อีกต่อไปในช่วงเวลาที่เลือก กรุณาเลือกอีกครั้ง").showAndWait();
+            updateAvailableRoom();
+            return ;
         }
 
         if (mealCheckBox.isSelected()) {

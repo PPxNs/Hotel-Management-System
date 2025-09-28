@@ -4,6 +4,7 @@
  */
 package com.mycompany.projectdesign;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.ResourceBundle;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -16,6 +17,8 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -86,30 +89,32 @@ public class GuestsController implements Initializable{
         statusComboBox.setItems(allStatus);
         statusComboBox.setValue("All Status");
 
-        masterData.setAll(bookingRepository.getAllBookings().stream()
-                        .map(booking -> new GuestsTableView(booking.getRoom(), booking.getCustomer(), booking))
-                        .collect(Collectors.toList())
-        );
-
-        filteredData = new FilteredList<>(masterData, guest -> 
-                guest.getStatus().equalsIgnoreCase("CONFIRMED") ||
-                guest.getStatus().equalsIgnoreCase("CHECKED_IN")
-        );        
-        sortedData = new SortedList<>(filteredData);
-
-        sortedData.comparatorProperty().bind(guestTable.comparatorProperty());
-        guestTable.setItems(sortedData);
+        loadAndFilterData();
 
         searchField.textProperty().addListener((obs,oldVal,newVal)-> applyFilters() );
         statusComboBox.valueProperty().addListener((obs,oldVal,newVal)-> applyFilters() );
-
-        
-
         guestTable.getSelectionModel().selectedItemProperty().addListener((obs,oldVal,newVal)-> {
             if (newVal != null) {
                 showCustomerDetails(newVal.getCustomer(), newVal.getRoom());
             }
         } );
+    }
+
+     private void loadAndFilterData() {
+        masterData.clear();
+        bookingRepository.getAllBookings().stream()
+            .map(booking -> new GuestsTableView(booking.getRoom(), booking.getCustomer(), booking))
+            .forEach(masterData::add);
+
+        // ตั้งค่าการกรองเริ่มต้นให้แสดงเฉพาะ CONFIRMED และ CHECKED_IN
+        filteredData = new FilteredList<>(masterData, guest -> {
+            BookingStatus status = guest.getBookings().getStatus();
+            return status == BookingStatus.CONFIRMED || status == BookingStatus.CHECKED_IN;
+        });     
+
+        SortedList<GuestsTableView> sortedData = new SortedList<>(filteredData);
+        sortedData.comparatorProperty().bind(guestTable.comparatorProperty());
+        guestTable.setItems(sortedData);
     }
 
     private void applyFilters(){
@@ -150,6 +155,11 @@ public class GuestsController implements Initializable{
         CheckOutColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("checkout"));
         StatusColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("status"));
 
+        setupEditabeColumns();
+    }
+
+    private void setupEditabeColumns(){
+        
         // กำหนดสิ่งที่แก้ได้
         FirstNameColumn.setCellValueFactory(new PropertyValueFactory<>("firstName"));
         FirstNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
@@ -229,8 +239,68 @@ public class GuestsController implements Initializable{
             guest.getCustomer().setGender(newGuest);
             customerRepository.saveCustomerToCSV();
         });
-    }
 
+        StatusColumn.setOnEditCommit(event -> {
+            GuestsTableView selectedGuest = event.getRowValue();
+            BookingStatus newStatus;
+
+            try {
+                newStatus = BookingStatus.valueOf(event.getNewValue());
+            } catch (IllegalArgumentException e) {
+                guestTable.refresh();
+                return ;
+            }
+
+            BookingStatus oldStatus = selectedGuest.getBookings().getStatus();
+
+            if (newStatus == BookingStatus.CHECKED_IN) {
+                if (oldStatus == BookingStatus.CONFIRMED) {
+                    Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION, "เช็คอินลูกค้าชื่อ : " + selectedGuest.getFirstName() + " กับห้อง : " + selectedGuest.getNumberRoom() + "?", ButtonType.YES, ButtonType.NO);
+                    confirmation.showAndWait().ifPresent(response -> {
+                        if (response == ButtonType.YES) {
+                            selectedGuest.getBookings().setStatus(BookingStatus.CHECKED_IN);
+                            bookingRepository.saveBookingToCSV();
+                        }
+                        guestTable.refresh();
+                    });
+                } else {
+                    new Alert(Alert.AlertType.WARNING, "Can only check in a CONFIRMED booking.").showAndWait();
+                    guestTable.refresh();
+                }
+            }
+           
+            else if (newStatus == BookingStatus.CHECKED_OUT) {
+                if (oldStatus == BookingStatus.CHECKED_IN) {
+                    Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION, "เช็คอินลูกค้าชื่อ : " + selectedGuest.getFirstName() + " จากห้อง : " + selectedGuest.getNumberRoom() + "?", ButtonType.YES, ButtonType.NO);
+                    confirmation.showAndWait().ifPresent(response -> {
+                        if (response == ButtonType.YES) {
+                            selectedGuest.getBookings().setStatus(BookingStatus.CHECKED_OUT);
+                            bookingRepository.saveBookingToCSV();
+                            
+                            Room room = selectedGuest.getRoom();
+                            room.setStatus(RoomStatus.CLEANING);
+                            room.setLastCheckouTime(LocalDateTime.now());
+                            roomRepository.saveRoomToCSV();
+                        }
+                        guestTable.refresh();
+                    });
+                } else {
+                    new Alert(Alert.AlertType.WARNING, "สามารถเช็คเอาท์ได้เฉพาะลูกค้าที่เช็คอินเท่านั้น").showAndWait();
+                    guestTable.refresh();
+                }
+            }
+            
+            else {
+                selectedGuest.getBookings().setStatus(newStatus);
+                bookingRepository.saveBookingToCSV();
+                guestTable.refresh();
+            }
+        });
+
+    
+
+
+    }
 
     //ข้อมูลสำหรับฝั่งซ้าย
     private void showCustomerDetails(Customer customer, Room room) {

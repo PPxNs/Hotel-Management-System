@@ -13,10 +13,12 @@ import com.mycompany.projectdesign.Project.Model.AmountPaidRepository;
 import com.mycompany.projectdesign.Project.Model.BookingRepository;
 import com.mycompany.projectdesign.Project.Model.CustomerRepository;
 import com.mycompany.projectdesign.Project.Model.RoomRepository;
+import com.mycompany.projectdesign.Project.Service.BookingScheduler;
 
 public class App extends Application {
 
     private static Scene scene;
+    private BookingScheduler bookingScheduler;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -38,6 +40,19 @@ public class App extends Application {
         stage.setScene(scene);
         stage.setTitle("Hotel Management System");
         stage.show();
+
+        bookingScheduler = new BookingScheduler();
+        bookingScheduler.start();
+
+        
+    }
+
+    @Override
+    public void stop() throws Exception{
+        if (bookingScheduler  != null) {
+            bookingScheduler.stop();
+        }
+        super.stop();
     }
 
     private static Parent loadFXML(String fxml) throws IOException {
