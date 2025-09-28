@@ -1,6 +1,7 @@
 package com.mycompany.projectdesign.Project.Model;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -109,4 +110,10 @@ public class Bookings {
     public int getDateStay(){
         return (int) ChronoUnit.DAYS.between(dateCheckin, dateCheckout);
     }
+
+    public LocalDateTime getCheckinDateTime(){
+        return LocalDateTime.of(dateCheckin,timeCheckin);}
+
+    public LocalDateTime getCheckoutDateTime(){
+        return LocalDateTime.of(dateCheckout,timeCheckout);}
 }

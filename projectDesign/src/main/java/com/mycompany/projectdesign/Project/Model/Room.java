@@ -1,5 +1,6 @@
 package com.mycompany.projectdesign.Project.Model;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +19,7 @@ public class Room {
     private String imagePath; // เพิ่มเก็บรูปห้อง
     private int people; //จำนวนที่สามารถเข้าพักในห้องได้
     private List<String> properties ;
+    private LocalDateTime lastCheckoutTime;
     //private final ArrayList<String> property ; //ลิสคุณสมบัติห้องพัก
 
     
@@ -33,6 +35,7 @@ public class Room {
         this.people = people;
         this.properties = new ArrayList<>(properties);
         this.status = status;
+        this.lastCheckoutTime = null;
     }
 
     // พวกด้านล่างนี้มีไว้ดึงค่าที่เก็บในตัวแปรดังกล่าวในระบบอื่นสามารถเรียกใช้ได้
@@ -64,10 +67,15 @@ public class Room {
         return status;
     }
 
+    public LocalDateTime getLastCheckoutTime(){
+        return lastCheckoutTime;
+    }
+
     public void setRoomType(String roomType) { this.type = roomType;}
     public void setPrice(Double price) { this.price = price; }
     public void setImagePath(String imagePath){ this.imagePath = imagePath; }
     public void setPeople(int people) { this.people = people;}
     public void setStatus(RoomStatus status) {this.status = status; }
     public void setProperties (List<String> properties ){ this.properties = properties;} 
+    public void setLastCheckouTime(LocalDateTime lastCheckoutTime){ this.lastCheckoutTime = lastCheckoutTime ;}
 }

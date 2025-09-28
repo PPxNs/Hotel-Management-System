@@ -9,12 +9,18 @@ import java.util.concurrent.TimeUnit;
 import com.mycompany.projectdesign.Project.Model.BookingRepository;
 import com.mycompany.projectdesign.Project.Model.BookingStatus;
 import com.mycompany.projectdesign.Project.Model.Bookings;
+import com.mycompany.projectdesign.Project.Model.Room;
+import com.mycompany.projectdesign.Project.Model.RoomRepository;
+import com.mycompany.projectdesign.Project.Model.RoomStatus;
 import com.mycompany.projectdesign.Project.ObserverPattern.HotelEventManager;
 import com.mycompany.projectdesign.Project.ObserverPattern.MissedCheckinEvent;
 import com.mycompany.projectdesign.Project.ObserverPattern.MissedCheckoutEvent;
 
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
 public class BookingScheduler {
     
+    private final RoomRepository roomRepository = RoomRepository.getInstance();
     private final BookingRepository bookingRepository = BookingRepository.getInstance();
     private final HotelEventManager eventManager = HotelEventManager.getInstance();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -31,7 +37,19 @@ public class BookingScheduler {
     }
 
     private void runChecks(){
+
         LocalDateTime now = LocalDateTime.now();
+        //ตรวจสถานะห้องก่อน
+        for (Room room : roomRepository.getAllRooms()){
+            if (room.getStatus() == RoomStatus.CLEANING && room.getLastCheckoutTime() != null ) {
+                if (now.isAfter(room.getLastCheckoutTime().plusMinutes(30))) {
+                    room.setStatus(RoomStatus.AVAILABLE);
+                    room.setLastCheckouTime(null);
+                    roomRepository.saveRoomToCSV();
+                }
+            }
+        }
+        
         for(Bookings booking : bookingRepository.getAllBookings()){
             LocalDateTime checkinTime = booking.getDateCheckin().atTime(booking.getTimeCheckin());
             LocalDateTime checkoutTime = booking.getDateCheckout().atTime(booking.getTimeCheckout());
@@ -47,8 +65,7 @@ public class BookingScheduler {
                 if (now.isAfter(checkinTime)) {
                     booking.setStatus(BookingStatus.CANCELLED);
                     bookingRepository.saveBookingToCSV();
-                    
-                    //แจ้งย้ำในช่องกระดิ่ง
+                    showAlert("Booking Auto-Cancelled", "ห้องหมายเลข : " + booking.getRoom().getNumberRoom() + " ยกเลิกอัตโนมัติ");
                 }
             }
 
@@ -60,5 +77,15 @@ public class BookingScheduler {
                 }
             }
         }
+    }
+    
+        private void showAlert(String title, String message) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.setContentText(message);
+            alert.showAndWait();
+        });
     }
 }

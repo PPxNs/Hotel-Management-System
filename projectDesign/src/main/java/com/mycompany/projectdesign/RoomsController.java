@@ -6,12 +6,16 @@ package com.mycompany.projectdesign;
 
 import java.io.File;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.function.Predicate;
 
+import com.mycompany.projectdesign.Project.Model.BookingRepository;
+import com.mycompany.projectdesign.Project.Model.BookingStatus;
+import com.mycompany.projectdesign.Project.Model.Bookings;
 import com.mycompany.projectdesign.Project.Model.Room;
 import com.mycompany.projectdesign.Project.Model.RoomRepository;
 import com.mycompany.projectdesign.Project.Model.RoomStatus;
@@ -139,13 +143,31 @@ public class RoomsController implements Initializable {
 
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
         statusColumn.setCellFactory(ComboBoxTableCell.forTableColumn(statusObtions));
-
+        
+        //ปรับการกรอง
         statusColumn.setOnEditCommit(event -> {
             RoomsTableView roomView = event.getRowValue();
             Room roomUpdate = roomView.getRoom();
             RoomStatus newStatus = RoomStatus.valueOf(event.getNewValue());
-            roomUpdate.setStatus(newStatus);
-            roomRepository.saveRoomToCSV();
+            
+            if (newStatus == RoomStatus.AVAILABLE && isRoomCurrentlyOccupied(roomUpdate)) {
+                Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
+                confirmationAlert.setTitle("ยืนยันการจอง");
+                confirmationAlert.setHeaderText("คำเตือน : อาจมีการจองซ้ำ");
+                confirmationAlert.setContentText("ห้องนี้ปัจจุบันมีผู้เข้าพักแล้ว การเปลี่ยนสถานะเป็นว่างอาจทำให้เกิดการจองซ้ำ คุณแน่ใจหรือว่าต้องการดำเนินการต่อ?"); 
+            
+                Optional<ButtonType> result = confirmationAlert.showAndWait();
+
+                if (result.isPresent() && result.get() == ButtonType.OK) {
+                    //ยืนยันเจ้าก็เปลี่ยนได้
+                    roomUpdate.setStatus(newStatus);
+                    roomRepository.saveRoomToCSV();
+                }
+            }else{
+                    roomUpdate.setStatus(newStatus);
+                    roomRepository.saveRoomToCSV(); 
+            }
+
             roomTable.refresh();
         });
 
@@ -462,6 +484,26 @@ public class RoomsController implements Initializable {
         AddRoomButton.setDisable(false);
         SaveEditButton.setDisable(true);
 
+    }
+
+    //มีใครอยู่บ่
+    private boolean isRoomCurrentlyOccupied(Room room){
+        BookingRepository bookingRepository = BookingRepository.getInstance();
+        LocalDateTime now = LocalDateTime.now();
+
+        for(Bookings booking : bookingRepository.getAllBookings()){
+            if (booking.getRoom().getNumberRoom().equals(room.getNumberRoom())) {
+                if (booking.getStatus() == BookingStatus.CHECKED_IN) {
+                    LocalDateTime  checkin = booking.getCheckinDateTime();
+                    LocalDateTime checkout = booking.getCheckoutDateTime();
+
+                    if (!now.isBefore(checkin) && now.isBefore(checkout)) {
+                        return true; //มีคนเด้อ
+                    }
+                }
+            }
+        }
+        return false;
     }
 
 
