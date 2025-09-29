@@ -478,7 +478,7 @@ public class HomeController implements Initializable {
                 public void updateItem(LocalDate date, boolean empty) {
                     super.updateItem(date, empty);
                     if (newDate != null) {
-                        setDisable(empty || !date.isBefore(newDate.plusDays(1)));
+                        setDisable(empty || date.isBefore(newDate.plusDays(1)));
                     }else {
                         setDisable(empty || date.isBefore(LocalDate.now()));
                     }
