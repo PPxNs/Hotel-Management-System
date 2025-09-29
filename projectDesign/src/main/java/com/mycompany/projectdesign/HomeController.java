@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.stream.Collectors;
 
 import javafx.util.Callback; 
 
@@ -340,7 +341,12 @@ public class HomeController implements Initializable {
                 }
 
                 RoomStatus realTimeStatus = roomService.getRealTimeStatus(room);
-                if (realTimeStatus == RoomStatus.MAINTENANCE || realTimeStatus == RoomStatus.OCCUPIED) {
+                //ข้ามห้องนี้ไปเลยถ้าซ่อมอยู่
+                if (realTimeStatus == RoomStatus.MAINTENANCE){
+                    continue;
+                }
+                
+                if(realTimeStatus == RoomStatus.OCCUPIED) {
                     match = false;
                 }
 
@@ -358,8 +364,11 @@ public class HomeController implements Initializable {
         boolean FilterSelected = selectedRoomType != null || selectedNumberPeople !=null || minPrice != null 
                                 || maxPrice != null || !selectedProperties.isEmpty() || (checkinDate != null && checkoutDate != null && checkinTime != null && checkoutTime != null) ;
 
+        //ถ้าไม่ได้เลือกค้นห้อง ให้ข้ามห้องที่ซ่อมไปด้วย ให้มันไม่แสดง
         if (!FilterSelected) {
-            availableRooms = new ArrayList<>(allRooms);
+            availableRooms = allRooms.stream()
+                            .filter(room -> room.getStatus() != RoomStatus.MAINTENANCE)
+                            .collect(Collectors.toList());
         }
 
         roomNoComboBox.setItems(FXCollections.observableArrayList(
@@ -378,13 +387,14 @@ public class HomeController implements Initializable {
         LocalDateTime checkout = checkoutDate.atTime(checkoutTime);
         for(Bookings booking : bookingRepository.getAllBookings()){
             
+            //เพิ่มกรณีช่วงทำความสะอาดห้องด้วยให้จองไม่ได้
             if (booking.getRoom().getNumberRoom().equals(room.getNumberRoom())) {
-                if (booking.getStatus() == BookingStatus.CONFIRMED || booking.getStatus() == BookingStatus.CHECKED_IN) {
+                if (booking.getStatus() == BookingStatus.CONFIRMED || booking.getStatus() == BookingStatus.CHECKED_IN || booking.getStatus() == BookingStatus.CHECKED_OUT) {
                     LocalDateTime existingStart = booking.getDateCheckin().atTime(booking.getTimeCheckin());
                     LocalDateTime existingEnd = booking.getDateCheckout().atTime(booking.getTimeCheckout());
-                
+                    LocalDateTime effectiveEnd = existingEnd.plusMinutes(30);
                     // เงื่อนไขการทับซ้อน: (StartA < EndB) and (EndA > StartB)
-                    if (checkin.isBefore(existingEnd) && checkout.isAfter(existingStart)) {
+                    if (checkin.isBefore(effectiveEnd) && checkout.isAfter(existingStart)) {
                     return false; //ทับกัน
                     }                    
                 }
