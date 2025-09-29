@@ -41,7 +41,6 @@ import com.mycompany.projectdesign.Project.Model.Room;
 import com.mycompany.projectdesign.Project.Model.RoomRepository;
 import com.mycompany.projectdesign.Project.Model.RoomStatus;
 import com.mycompany.projectdesign.Project.ObserverPattern.BillEvent;
-import com.mycompany.projectdesign.Project.ObserverPattern.BillObserver;
 import com.mycompany.projectdesign.Project.ObserverPattern.HotelEventManager;
 import com.mycompany.projectdesign.Project.Service.BookingScheduler;
 import com.mycompany.projectdesign.Project.Service.RoomService;
@@ -65,7 +64,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 public class HomeController implements Initializable {
@@ -112,6 +110,11 @@ public class HomeController implements Initializable {
 
     @FXML private Label totalLabel;
     @FXML private Label dayMealLabel;
+    @FXML private Label selectedRoomTypeLabel; 
+    @FXML private Label selectedRoomPeopleLabel;
+    @FXML private Label selectedRoomPriceLabel;
+    @FXML private Label selectedRoomPropertiesLabel;
+ 
 
     @FXML private TableView<HomeTableView> bookingTable;
 
@@ -125,7 +128,7 @@ public class HomeController implements Initializable {
     @FXML private TableColumn<HomeTableView,String> statusColumn;   
 
     private List<Room> allRooms;
-    private List<Bookings> bookings = new ArrayList<>();
+    //private List<Bookings> bookings = new ArrayList<>();
     private RoomRepository roomRepository = RoomRepository.getInstance();
     private CustomerRepository customerRepository = CustomerRepository.getInstance();
     private BookingRepository bookingRepository = BookingRepository.getInstance();
@@ -133,12 +136,12 @@ public class HomeController implements Initializable {
     private List<CheckBox> allCheckbox;
     private ToggleGroup genderToggleGroup;
     private HotelEventManager eventManager = HotelEventManager.getInstance();
-    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    //private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private ObservableList<HomeTableView> homeBookingList = FXCollections.observableArrayList();
     private final RoomService roomService = new RoomService();
 
     //แก้บัค
-    private boolean isUpdatingFromSelection = false;
+    //private boolean isUpdatingFromSelection = false;
     private BookingScheduler bookingScheduler;
     
     @Override
@@ -206,15 +209,24 @@ public class HomeController implements Initializable {
         updateAvailableRoom();
 
         roomNoComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                getDataFormRoomSelected(newVal);
+            Callback<DatePicker, DateCell> factory;
+            if (newVal != null && !newVal.isEmpty()) {
+                Room selectedRoom = roomRepository.getRoom(newVal);
+                factory = createDayCellFactoryForRoom(selectedRoom);
+            }else{
+                factory = createDefaultDayCellFactory();
             }
+
+            checkinDatePicker.setDayCellFactory(factory);
+            checkoutDatePicker.setDayCellFactory(factory);
+            getDataFormRoomSelected(newVal);
+            
         });
 
         addPriceUpdateListeners();
         setupDatePickers();
 
-        
+        clearSelectedRoomDetails();
         bookingScheduler = new BookingScheduler();
         bookingScheduler.start();
     }
@@ -250,11 +262,6 @@ public class HomeController implements Initializable {
     }
 
     private void updateAvailableRoom(){
-        
-        if (isUpdatingFromSelection) {
-            return;
-        }
-
         //ดึงข้อมูลมาเพื่อจะเช็ค
         String selectedRoomType = roomTypeComboBox.getValue();
         Integer selectedNumberPeople = numberPeopleComboBox.getValue();
@@ -404,24 +411,76 @@ public class HomeController implements Initializable {
         return true; //ว่าง ไม่มีเวลาทับซ้อน
     }
 
+
+
     //ให้ปฎิทินเลือกวันในอดีตไม่ได้
-    private void setupDatePickers(){
-        checkinDatePicker1.setDayCellFactory(picker -> new DateCell(){
+    private  Callback<DatePicker, DateCell> createDefaultDayCellFactory(){
+        return picker -> new DateCell(){
             @Override
             public void updateItem(LocalDate date, boolean empty){
                 super.updateItem(date, empty);
                 setDisable(empty || date.isBefore(LocalDate.now()));
             }
             
-        });
+        };
+    }
 
+    private  Callback<DatePicker, DateCell> createDayCellFactoryForRoom(Room roomToCheck){
+        if (roomToCheck == null) {
+            return createDefaultDayCellFactory(); //กรณีไม่มีห้อง
+        }
+
+        List<Bookings> roomBookings = bookingRepository.getAllBookings().stream()
+                                                       .filter(b -> b.getRoom().getNumberRoom().equals(roomToCheck.getNumberRoom())
+                                                       && (b.getStatus() == BookingStatus.CONFIRMED || b.getStatus() == BookingStatus.CHECKED_IN))
+                                                       .collect(Collectors.toList());
+
+        return picker -> new DateCell(){
+            @Override
+            public void updateItem(LocalDate date, boolean empty){
+                super.updateItem(date, empty);
+                //ปิดวันในอดีต
+                if (empty || date.isBefore(LocalDate.now())) {
+                    setDisable(true);
+                    return;
+                }
+                //ตรวจจองซ้อน
+                boolean isBooking = false;
+                for(Bookings booking : roomBookings){
+                    LocalDate checkinDate = booking.getDateCheckin();
+                    LocalDate checkoutDate = booking.getDateCheckout();
+
+                    if (!date.isBefore(checkinDate) && date.isBefore(checkoutDate)) {
+                        isBooking = true;
+                        break;
+                    }
+                }
+
+                if (isBooking) {
+                    setDisable(true);
+                    //แสดงให้เห็นสีวันจอง
+                    setStyle("-fx-background-color: #ffc0cb;"); 
+                }
+            }
+        };
+            
+    }
+
+    private void setupDatePickers(){
+        Callback<DatePicker, DateCell> defaultFactory = createDefaultDayCellFactory();
+        checkinDatePicker.setDayCellFactory(defaultFactory);
+        checkoutDatePicker.setDayCellFactory(defaultFactory);
+
+        checkinDatePicker1.setDayCellFactory(createDefaultDayCellFactory());
         checkinDatePicker1.valueProperty().addListener((obs, oldDate, newDate) -> {
             final Callback<DatePicker, DateCell> dayCellFactory = picker -> new DateCell() {
                 @Override
                 public void updateItem(LocalDate date, boolean empty) {
                     super.updateItem(date, empty);
                     if (newDate != null) {
-                        setDisable(empty || !date.isAfter(newDate));
+                        setDisable(empty || !date.isBefore(newDate.plusDays(1)));
+                    }else {
+                        setDisable(empty || date.isBefore(LocalDate.now()));
                     }
                 }
             };
@@ -801,7 +860,7 @@ public class HomeController implements Initializable {
         checkinTimeCombobox1.getSelectionModel().clearSelection();
         checkoutDatePicker1.setValue(null);
         checkoutTimeCombobox1.getSelectionModel().clearSelection();
-
+        clearSelectedRoomDetails();
         for(CheckBox cb : allCheckbox){
             cb.setSelected(false);
         }
@@ -809,27 +868,23 @@ public class HomeController implements Initializable {
 
     //set หลังเลือกห้อง
     private void getDataFormRoomSelected(String roomNumber){
-        //ดักบัค 
-        isUpdatingFromSelection = true;
-        try{
-       
-        String roomtype = roomRepository.getRoom(roomNumber).getType();
-        int numPeople = roomRepository.getRoom(roomNumber).getPeople();
-        List<String> properties = roomRepository.getRoom(roomNumber).getProperties();
-
-        for(CheckBox cb : allCheckbox){
-            cb.setSelected(false);
+        if (roomNumber == null || roomNumber.isEmpty()) {
+            clearSelectedRoomDetails();
+            return ;
         }
 
-        roomTypeComboBox.setValue(roomtype);
-        numberPeopleComboBox.setValue(numPeople);
-        if (properties != null) {
-            if(properties.contains("Jacuzzi")) jacuzziCheckBox.setSelected(true);
-            if(properties.contains("Lake View")) lakeViewCheckBox.setSelected(true);
-            if(properties.contains("Pet-Friendly")) petFriendlyCheckBox.setSelected(true);
-            if(properties.contains("Private Pool")) privatePoolCheckBox.setSelected(true);
-            if(properties.contains("TV 58” 4K UHD LED")) tvCheckBox.setSelected(true);
-            if(properties.contains("WIFI")) wifiCheckBox.setSelected(true);
+        Room selectedRoom = roomRepository.getRoom(roomNumber);
+        if (selectedRoom != null) {
+            selectedRoomTypeLabel.setText(selectedRoom.getType());
+            selectedRoomPeopleLabel.setText(String.valueOf(selectedRoom.getPeople()) + " people");
+            selectedRoomPriceLabel.setText("฿ " + String.format("%.2f", selectedRoom.getPrice()));
+
+            if (selectedRoom.getProperties() != null && !selectedRoom.getProperties().isEmpty()) {
+                selectedRoomPropertiesLabel.setText(String.join(", ", selectedRoom.getProperties()));
+            }else{
+                selectedRoomPropertiesLabel.setText("-");
+            }
+
         }
 
         LocalDate checkinDate = checkinDatePicker.getValue();
@@ -852,10 +907,37 @@ public class HomeController implements Initializable {
         if (checkoutTime != null) {
             checkoutTimeCombobox1.setValue(checkoutTime);
         }
-        }finally {
-            isUpdatingFromSelection = false;
-        }
         
+        
+    }
+
+    private void clearSelectedRoomDetails(){
+        selectedRoomTypeLabel.setText("-");
+        selectedRoomPeopleLabel.setText("-");
+        selectedRoomPriceLabel.setText("-");
+        selectedRoomPropertiesLabel.setText("-");
+    }
+
+    @FXML
+    public void handleclearFilterButton(){
+        roomTypeComboBox.getSelectionModel().clearSelection();
+        numberPeopleComboBox.getSelectionModel().clearSelection();
+        checkinDatePicker.setValue(null);
+        checkoutDatePicker.setValue(null);
+        checkinTimeCombobox.getSelectionModel().clearSelection();
+        checkoutTimeCombobox.getSelectionModel().clearSelection();
+        minRangeField.clear();
+        maxRangeField.clear();
+        jacuzziCheckBox.setSelected(false);
+        lakeViewCheckBox.setSelected(false);
+        petFriendlyCheckBox.setSelected(false);
+        privatePoolCheckBox.setSelected(false);
+        tvCheckBox.setSelected(false);
+        wifiCheckBox.setSelected(false);
+        roomNoComboBox.getSelectionModel().clearSelection();
+
+        clearSelectedRoomDetails();
+        updateAvailableRoom();
     }
 
 }

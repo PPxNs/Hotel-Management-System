@@ -351,8 +351,9 @@ public class RoomsController implements Initializable {
         if (roomNoField.getText().isEmpty() || roomTypeComboBox.getValue() == null ||
             imagePartField.getText().isEmpty() ||priceField.getText().isEmpty() || peopleField.getText().isEmpty() ) {
             
-                System.out.println("เขียนข้อมูลไม่ครบ"); //อาจจะเพิ่ม pop up แจ้ง 
-                return null ;
+                Alert alert = new Alert(Alert.AlertType.WARNING, "โปรดกรอกข้อมูลให้ครบถ้วน");
+                alert.showAndWait();
+                return null;
 
         } else{
 

@@ -121,7 +121,13 @@ public class ReservationsController implements Initializable {
 
     private Predicate<ReservationsTableView> createPredicate(String searchText, String status){
         //ส่งข้อมูลก็ต่อเมื่อ ....
+
+        
         return booking -> {
+            BookingStatus currentStatus = booking.getBookings().getStatus();
+            if (currentStatus != BookingStatus.CONFIRMED && currentStatus != BookingStatus.CHECKED_IN) {
+                return false; //ไม่ใช่คอนเฟิร์ม เช็คอินให้คัดออก
+            }
             boolean searchMatch = true;
             if (searchText != null && !searchText.isEmpty()) {
                 String lowercase = searchText.toLowerCase();
