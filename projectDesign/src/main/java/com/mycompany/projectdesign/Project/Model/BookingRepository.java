@@ -98,8 +98,6 @@ public class BookingRepository {
     }
 
 
-
-
     public void saveBookingToCSV() {
     File fi = new File("File/Booking.csv");
     try {
@@ -127,16 +125,18 @@ public class BookingRepository {
                      booking.getTimeCheckout().toString() + "," +
                      booking.getDateBooking().toString() + "," +
                      booking.getTimeBooking().toString() + "," +
-                     booking.getStatus().name());
+                     booking.getStatus().name()+ "," +
+                     booking.isCheckinNotified() + "," + 
+                     booking.isCheckoutNotified());
             bw.newLine();
         }
 
         bw.close();
         fw.close();
-    } catch (Exception e) {
+        } catch (Exception e) {
         e.printStackTrace();
+        }
     }
-}
 
 
 
@@ -165,9 +165,10 @@ public class BookingRepository {
         fr = new FileReader(fi);
         br = new BufferedReader(fr);
         String s;
-        while ((s = br.readLine()) != null) {
+         while ((s = br.readLine()) != null) {
             String[] parts = s.split(",");
-            if (parts.length == 10) {
+        
+            if (parts.length >= 10) { 
                 String numberRoom = parts[0];
                 String idCard = parts[1];
                 String bookingID = parts[2];
@@ -181,10 +182,17 @@ public class BookingRepository {
 
                 Customer customer = this.customerRepository.getCustomerById(idCard);
                 Room room = this.roomRepository.getRoom(numberRoom);
-               
+                
                 if (customer != null && room != null) {
                     Bookings booking = new Bookings(room, customer, bookingID, dateCheckin, timeCheckin, dateCheckout, timeCheckout, dateBooking, timeBooking);
                     booking.setStatus(status);
+
+                    // เงื่อนไขนี้จะทำงานได้อย่างถูกต้องแล้ว
+                    if (parts.length == 12) {
+                        booking.setCheckinNotified(Boolean.parseBoolean(parts[10]));
+                        booking.setCheckoutNotified(Boolean.parseBoolean(parts[11]));
+                    }
+                    
                     this.addBooking(booking);
                 }
             }
@@ -201,7 +209,7 @@ public class BookingRepository {
     }
 
     return true;
-}
+    }
 
 
 }

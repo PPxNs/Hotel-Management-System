@@ -116,4 +116,24 @@ public class Bookings {
 
     public LocalDateTime getCheckoutDateTime(){
         return LocalDateTime.of(dateCheckout,timeCheckout);}
+
+    private boolean checkinNotified = false;
+    private boolean checkoutNotified = false;
+
+    public boolean isCheckinNotified() {
+        return checkinNotified;
+    }
+
+    public void setCheckinNotified(boolean checkinNotified) {
+        this.checkinNotified = checkinNotified;
+    }
+
+    public boolean isCheckoutNotified() {
+        return checkoutNotified;
+    }
+
+    public void setCheckoutNotified(boolean checkoutNotified) {
+        this.checkoutNotified = checkoutNotified;
+    }
+
 }

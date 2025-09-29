@@ -73,7 +73,7 @@ public class GuestsController implements Initializable{
     //ลิสจัดการข้อมูล
     private ObservableList<GuestsTableView> masterData = FXCollections.observableArrayList();
     private FilteredList<GuestsTableView> filteredData;
-    private SortedList<GuestsTableView> sortedData;
+    //private SortedList<GuestsTableView> sortedData;
 
 
     @Override
@@ -283,7 +283,7 @@ public class GuestsController implements Initializable{
                             
                             Room room = selectedGuest.getRoom();
                             room.setStatus(RoomStatus.CLEANING);
-                            room.setLastCheckouTime(LocalDateTime.now());
+                            room.setLastCheckoutTime(LocalDateTime.now());
                             roomRepository.saveRoomToCSV();
                         }
                         guestTable.refresh();

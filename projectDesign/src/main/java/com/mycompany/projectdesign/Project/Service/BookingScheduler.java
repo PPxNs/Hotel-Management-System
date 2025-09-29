@@ -38,12 +38,13 @@ public class BookingScheduler {
     private void runChecks(){
 
         LocalDateTime now = LocalDateTime.now();
+        boolean bookingsModified = false;
         //ตรวจสถานะห้องก่อน
         for (Room room : roomRepository.getAllRooms()){
             if (room.getStatus() == RoomStatus.CLEANING && room.getLastCheckoutTime() != null ) {
                 if (now.isAfter(room.getLastCheckoutTime().plusMinutes(30))) {
                     room.setStatus(RoomStatus.AVAILABLE);
-                    room.setLastCheckouTime(null);
+                    room.setLastCheckoutTime(null);
                     roomRepository.saveRoomToCSV();
                 }
             }
@@ -55,9 +56,11 @@ public class BookingScheduler {
             
             // วางแผนว่าให้โทรเช็คคนจองก่อน 10 นาที
             if (booking.getStatus() == BookingStatus.CONFIRMED) {
-                if (now.isAfter(checkinTime.minusMinutes(10))&& now.isBefore(checkinTime)) {
+                if (!booking.isCheckinNotified() && now.isAfter(checkinTime.minusMinutes(10))&& now.isBefore(checkinTime)) {
                     MissedCheckinEvent event = new MissedCheckinEvent(booking.getRoom(), booking.getCustomer(), booking , now);
                     eventManager.notifyObserver(event);
+                    booking.setCheckinNotified(true); //ตั้งค่าเพื่อบอกว่าแจ้งแล้ว
+                    bookingsModified = true;
                 }   
                 
                 //ถ้าเลยเวลาเช็คอินก็ยกเลิกออโต้
@@ -70,11 +73,17 @@ public class BookingScheduler {
 
             // วางแผนว่าให้โทรเช็คคน checkout ก่อน 5 นาที
             if (booking.getStatus() == BookingStatus.CHECKED_IN) {
-                if (now.isBefore(checkoutTime.minusMinutes(5))&& now.isBefore(checkoutTime)) {
+                if (!booking.isCheckinNotified() && now.isBefore(checkoutTime.minusMinutes(5))&& now.isBefore(checkoutTime)) {
                     MissedCheckoutEvent event = new MissedCheckoutEvent(booking.getRoom(), booking.getCustomer(), booking, now);
                     eventManager.notifyObserver(event);
+                    booking.setCheckoutNotified(true);
+                    bookingsModified = true;
                 }
             }
+        }
+
+        if (bookingsModified) {
+            bookingRepository.saveBookingToCSV();
         }
     }
     
