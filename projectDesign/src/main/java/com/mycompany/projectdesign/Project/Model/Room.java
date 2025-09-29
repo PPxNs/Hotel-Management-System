@@ -77,5 +77,5 @@ public class Room {
     public void setPeople(int people) { this.people = people;}
     public void setStatus(RoomStatus status) {this.status = status; }
     public void setProperties (List<String> properties ){ this.properties = properties;} 
-    public void setLastCheckouTime(LocalDateTime lastCheckoutTime){ this.lastCheckoutTime = lastCheckoutTime ;}
+    public void setLastCheckoutTime(LocalDateTime lastCheckoutTime){ this.lastCheckoutTime = lastCheckoutTime ;}
 }

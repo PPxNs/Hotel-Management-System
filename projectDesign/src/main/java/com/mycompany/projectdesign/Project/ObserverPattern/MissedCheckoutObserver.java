@@ -1,7 +1,5 @@
 package com.mycompany.projectdesign.Project.ObserverPattern;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 
 import com.mycompany.projectdesign.Project.Model.*;
 
@@ -13,10 +11,7 @@ public class MissedCheckoutObserver implements HotelObserver {
     public void update(HotelEvent event) {
         if (event instanceof MissedCheckoutEvent) {
             Bookings missedEvent = ((MissedCheckoutEvent) event).getBookings();
-            LocalDateTime checkout = LocalDateTime.of(missedEvent.getDateCheckout(), missedEvent.getTimeCheckout());
-            long minutesCheckout = ChronoUnit.MINUTES.between(LocalDateTime.now(), checkout);
 
-            if (minutesCheckout <=5 && minutesCheckout >=0) {
                 Platform.runLater(() ->{
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("ตรวจสอบลูกค้าเช็คเอาส์");
@@ -57,6 +52,6 @@ public class MissedCheckoutObserver implements HotelObserver {
               
         }*/
     }
-}
+
 
     

@@ -153,7 +153,7 @@ public class HomeController implements Initializable {
         //เซตเวลาของ checkin
         ObservableList<String> timeCheckin = FXCollections.observableArrayList(
   "14:00" , "14:30", "15:00" , "15:30", "16:00" , "16:30", "17:00" , 
-           "17:30", "18:00" , "18:30", "19:00" , "19:30", "20:00"
+           "17:30", "18:00" , "18:30", "19:00" , "19:30", "20:00","21:40"
         );
         //เซตเวลาของ checkout
         ObservableList<String> timeCheckout = FXCollections.observableArrayList(
@@ -193,7 +193,7 @@ public class HomeController implements Initializable {
                 homeBookingList.add(new HomeTableView(booking, paid));
             } else {
                 // ถ้า booking นี้ยังไม่มีการจ่ายแสดง 0
-                homeBookingList.add(new HomeTableView(booking, new AmountPaid(booking, 0.0)));
+                homeBookingList.add(new HomeTableView(booking, new AmountPaid(booking, 0.00)));
             }
         }
 
@@ -473,12 +473,13 @@ public class HomeController implements Initializable {
 
         checkinDatePicker1.setDayCellFactory(createDefaultDayCellFactory());
         checkinDatePicker1.valueProperty().addListener((obs, oldDate, newDate) -> {
+            checkoutDatePicker1.setValue(null); 
             final Callback<DatePicker, DateCell> dayCellFactory = picker -> new DateCell() {
                 @Override
                 public void updateItem(LocalDate date, boolean empty) {
                     super.updateItem(date, empty);
                     if (newDate != null) {
-                        setDisable(empty || !date.isBefore(newDate.plusDays(1)));
+                        setDisable(empty || date.isBefore(newDate.plusDays(1)));
                     }else {
                         setDisable(empty || date.isBefore(LocalDate.now()));
                     }
@@ -634,7 +635,7 @@ public class HomeController implements Initializable {
         confirmationDialog.setHeaderText("กรุณาตรวจสอบรายละเอียดการจองก่อนบันทึก");
         confirmationDialog.setContentText("ลูกค้า: " + newCustomer.getFullName() + "\n" +
                                      "ห้อง: " + newBookings.getRoom().getNumberRoom() + "\n\n" +
-                                     "ยอดรวม: " + totalCostAfterDiscount+ " บาท\n\n" +
+                                     "ยอดรวม: " + String.format("%.2f",totalCostAfterDiscount)+ " บาท\n\n" +
                                      "ยืนยันเพื่อบันทึกข้อมูล");
 
         Optional<ButtonType> result = confirmationDialog.showAndWait();
@@ -692,7 +693,7 @@ public class HomeController implements Initializable {
         confirmationDialog.setHeaderText("กรุณาตรวจสอบรายละเอียดการจองก่อนบันทึก");
         confirmationDialog.setContentText("ลูกค้า: " + newCustomer.getFullName() + "\n" +
                                      "ห้อง: " + newBookings.getRoom().getNumberRoom() + "\n\n" +
-                                     "ยอดรวม: " + totalCostAfterDiscount+ " บาท\n\n" +
+                                     "ยอดรวม: " + String.format("%.2f",totalCostAfterDiscount)+ " บาท\n\n" +
                                      "ยืนยันเพื่อบันทึกข้อมูลและพิมพ์ใบเสร็จ?");
 
         Optional<ButtonType> result = confirmationDialog.showAndWait();
