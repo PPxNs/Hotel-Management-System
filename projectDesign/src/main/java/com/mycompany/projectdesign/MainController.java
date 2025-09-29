@@ -72,7 +72,7 @@ public class MainController implements Initializable, HotelObserver{
     public void update(HotelEvent event) {
         if (event instanceof MissedCheckinEvent || event instanceof MissedCheckoutEvent) {
             Platform.runLater(() ->{
-                
+                showNotification();
             });
         }
     }

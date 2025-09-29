@@ -15,7 +15,7 @@ public class CleaningRoomDecorator extends DepositDecorator {
     }
     
     public String getDescription(){
-        return super.getDescription() + "\n + Insurance                 --> 1000.00";
+        return super.getDescription() + "\n + Cleaning Room               --> 1000.00";
     }
 
     @Override

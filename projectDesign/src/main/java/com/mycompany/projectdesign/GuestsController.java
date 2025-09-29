@@ -126,15 +126,19 @@ public class GuestsController implements Initializable{
     private Predicate<GuestsTableView> createPredicate(String searchText, String status){
         //ส่งข้อมูลก็ต่อเมื่อ ....
         return guest -> {
+            BookingStatus currentStatus = guest.getBookings().getStatus();
+            if (currentStatus != BookingStatus.CONFIRMED && currentStatus != BookingStatus.CHECKED_IN) {
+                return false; //ไม่ใช่คอนเฟิร์ม เช็คอินให้คัดออก
+            }
 
             //ใช้ startsWith เพราะ ตอนค้นด้วย a มันดันเอาตัวที่ไม่ขึ้นต้นด้วย a มาด้วย 
             boolean searchMatch = true;
-            if (searchText != null && !searchText.isEmpty()) {
+            if (searchText != null && !searchText.isEmpty() ) {
                 String lowercase = searchText.toLowerCase();
                 searchMatch = guest.getCustomer().getFirstnameCustomer().toLowerCase().startsWith(lowercase) ||
                               guest.getCustomer().getLastnameCustomer().toLowerCase().startsWith(lowercase) ||
                               guest.getNumberRoom().toLowerCase().startsWith(lowercase)||
-                              guest.getCustomer().getidCard().toLowerCase().startsWith(lowercase);
+                              guest.getCustomer().getidCard().toLowerCase().startsWith(lowercase); 
                 }
 
             boolean statusMatch = true;

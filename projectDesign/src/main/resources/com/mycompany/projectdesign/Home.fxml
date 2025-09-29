@@ -33,9 +33,9 @@
          <content>
             <BorderPane>
                <center>
-                  <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="1190.0" prefWidth="450.0" styleClass="form-field">
+                  <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="1480.0" prefWidth="465.0" styleClass="form-field">
                      <children>
-                        <Label maxWidth="1.7976931348623157E308" prefHeight="51.0" prefWidth="240.0" styleClass="form-title" text="Add Guest">
+                        <Label maxWidth="1.7976931348623157E308" prefHeight="51.0" prefWidth="240.0" styleClass="form-title" text="Selected Room">
                            <VBox.margin>
                               <Insets left="20.0" top="20.0" />
                            </VBox.margin>
@@ -51,7 +51,7 @@
                                     <Insets left="20.0" right="20.0" />
                                  </HBox.margin>
                               </Label>
-                              <ComboBox id="roomTypeComboBox" fx:id="roomNoComboBox" prefHeight="27.0" prefWidth="323.0">
+                              <ComboBox id="roomTypeComboBox" fx:id="roomNoComboBox" prefHeight="27.0" prefWidth="336.0">
                                  <styleClass>
                                     <String fx:value="form-field" />
                                     <String fx:value="status-allocated" />
@@ -123,7 +123,7 @@
                                     <Insets left="20.0" />
                                  </GridPane.margin>
                               </Label>
-                              <DatePicker fx:id="checkinDatePicker" prefHeight="27.0" prefWidth="196.0" GridPane.rowIndex="3">
+                              <DatePicker fx:id="checkinDatePicker" prefHeight="27.0" prefWidth="215.0" GridPane.rowIndex="3">
                                  <GridPane.margin>
                                     <Insets left="20.0" right="10.0" />
                                  </GridPane.margin>
@@ -133,12 +133,12 @@
                                     <Insets left="20.0" right="10.0" />
                                  </GridPane.margin>
                               </DatePicker>
-                              <ComboBox fx:id="checkinTimeCombobox" prefHeight="27.0" prefWidth="130.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                              <ComboBox fx:id="checkinTimeCombobox" prefHeight="27.0" prefWidth="120.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
                                  <GridPane.margin>
                                     <Insets left="10.0" right="20.0" />
                                  </GridPane.margin>
                               </ComboBox>
-                              <ComboBox fx:id="checkoutTimeCombobox" prefWidth="130.0" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                              <ComboBox fx:id="checkoutTimeCombobox" prefHeight="27.0" prefWidth="120.0" GridPane.columnIndex="1" GridPane.rowIndex="5">
                                  <GridPane.margin>
                                     <Insets left="10.0" right="20.0" />
                                  </GridPane.margin>
@@ -203,6 +203,59 @@
                                  </GridPane.margin>
                               </CheckBox>
                               <CheckBox fx:id="wifiCheckBox" mnemonicParsing="false" text="WIFI" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                           </children>
+                        </GridPane>
+                        <Button fx:id="clearFilterButton" mnemonicParsing="false" onAction="#handleclearFilterButton" prefHeight="38.0" prefWidth="77.0" text="Clear">
+                           <VBox.margin>
+                              <Insets bottom="20.0" left="360.0" top="20.0" />
+                           </VBox.margin>
+                        </Button>
+                        <Separator prefWidth="200.0" />
+                        <Label maxWidth="1.7976931348623157E308" prefHeight="51.0" prefWidth="240.0" styleClass="form-title" text="Details of the selected room">
+                           <font>
+                              <Font name="System Bold Italic" size="17.0" />
+                           </font>
+                           <VBox.margin>
+                              <Insets left="20.0" top="20.0" />
+                           </VBox.margin>
+                        </Label>
+                        <GridPane>
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="218.0" minWidth="10.0" prefWidth="155.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="293.0" minWidth="10.0" prefWidth="293.0" />
+                           </columnConstraints>
+                           <rowConstraints>
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                           </rowConstraints>
+                           <children>
+                              <Label maxWidth="1.7976931348623157E308" text="Room Type            :">
+                                 <GridPane.margin>
+                                    <Insets left="20.0" />
+                                 </GridPane.margin>
+                              </Label>
+                              <Label maxWidth="1.7976931348623157E308" text="Number of people :" GridPane.rowIndex="1">
+                                 <GridPane.margin>
+                                    <Insets left="20.0" />
+                                 </GridPane.margin>
+                              </Label>
+                              <Label maxWidth="1.7976931348623157E308" text="Price / Day (Bath)  :" GridPane.rowIndex="2">
+                                 <GridPane.margin>
+                                    <Insets left="20.0" />
+                                 </GridPane.margin>
+                              </Label>
+                              <Label maxWidth="1.7976931348623157E308" text="Special Features    :" GridPane.rowIndex="3">
+                                 <GridPane.margin>
+                                    <Insets left="20.0" />
+                                 </GridPane.margin>
+                              </Label>
+                              <Label fx:id="selectedRoomTypeLabel" text="-" GridPane.columnIndex="1" />
+                              <Label fx:id="selectedRoomPeopleLabel" text="-" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                              <Label fx:id="selectedRoomPriceLabel" text="-" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                              <Label fx:id="selectedRoomPropertiesLabel" text="-" GridPane.columnIndex="1" GridPane.rowIndex="3" />
                            </children>
                         </GridPane>
                         <Separator prefWidth="200.0">
@@ -450,7 +503,7 @@
                                        <children>
                                           <CheckBox fx:id="cleaningRoomCheckBox" mnemonicParsing="false" text="CleaningRoom" />
                                           <Pane prefHeight="18.0" prefWidth="174.0" HBox.hgrow="ALWAYS" />
-                                          <Label prefHeight="17.0" prefWidth="65.0" text="฿‎1000" />
+                                          <Label prefHeight="17.0" prefWidth="65.0" text="฿‎1000.00" />
                                        </children>
                                        <VBox.margin>
                                           <Insets />
@@ -468,7 +521,7 @@
                                        <children>
                                           <CheckBox fx:id="pickupServiceCheckbox" mnemonicParsing="false" text="PickupService" />
                                           <Pane prefHeight="16.0" prefWidth="154.0" HBox.hgrow="ALWAYS" />
-                                          <Label prefHeight="17.0" prefWidth="65.0" text="฿‎300" />
+                                          <Label prefHeight="17.0" prefWidth="65.0" text="฿‎300.00" />
                                        </children>
                                     </HBox>
                                  </children>
