@@ -3,6 +3,12 @@ package com.mycompany.projectdesign.Project.ObserverPattern;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * เป็นคลาสใน Observer Design Pattern
+ * ทำหน้าที่จัดการรายชื่อผู้สังเกตการณ์ (Observers) และส่งต่อเหตุการณ์ (Events)
+ * ไปยังผู้สังเกตการณ์ทุกคนที่ลงทะเบียนไว้
+ */
+
 public class HotelEventManager {
     private final List<HotelObserver> observers = new ArrayList<>();
     private static final HotelEventManager instance = new HotelEventManager();

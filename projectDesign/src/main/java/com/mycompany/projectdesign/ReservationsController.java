@@ -8,13 +8,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.function.Predicate;
 
-import com.mycompany.projectdesign.Project.Model.BookingRepository;
-import com.mycompany.projectdesign.Project.Model.BookingStatus;
-import com.mycompany.projectdesign.Project.Model.Bookings;
-import com.mycompany.projectdesign.Project.Model.Customer;
-import com.mycompany.projectdesign.Project.Model.CustomerRepository;
-import com.mycompany.projectdesign.Project.Model.Room;
-import com.mycompany.projectdesign.Project.Model.RoomRepository;
+import com.mycompany.projectdesign.Project.Model.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -28,13 +22,14 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 
-
+/**
+ * Controller สำหรับหน้าจอจัดการรายการจอง (Reservations.fxml)
+ * ทำหน้าที่แสดง, กรอง, ค้นหา, และแก้ไขสถานะของการจองทั้งหมดในระบบ
+ */
 public class ReservationsController implements Initializable {
 
-    //ดึง javaFX มา
+    // @FXML Components: ส่วนเกี่ยวกับคอลลัมแสดงข้อมูล
     @FXML private TableView<ReservationsTableView> ReservationsTable;
-
-    //ดึงแต่ละ coluumn
     @FXML private TableColumn<ReservationsTableView,String> BookingIDColumn;
     @FXML private TableColumn<ReservationsTableView,String> DateBookingColumn;
     @FXML private TableColumn<ReservationsTableView,String> RoomNoColumn;
@@ -43,22 +38,24 @@ public class ReservationsController implements Initializable {
     @FXML private TableColumn<ReservationsTableView,String> CheckoutColumn;
     @FXML private TableColumn<ReservationsTableView,String> StatusColumn;
 
+    // @FXML Components: ส่วนกรองข้อมูล 
     @FXML private ComboBox<String> statusComboBox;
-
     @FXML private TextField searchField;
 
-
-
-
-    //new เพื่อจะเรียกโหลด csv มาใส่ใน column
+    // แหล่งข้อมูลหลักของระบบ
     private CustomerRepository customerRepository = CustomerRepository.getInstance();
     private RoomRepository roomRepository = RoomRepository.getInstance();
     private BookingRepository bookingRepository = BookingRepository.getInstance();
     private ObservableList<ReservationsTableView> bookingList = FXCollections.observableArrayList();
 
-
+    /**
+     * เมธอดหลักที่ถูกเรียกโดยอัตโนมัติเมื่อ FXML โหลดเสร็จ
+     * ใช้สำหรับตั้งค่าเริ่มต้นทั้งหมดของหน้าจอ
+     */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+           
+        //ตั้งค่า CellValueFactory สำหรับแต่ละคอลัมน์เพื่อผูกกับ Property ของ ReservationsTableView
         BookingIDColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>  ("bookingID"));
         RoomNoColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>  ("numberRoom"));
         GuestColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String> ("fullnameCustomer"));
@@ -66,6 +63,7 @@ public class ReservationsController implements Initializable {
         CheckInColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("checkin"));
         CheckoutColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("checkout"));
         
+        //กำหนด item ใน combobox
         ObservableList<String> allStatus = FXCollections.observableArrayList(
        "All Status",
                 "CONFIRMED",      
@@ -84,13 +82,13 @@ public class ReservationsController implements Initializable {
         StatusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
         StatusColumn.setCellFactory(ComboBoxTableCell.forTableColumn(statusObtions));
 
+        // กำหนด Action ที่จะเกิดขึ้นเมื่อแก้ไขสถานะเสร็จ
         StatusColumn.setOnEditCommit(event -> {
             ReservationsTableView reservationsView = event.getRowValue();
             Bookings reservationsUpdate = reservationsView.getBookings();
             BookingStatus newStatus = BookingStatus.valueOf(event.getNewValue());
             reservationsUpdate.setStatus(newStatus);
             BookingRepository.getInstance().saveBookingToCSV();
-            //ReservationsTable.refresh();
             loadReservationsData();
         });
 
@@ -98,9 +96,12 @@ public class ReservationsController implements Initializable {
         StatusColumn.setEditable(true); //แก้สเตตัสได้
 
         //set เรื่องการค้นหา
+        // สร้าง FilteredList พร้อมเงื่อนไขเริ่มต้น
         FilteredList<ReservationsTableView> filteredData = new FilteredList<>(bookingList, reservations ->                 
                 reservations.getStatus().equalsIgnoreCase("CONFIRMED") ||
                 reservations.getStatus().equalsIgnoreCase("CHECKED_IN"));
+        
+        // เพิ่ม Listener ให้ช่องค้นหาและ ComboBox
         searchField.textProperty().addListener((obs, oldVal,newVal) ->{
             filteredData.setPredicate(createPredicate(newVal, statusComboBox.getValue()));
         });
@@ -110,24 +111,32 @@ public class ReservationsController implements Initializable {
         });
 
 
-        
+        // สร้าง SortedList จาก FilteredList
         SortedList<ReservationsTableView> sortedData = new SortedList<>(filteredData);
         sortedData.comparatorProperty().bind(ReservationsTable.comparatorProperty());
 
-        //เราข้อมูลทั้งหมดใส่ใน tableview
+        // โหลดข้อมูลใหม่ทั้งหมดเพื่อรีเฟรชตาราง
         loadReservationsData();
+
+        // ผูก TableView เข้ากับ SortedList
         ReservationsTable.setItems(sortedData);
     }
 
+    /**
+     * สร้าง Predicate (เงื่อนไข) สำหรับใช้ในการกรองข้อมูลใน FilteredList
+     * @param searchText ข้อความจากช่องค้นหา
+     * @param status สถานะที่เลือกจาก ComboBox
+     * @return Predicate ที่รวมเงื่อนไขการค้นหาและสถานะ
+     */
     private Predicate<ReservationsTableView> createPredicate(String searchText, String status){
         //ส่งข้อมูลก็ต่อเมื่อ ....
-
-        
         return booking -> {
             BookingStatus currentStatus = booking.getBookings().getStatus();
             if (currentStatus != BookingStatus.CONFIRMED && currentStatus != BookingStatus.CHECKED_IN) {
                 return false; //ไม่ใช่คอนเฟิร์ม เช็คอินให้คัดออก
             }
+
+            // เงื่อนไขการค้นหา: ข้อความต้องมีอยู่ในชื่อลูกค้าหรือหมายเลขห้อง
             boolean searchMatch = true;
             if (searchText != null && !searchText.isEmpty()) {
                 String lowercase = searchText.toLowerCase();
@@ -140,6 +149,7 @@ public class ReservationsController implements Initializable {
                 }
             }
 
+            // เงื่อนไขสถานะ: ต้องตรงกับสถานะที่เลือก
             boolean statusMatch = true;
             if (status != null && !status.equalsIgnoreCase("All status")) {
                 statusMatch = booking.getStatus().equalsIgnoreCase(status);
@@ -149,11 +159,12 @@ public class ReservationsController implements Initializable {
         };
     }
 
+    /**
+     * โหลดข้อมูลจาก BookingRepository และแปลงเป็น ReservationsTableView เพื่อใส่ใน bookingList
+     */
     private void loadReservationsData() {
 
         bookingList.clear();
-
-       
         for (Bookings booking : bookingRepository.getAllBookings()) {
             
             Room room = booking.getRoom();
@@ -167,6 +178,9 @@ public class ReservationsController implements Initializable {
         }
     }
 
+    /**
+     * เมธอดสาธารณะสำหรับสั่งให้ตารางโหลดข้อมูลใหม่ (อาจถูกเรียกใช้จาก Controller อื่น)
+     */   
     public void refreshTable() {
         loadReservationsData();
     }

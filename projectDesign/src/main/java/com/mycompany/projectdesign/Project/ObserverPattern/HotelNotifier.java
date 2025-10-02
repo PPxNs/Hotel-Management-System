@@ -3,6 +3,7 @@ package com.mycompany.projectdesign.Project.ObserverPattern;
 import java.util.ArrayList;
 import java.util.List;
 
+//ใช้ตอนทดสอบเทส
 public class HotelNotifier {
     private List<HotelObserver> observers = new ArrayList<>();
 

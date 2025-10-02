@@ -12,14 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.function.Predicate;
-
-import com.mycompany.projectdesign.Project.Model.BookingRepository;
-import com.mycompany.projectdesign.Project.Model.BookingStatus;
-import com.mycompany.projectdesign.Project.Model.Bookings;
-import com.mycompany.projectdesign.Project.Model.Room;
-import com.mycompany.projectdesign.Project.Model.RoomRepository;
-import com.mycompany.projectdesign.Project.Model.RoomStatus;
-
+import com.mycompany.projectdesign.Project.Model.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -45,13 +38,18 @@ import java.util.Optional;
 import javafx.scene.control.ButtonType;
 import javafx.util.Callback; 
 
-
+/**
+ * Controller สำหรับหน้าจอจัดการห้องพัก (Rooms.fxml)
+ * ทำหน้าที่จัดการข้อมูลของห้องพักทั้งหมด
+ * รวมถึงการแสดงผล, กรองข้อมูล, และการโต้ตอบกับผู้ใช้ผ่านฟอร์มและตาราง
+ */
 
 public class RoomsController implements Initializable {
 
-    //ดึง javaFX มา
+    // @FXML Components: ส่วนเกี่ยวกับคอลลัมแสดงข้อมูล
     @FXML private TableView<RoomsTableView> roomTable;
 
+    
     @FXML private ComboBox<String> roomTypeComboBox;
     @FXML private ComboBox<String> allTypeComboBox;
     @FXML private ComboBox<String> statusComboBox;
@@ -67,7 +65,7 @@ public class RoomsController implements Initializable {
     @FXML private CheckBox tvCheckBox;
     @FXML private CheckBox wifiCheckBox;
 
-    //ดึงแต่ละ coluumn
+    // @FXML Components: ส่วนเกี่ยวกับคอลลัมแสดงข้อมูล
     @FXML private TableColumn<RoomsTableView,String> roomNoColumn;
     @FXML private TableColumn<RoomsTableView,String> imageColumn;    
     @FXML private TableColumn<RoomsTableView,String> typeColumn;

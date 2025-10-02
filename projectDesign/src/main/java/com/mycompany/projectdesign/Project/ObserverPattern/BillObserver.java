@@ -8,24 +8,43 @@ import com.mycompany.projectdesign.Project.StrategyPattern.*;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.PdfWriter;
 
+/**
+ * เป็น Concrete Observer ที่ทำหน้าที่สร้างใบเสร็จ (Bill) ในรูปแบบไฟล์ PDF
+ * คลาสนี้จะทำงานเมื่อได้รับแจ้งเหตุการณ์ (Event) ที่เป็นประเภท BillEvent
+ * โดยจะดึงข้อมูลจาก Event มาคำนวณราคาสุทธิและสร้างเป็นเอกสาร PDF
+ */
+
 public class BillObserver implements HotelObserver{
+
+    /**
+     * เมธอดที่จะถูกเรียกโดย Subject เมื่อมีเหตุการณ์ใหม่เกิดขึ้น
+     * @param event ออบเจกต์ของเหตุการณ์ที่เกิดขึ้น
+     */
 
     @Override
     public void update(HotelEvent event) {
 
+        // Observer นี้จะทำงานเฉพาะเมื่อเหตุการณ์ที่ได้รับเป็น BillEvent เท่านั้น
         if (event instanceof BillEvent) {
         BillEvent billevent = (BillEvent) event;
             
+        // ดึงข้อมูลที่จำเป็นทั้งหมดจาก Event Object
         Room room = billevent.getRoom();
         Bookings bookings = billevent.getBookings();
         DepositRoom deposit = billevent.getDepositRoom();
 
+        //ใช้ Strategy Pattern เพื่อคำนวณราคาส่วนลดของห้องพัก
         DiscountStrategy discountStrategy = DiscountSelector.getStrategy(room, bookings);
         HotelCalculator calculator = new HotelCalculator();
+
+        //คำนวณยอดต่าง ๆ เพื่อแสดงในบิล
         double finalPriceRoom = calculator.calculateFinalPrice(room, bookings, discountStrategy);
+        
+        //ใช้ Decorator Pattern เพื่อดึงยอดรวมของเงินมัดจำและบริการเสริม
         double discount = room.getPrice() - finalPriceRoom ;  
         double totalPrice = finalPriceRoom + deposit.getCost();
         
+        //สร้างไฟล์ PDF
         String filename = "bill_" + bookings.getBookingID().replace(":", "-") + ".pdf";
 
                 try {

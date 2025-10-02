@@ -2,12 +2,13 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/javafx/FXMLController.java to edit this template
  */
+
 package com.mycompany.projectdesign;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.ResourceBundle;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
+
 
 import com.mycompany.projectdesign.Project.Model.*;
 
@@ -28,13 +29,15 @@ import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 
-
+/**
+ * Controller GUI สำหรับหน้าจอจัดการข้อมูลลูกค้า (Guests.fxml)
+ * ทำหน้าที่จัดการการแสดงผล, ค้นหา, กรอง, และแก้ไขข้อมูลแขกที่กำลังเข้าพักหรือยืนยันการจอง
+ * รวมทั้งจัดการ Logic การเช็คอินและเช็คเอาท์ 
+ */
 public class GuestsController implements Initializable{
 
-    //ดึง javaFX มา
+    // @FXML Components: ส่วนเกี่ยวกับคอลลัมแสดงข้อมูล
     @FXML private TableView<GuestsTableView> guestTable;
-
-    //ดึงแต่ละ coluumn
     @FXML private TableColumn<GuestsTableView,String> RoomNoColumn;
     @FXML private TableColumn<GuestsTableView,String> IdCardColumn;
     @FXML private TableColumn<GuestsTableView,String> FirstNameColumn;
@@ -49,8 +52,7 @@ public class GuestsController implements Initializable{
     @FXML private TableColumn<GuestsTableView,String> CityColumn;
     @FXML private TableColumn<GuestsTableView,String> CountryColumn;
 
-
-    //ดึงไว้แก้ข้อมูลฝั่งซ้าย
+    //  @FXML Components: ส่วนแสดงรายละเอียดด้านข้าง (ด้านขวา)
     @FXML private Label LabelFullname;
     @FXML private Label LabelFirstName;
     @FXML private Label LabelLastName;
@@ -61,38 +63,50 @@ public class GuestsController implements Initializable{
     @FXML private Label LabelCity;
     @FXML private Label LabelAddress;
     
+    // @FXML Components: ส่วนกรองข้อมูล 
     @FXML private ComboBox<String> statusComboBox;
-
     @FXML private TextField searchField;
 
-    //new เพื่อจะเรียกโหลด csv มาใส่ใน column
+    
+    // แหล่งข้อมูลหลักของระบบ
     private CustomerRepository customerRepository = CustomerRepository.getInstance();
     private RoomRepository roomRepository = RoomRepository.getInstance();
     private BookingRepository bookingRepository = BookingRepository.getInstance();
 
-    //ลิสจัดการข้อมูล
+    // masterData: เก็บข้อมูลทั้งหมดที่โหลดมา
     private ObservableList<GuestsTableView> masterData = FXCollections.observableArrayList();
+    // filteredData: เลเยอร์สำหรับกรองข้อมูลจาก masterData
     private FilteredList<GuestsTableView> filteredData;
-    //private SortedList<GuestsTableView> sortedData;
 
-
+    /**
+     * เมธอดหลักที่ถูกเรียกโดยอัตโนมัติเมื่อ FXML โหลดเสร็จ
+     * ใช้สำหรับตั้งค่าเริ่มต้นทั้งหมดของหน้าจอ
+     */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-
+        
+        //set ข้อมูลที่จะแสดงในแต่ละคอลลัม
         setupTableColumns();
+
+        //กำหนด item ใน combobox
         ObservableList<String> allStatus = FXCollections.observableArrayList(
        "All Status",
                 "CONFIRMED",      
                 "CHECKED_IN"    
         );
 
+        //set item ใน combobox
         statusComboBox.setItems(allStatus);
         statusComboBox.setValue("All Status");
 
+        //โหลดค่าไปใส่ในคอลลัม
         loadAndFilterData();
 
+        // เมื่อมีการพิมพ์ในช่องค้นหา ให้ทำการกรองข้อมูลใหม่
         searchField.textProperty().addListener((obs,oldVal,newVal)-> applyFilters() );
+        // เมื่อมีการเปลี่ยนค่าใน ComboBox status ให้ทำการกรองข้อมูลใหม่
         statusComboBox.valueProperty().addListener((obs,oldVal,newVal)-> applyFilters() );
+        // เมื่อมีการคลิกเลือกแถวในตาราง ให้แสดงรายละเอียดด้านข้าง
         guestTable.getSelectionModel().selectedItemProperty().addListener((obs,oldVal,newVal)-> {
             if (newVal != null) {
                 showCustomerDetails(newVal.getCustomer(), newVal.getRoom());
@@ -100,29 +114,49 @@ public class GuestsController implements Initializable{
         } );
     }
 
-     private void loadAndFilterData() {
+    /**
+     * โหลดข้อมูลจาก BookingRepository แปลงเป็น GuestsTableView
+     * (masterData -> filteredData -> sortedData -> Table)
+     */
+    private void loadAndFilterData() {
         masterData.clear();
+        
+        // โหลดข้อมูลทั้งหมดจาก BookingRepository แล้วแปลงเป็นรูปแบบที่ใช้ในตาราง
         bookingRepository.getAllBookings().stream()
             .map(booking -> new GuestsTableView(booking.getRoom(), booking.getCustomer(), booking))
-            .forEach(masterData::add);
+            //หยิบชุดข้อมูลของการจอง เก็บเข้า masterData ทีละการจอง
+            .forEach(masterData::add); // or item -> masterData.add(item)
 
-        // ตั้งค่าการกรองเริ่มต้นให้แสดงเฉพาะ CONFIRMED และ CHECKED_IN
+        /* ตั้งค่าการกรองเริ่มต้นให้แสดงเฉพาะ CONFIRMED และ CHECKED_IN */ 
+        // สร้าง FilteredList เพื่อกรองข้อมูลจาก masterData
         filteredData = new FilteredList<>(masterData, guest -> {
             BookingStatus status = guest.getBookings().getStatus();
             return status == BookingStatus.CONFIRMED || status == BookingStatus.CHECKED_IN;
         });     
 
+        // สร้าง SortedList เพื่อจัดเรียงข้อมูลจาก filteredData
         SortedList<GuestsTableView> sortedData = new SortedList<>(filteredData);
+        // ผูกการจัดเรียงของ SortedList ให้ตรงกับการจัดเรียงของ TableView
         sortedData.comparatorProperty().bind(guestTable.comparatorProperty());
         guestTable.setItems(sortedData);
     }
 
+    /**
+     * สั่งให้ FilteredList ทำการกรองข้อมูลใหม่โดยใช้เงื่อนไขจาก searchField และ statusComboBox
+     */
     private void applyFilters(){
         String searchText = searchField.getText();
         String status = statusComboBox.getValue();
         filteredData.setPredicate(createPredicate(searchText, status));
     }
 
+
+    /**
+     * สร้าง Predicate (เงื่อนไข) สำหรับใช้ในการกรองข้อมูลใน FilteredList
+     * @param searchText ข้อความจากช่องค้นหา
+     * @param status สถานะที่เลือกจาก ComboBox
+     * @return Predicate ที่รวมเงื่อนไขการค้นหาและสถานะ
+     */
     private Predicate<GuestsTableView> createPredicate(String searchText, String status){
         //ส่งข้อมูลก็ต่อเมื่อ ....
         return guest -> {
@@ -131,6 +165,7 @@ public class GuestsController implements Initializable{
                 return false; //ไม่ใช่คอนเฟิร์ม เช็คอินให้คัดออก
             }
 
+            //ต้องตรงกับข้อความค้นหา (ถ้ามี)
             //ใช้ startsWith เพราะ ตอนค้นด้วย a มันดันเอาตัวที่ไม่ขึ้นต้นด้วย a มาด้วย 
             boolean searchMatch = true;
             if (searchText != null && !searchText.isEmpty() ) {
@@ -141,6 +176,7 @@ public class GuestsController implements Initializable{
                               guest.getCustomer().getidCard().toLowerCase().startsWith(lowercase); 
                 }
 
+            //ต้องตรงกับสถานะที่เลือก (ถ้ามี)
             boolean statusMatch = true;
             if (status != null && !status.equalsIgnoreCase("All status")) {
                 statusMatch = guest.getStatus().equalsIgnoreCase(status);
@@ -150,7 +186,9 @@ public class GuestsController implements Initializable{
         };
     }
 
-    //อันนี้ที่แยกออกมาเพราะตาลาย
+    /**
+     * ตั้งค่าการผูกข้อมูลระหว่างคอลัมน์กับ Property ของ GuestsTableView
+     */
     private void setupTableColumns(){
         guestTable.setEditable(true);
         RoomNoColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("numberRoom"));
@@ -162,9 +200,13 @@ public class GuestsController implements Initializable{
         setupEditabeColumns();
     }
 
+    /**
+     * ตั้งค่าคอลัมน์ที่สามารถแก้ไขได้ และ Logic การทำงานเมื่อแก้ไขเสร็จ
+     */
     private void setupEditabeColumns(){
         
         // กำหนดสิ่งที่แก้ได้
+        // ตั้งค่าการแก้ไข FirstName
         FirstNameColumn.setCellValueFactory(new PropertyValueFactory<>("firstName"));
         FirstNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
         FirstNameColumn.setOnEditCommit(event -> {
@@ -174,6 +216,7 @@ public class GuestsController implements Initializable{
             customerRepository.saveCustomerToCSV();
         });
 
+        //ตั้งค่าการแก้ไข LastName
         LastNameColumn.setCellValueFactory(new PropertyValueFactory<>("lastName"));
         LastNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
         LastNameColumn.setOnEditCommit(event -> {
@@ -183,6 +226,7 @@ public class GuestsController implements Initializable{
             customerRepository.saveCustomerToCSV();
         });
 
+        //ตั้งค่าการแก้ไข Email
         EmailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
         EmailColumn.setCellFactory(TextFieldTableCell.forTableColumn());
         EmailColumn.setOnEditCommit(event -> {
@@ -192,6 +236,7 @@ public class GuestsController implements Initializable{
             customerRepository.saveCustomerToCSV();
         });
 
+        //ตั้งค่าการแก้ไข Phone
         PhoneColumn.setCellValueFactory(new PropertyValueFactory<>("phone"));
         PhoneColumn.setCellFactory(TextFieldTableCell.forTableColumn());
         PhoneColumn.setOnEditCommit(event -> {
@@ -201,6 +246,7 @@ public class GuestsController implements Initializable{
             customerRepository.saveCustomerToCSV();
         });
 
+        //ตั้งค่าการแก้ไข Address
         AddressColumn.setCellValueFactory(new PropertyValueFactory<>("address"));
         AddressColumn.setCellFactory(TextFieldTableCell.forTableColumn());
         AddressColumn.setOnEditCommit(event -> {
@@ -210,6 +256,7 @@ public class GuestsController implements Initializable{
             customerRepository.saveCustomerToCSV();
         });
 
+        //ตั้งค่าการแก้ไข City
         CityColumn.setCellValueFactory(new PropertyValueFactory<>("city"));
         CityColumn.setCellFactory(TextFieldTableCell.forTableColumn());
         CityColumn.setOnEditCommit(event -> {
@@ -219,6 +266,7 @@ public class GuestsController implements Initializable{
             customerRepository.saveCustomerToCSV();
         });
 
+        //ตั้งค่าการแก้ไข Country
         CountryColumn.setCellValueFactory(new PropertyValueFactory<>("country"));
         CountryColumn.setCellFactory(TextFieldTableCell.forTableColumn());
         CountryColumn.setOnEditCommit(event -> {
@@ -228,12 +276,14 @@ public class GuestsController implements Initializable{
             customerRepository.saveCustomerToCSV();
         });
 
+        //กำหนด item ใน combobox
         ObservableList<String> allgender = FXCollections.observableArrayList(
        "male",
                 "Female",      
                 "Other"    
         );
 
+        //ตั้งค่าการแก้ไข Gender
         GenderColumn.setCellValueFactory(new PropertyValueFactory<>("gender"));
         GenderColumn.setCellFactory(ComboBoxTableCell.forTableColumn(allgender));
         GenderColumn.setOnEditCommit(event -> {
@@ -244,19 +294,20 @@ public class GuestsController implements Initializable{
             customerRepository.saveCustomerToCSV();
         });
 
+        // ตั้งค่าการแก้ไข Status (Check-in / Check-out)
         StatusColumn.setOnEditCommit(event -> {
-            GuestsTableView selectedGuest = event.getRowValue();
+            GuestsTableView selectedGuest = event.getRowValue();    
+            BookingStatus oldStatus = selectedGuest.getBookings().getStatus();
             BookingStatus newStatus;
 
             try {
                 newStatus = BookingStatus.valueOf(event.getNewValue());
             } catch (IllegalArgumentException e) {
-                guestTable.refresh();
+                guestTable.refresh(); // ถ้าใส่ค่าไม่ถูกต้อง ให้รีเฟรชกลับเป็นค่าเดิม
                 return ;
             }
 
-            BookingStatus oldStatus = selectedGuest.getBookings().getStatus();
-
+            // Logic การ Check-in 
             if (newStatus == BookingStatus.CHECKED_IN) {
                 if (oldStatus == BookingStatus.CONFIRMED) {
                     Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION, "เช็คอินลูกค้าชื่อ : " + selectedGuest.getFirstName() + " กับห้อง : " + selectedGuest.getNumberRoom() + "?", ButtonType.YES, ButtonType.NO);
@@ -273,6 +324,7 @@ public class GuestsController implements Initializable{
                 }
             }
            
+            // Logic การ Check-out 
             else if (newStatus == BookingStatus.CHECKED_OUT) {
                 if (oldStatus == BookingStatus.CHECKED_IN) {
                     Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION, "เช็คอินลูกค้าชื่อ : " + selectedGuest.getFirstName() + " จากห้อง : " + selectedGuest.getNumberRoom() + "?", ButtonType.YES, ButtonType.NO);
@@ -293,20 +345,20 @@ public class GuestsController implements Initializable{
                     guestTable.refresh();
                 }
             }
-            
+            // Logic การเปลี่ยนสถานะอื่นๆ 
             else {
                 selectedGuest.getBookings().setStatus(newStatus);
                 bookingRepository.saveBookingToCSV();
                 guestTable.refresh();
             }
         });
-
-    
-
-
     }
 
-    //ข้อมูลสำหรับฝั่งซ้าย
+    /**
+     * แสดงรายละเอียดของลูกค้าและห้องพักที่เลือกใน Panel ด้านข้าง (ข้านขวา)
+     * @param customer ลูกค้าที่ถูกเลือก
+     * @param room ห้องพักที่เกี่ยวข้อง
+     */
     private void showCustomerDetails(Customer customer, Room room) {
         LabelFullname.setText("Room | " + room.getNumberRoom());
         LabelFirstName.setText(customer.getFirstnameCustomer());
@@ -318,9 +370,6 @@ public class GuestsController implements Initializable{
         LabelCity.setText(customer.getCity());
         LabelAddress.setText(customer.getAddress());
     }
-
-
-
 
 }
 

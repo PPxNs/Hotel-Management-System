@@ -1,38 +1,53 @@
 package com.mycompany.projectdesign.Project.Model;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
+/**
+ * เป็นคลาส Repository สำหรับจัดการข้อมูลการชำระเงิน (AmountPaid) ทั้งหมดในระบบ
+ * ทำหน้าที่จัดเก็บและเชื่อมโยงข้อมูลการชำระเงินเข้ากับการจองแต่ละรายการ
+ */
 
 public class AmountPaidRepository {
     private static final AmountPaidRepository instance = new AmountPaidRepository();
-    private Map<String, AmountPaid> amountPaid = new HashMap<>();
+    private Map<String, AmountPaid> amountPaid = new HashMap<>();    //สำหรับเก็บข้อมูลการชำระเงิน Key: Booking ID (String) Value: ออบเจกต์การชำระเงิน (AmountPaid)
+    private BookingRepository bookingRepository; //สำหรับเข้าถึงข้อมูลการจอง 
 
-    private BookingRepository bookingRepository;
-
+    /**
+     * Private Constructor เพื่อป้องกันการสร้างอินสแตนซ์จากภายนอก
+     */
     private AmountPaidRepository(){}
-    
+
+    /**
+     * ดึงอินสแตนซ์เดียวของ AmountPaidRepository
+     * @return อินสแตนซ์ของ AmountPaidRepository
+     */
     public static AmountPaidRepository getInstance(){
         return instance;
     }
 
+    /**
+     * ตั้งค่าเริ่มต้น
+     * @param bookingRepo อินสแตนซ์ของ BookingRepository
+     */
     public void initialize(BookingRepository bookingRepo) {
         this.bookingRepository = bookingRepo;
         loadAmountPaidFromCSV();
     }
 
+    /**
+     * เพิ่มข้อมูลการชำระเงินเข้าสู่ hash
+     * @param amount ออบเจกต์การชำระเงินที่ต้องการเพิ่ม
+     */
     public void addAmount(AmountPaid amount) {
         amountPaid.put(amount.getBooking().getBookingID(), amount);
     }
 
+    /**
+     * ดึงข้อมูลการชำระเงินจาก Booking ID
+     * @param bookingID Booking ID ที่ต้องการค้นหา
+     * @return ออบเจกต์ AmountPaid ที่พบ หรือ null ถ้าไม่พบ
+     */
     public AmountPaid getAmountByBookingID(String bookingID) {
     for (AmountPaid amount : amountPaid.values()) {
         if (amount.getBooking().getBookingID().equals(bookingID)) {
@@ -42,6 +57,13 @@ public class AmountPaidRepository {
         return null; 
     }
 
+    /**
+     * ดึงรายการข้อมูลการชำระเงินจาก Booking ID
+     * เนื่องจากโครงสร้างข้อมูลปัจจุบันเก็บได้แค่ 1 การชำระเงินต่อ 1 Booking ID
+     * ดังนั้น List ที่คืนค่ากลับไปจะมีสมาชิกได้มากที่สุดแค่ 1 ตัวเท่านั้น
+     * @param bookingID Booking ID ที่ต้องการค้นหา
+     * @return รายการของ AmountPaid ที่พบ (มีสมาชิก 0 หรือ 1 ตัว)
+     */
     public List<AmountPaid> getAmountsByBookingID(String bookingID) {
         List<AmountPaid> result = new ArrayList<>();
         for (AmountPaid amount : amountPaid.values()) {
@@ -52,16 +74,26 @@ public class AmountPaidRepository {
         return result;
     }
     
-
+    /**
+     * ดึงข้อมูลการชำระเงินทั้งหมดที่อยู่ใน Repository
+     * @return รายการการชำระเงินทั้งหมดในรูปแบบ ArrayList
+     */
     public List<AmountPaid> getAllAmountPaid(){
         return new ArrayList<>(amountPaid.values());
     }
 
+    /**
+     * ตั้งค่าหรือเปลี่ยนแปลง BookingRepository 
+     * @param bookingRepo อินสแตนซ์ใหม่ของ BookingRepository
+     */
     public void setBookingRepository(BookingRepository bookingRepo) {
         this.bookingRepository = bookingRepo;
     }
 
-
+    /**
+     * บันทึกข้อมูลการจองทั้งหมดจาก hash ลงในไฟล์ CSV (เขียนทับไฟล์เดิม)
+     * @throws IOException หากเกิดข้อผิดพลาดระหว่างการเขียนไฟล์
+     */
     public void saveAmountPaidToCSV() {
     File fi = new File("File/AmountPaid.csv");
     try {
@@ -94,8 +126,10 @@ public class AmountPaidRepository {
 
 
 
-    //ดึงข้อมูลมาดึงข้อมูลของ csv เข้ามาเก็บใน hash
-    // ค่อยเพิ่มเติมตรงจุด แจ้ง exception กรณีไม่เจอไฟล์
+    /**
+    * โหลดข้อมูลการจองจากไฟล์ CSV เข้าสู่ hash
+    * @throws IOException หากเกิดข้อผิดพลาดระหว่างการอ่านไฟล์
+    */
    public boolean loadAmountPaidFromCSV() {
     File fi = new File("File/AmountPaid.csv");
     try {
@@ -104,7 +138,7 @@ public class AmountPaidRepository {
         }
         if (!fi.exists()) {
             fi.createNewFile();
-            System.out.println("สร้างไฟล์ Room.csv ใหม่ (ว่าง)");
+            System.out.println("สร้างไฟล์ AmountPaid.csv ใหม่ (ว่าง)");
             return false;
         }
     } catch (IOException e) {

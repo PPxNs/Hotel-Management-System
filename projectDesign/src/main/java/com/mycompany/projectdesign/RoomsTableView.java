@@ -2,21 +2,33 @@ package com.mycompany.projectdesign;
 
 import com.mycompany.projectdesign.Project.Model.*;
 
+/**
+ * เป็นคลาสสำหรับใช้กับ TableView ในหน้าจอ Rooms
+ * ทำหน้าที่เป็น "Wrapper" โดยการรวบรวมข้อมูลจาก Model (Room) และห่อหุ้มข้อมูลเหล่านั้นด้วย JavaFX Properties 
+ * เพื่อให้ TableView สามารถแสดงผล, ติดตามการเปลี่ยนแปลงข้อมูลได้
+ */
 public class RoomsTableView {
 
-    //ตอนแรกให้มันเป็นฐานดึงเข้า TableView ต้องเปลี่ยนเป็นตัวกลางแทน จะได้ขึ้นทันที
-    // เก็บ object ต้นฉบับไว้ด้วย
+    // เก็บออบเจกต์ต้นฉบับไว้ เพื่อให้ Controller สามารถเข้าถึงข้อมูลจริงได้เมื่อต้องการ
     private final Room room;
 
-
+    /**
+     * Constructor สำหรับสร้าง RoomsTableView wrapper
+     * @param room ออบเจกต์ Room 
+     */
     public RoomsTableView(Room room) {
         this.room = room;
     }
 
-    // getter object จริง
+    /**
+     * ดึงออบเจกต์ Room ต้นฉบับ
+     * @return ออบเจกต์ Room
+     */
     public Room getRoom() { return room; }
 
-    //มันเป็น StringProperty จะต้องใช้ .get
+    // Getter
+    // เมธอดเหล่านี้คืนค่าเป็น String ธรรมดา เพื่อให้ TableView ดึงไปแสดงผล
+    // มันเป็น StringProperty จะต้องใช้ .get
     public String getNumberRoom() { return this.room.getNumberRoom(); }
     public String getImage() { return this.room.getImagePath();}
     public String getRoomType() { return this.room.getType(); }

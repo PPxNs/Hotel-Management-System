@@ -1,39 +1,55 @@
 package com.mycompany.projectdesign.Project.Model;
 import java.io.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
-//อ่านด้วย : กรณีสร้างไฟล์แบบไม่มีตัวตั้งต้น ยังไม่จัดการ
+
+/**
+ * RoomRepository เป็นคลาสสำหรับจัดการข้อมูลห้องพักทั้งหมดในระบบ
+ * ทำหน้าที่เป็นตัวกลางระหว่างตัวรับข้อมูล/ตัวแสดงผลข้อมูลกับฐานข้อมูล (ในที่นี้คือ CSV ไฟล์)
+ * ข้อมูลลูกค้าจะถูกจัดเก็บใน Map โดยใช้หมายเลขห้องพัก(numberRoom) เป็น Key หลัก
+ */
+
 /*
  * จะสร้าง dictionary hash map มาช่วยเก็บข้อมูล โกดัง จะได้เข้าถึงข้อมูลได้เร็วมากขึ้น
  * https://marcuscode.com/lang/java/hashmap เว็บที่ช่วยเรียนรู้
  */
 
- // แก้ไข้เพิ่มเติมตรงส่วนของข้อความแจ้ง exception ทุกอัน
-
 public class RoomRepository {
 
     private static final RoomRepository instance = new RoomRepository();
-    HashMap<String, Room > allRoomsByKey = new HashMap<String, Room>(); // สร้าง hash map มีตัวของ key เป็น Integer และ value เป็น Room (เริ่มแรกจะใช้ String แต่น่าจะเข้าถึงข้อมูลลำบากขึ้น)
+    HashMap<String, Room > allRoomsByKey = new HashMap<String, Room>(); // สร้าง hash map มีตัวของ Key: Sting (เป็นตัวหมายเลยห้อง) Value: ห้องพัก (Room) 
     
-
-
+    /**
+    * Private Constructor เพื่อป้องกันการสร้างอินสแตนซ์จากภายนอก
+    * จะทำการโหลดข้อมูลห้องจาก CSV ไฟล์โดยอัตโนมัติเมื่อถูกสร้างครั้งแรก
+    */
     //เปิดให้ใช้ RoomRepository เดียวทั้งแอป ไม่ให้ new ด้านนอก
     private RoomRepository(){
         loadRoomFromCSV();
     }
     
+    /**
+     * ดึงอินสแตนซ์เดียวของ RoomRepository
+     * @return อินสแตนซ์ของ RoomRepository
+     */
     public static RoomRepository getInstance(){
         return instance;
     }
 
-    // ดึงห้องตามหมายเลข
+    /**
+     * ดึงข้อมูลห้องพักจากหมายเลขห้อง
+     * @param roomNumber หมายเลขห้องที่ต้องการค้นหา
+     * @return ออบเจกต์ Room ถ้าพบ, หรือ null ถ้าไม่พบ
+     */
     public Room getRoom(String roomNumber) {
         return allRoomsByKey.get(roomNumber); 
     }
 
-    // เพิ่มห้อง 
+    /**
+     * เพิ่มห้องใหม่เข้าสู่ hash allRoomsByKey 
+     * @param room ออบเจกต์ห้องที่ต้องการเพิ่ม
+     * @return true ถ้าเพิ่มสำเร็จ, false ถ้ามีห้องหมายเลขนี้อยู่แล้ว
+     */
     public boolean addRoom(Room room){
         String key = room.getNumberRoom().toUpperCase();
         if (!allRoomsByKey.containsKey(key)) {
@@ -44,12 +60,19 @@ public class RoomRepository {
 
     }
 
-    //ดึงข้อมูล Room ทั้งหมดที่อยู่ใน HashMap ออกมา แล้วส่งกลับไปให้ Controller เพื่อนำไปแสดงผลในตาราง
+    /**
+     * ดึงข้อมูลห้องพักทั้งหมดที่อยู่ใน hash allRoomsByKey 
+     * @return Collection ของออบเจกต์ Room ทั้งหมด
+     */
     public java.util.Collection<Room> getAllRooms() {
         return allRoomsByKey.values();
     }
 
-    // ลบห้อง แต่ต้องมีห้องที่จะลบด้วย ถ้าไม่มีจะ false แล้วให้ gui แจ้งอีกที , เราเลือกแก้ไขที่ hash เข้าถึงผ่านคีย์ อาจจะต้องมีตัว gui ให้เข้าถึงได้โดยตรงไม่ต้องใช้งานผ่านตัวแอด
+    /**
+     * ลบห้องพักออกจาก hash allRoomsByKey  ตามหมายเลขห้อง
+     * @param numberRoom หมายเลขห้องที่ต้องการลบ
+     * @return true ถ้าลบสำเร็จ, false ถ้าไม่พบห้องหมายเลขดังกล่าว
+     */
     public boolean removeRoom(String numberRoom){
         if (allRoomsByKey.containsKey(numberRoom)) {
             allRoomsByKey.remove(numberRoom);
@@ -58,8 +81,17 @@ public class RoomRepository {
         return false;
     }
 
-    /*อาจจะเพิ่มให้แก้เฉพาะจุดก็ได้*/
-    // แก้ไขรายละเอียดของห้อง เราเลือกแก้ไขที่ hash เข้าถึงผ่านคีย์ อาจจะต้องมีตัว gui ให้เข้าถึงได้โดยตรงไม่ต้องใช้งานผ่านตัวแอด
+    /**
+     * อัปเดตข้อมูลห้องพัก (แก้ไข) โดยการแทนที่ออบเจกต์เดิมด้วยออบเจกต์ใหม่
+     * @param numberRoom หมายเลขห้องที่จะอัปเดต
+     * @param type       ประเภทห้องใหม่
+     * @param price      ราคาใหม่
+     * @param imagePath  ที่อยู่รูปภาพใหม่
+     * @param people     จำนวนคนใหม่
+     * @param properties คุณสมบัติใหม่
+     * @param status     สถานะใหม่
+     * @return true ถ้าอัปเดตสำเร็จ, false ถ้าไม่พบห้องหมายเลขดังกล่าว
+     */
     public boolean replaceRoom(String numberRoom, String type, double price,String imagePath,int people, List<String> properties, RoomStatus status){
 
         String key = numberRoom.toUpperCase();
@@ -70,16 +102,26 @@ public class RoomRepository {
         return true;
     }
 
-    //เคลียร์ hash รีเซ็ตคลังข้อมูล
+    /**
+     * ลบข้อมูลห้องพักทั้งหมดออกจาก hash (คลังข้อมูล)
+     */
     public void removeAllRoom(){
         allRoomsByKey.clear();
     }
 
-    public boolean findByRoomNo(String rooomNo){
-        return allRoomsByKey.containsKey(rooomNo.toUpperCase());
+    /**
+     * ค้นหาว่ามีห้องพักตามหมายเลขที่ระบุหรือไม่
+     * @param roomNo หมายเลขห้องที่ต้องการตรวจสอบ
+     * @return true ถ้ามีห้องนี้อยู่, false ถ้าไม่มี
+     */
+    public boolean findByRoomNo(String roomNo){
+        return allRoomsByKey.containsKey(roomNo.toUpperCase());
     }
 
-    //มีระบบเหมือนปิดโปรแกรมแล้วเรา hash ไปเป็น csv ตอนปรับหรือ update database น่าจะง่ายขึ้น
+    /**
+     * บันทึกข้อมูลห้องพักทั้งหมดจาก hash ลงในไฟล์ CSV
+     * @throws IOException หากเกิดข้อผิดพลาดระหว่างการเขียนไฟล์
+     */
     public void saveRoomToCSV() {
         
         File fi = new File("File/Room.csv");
@@ -114,13 +156,15 @@ public class RoomRepository {
         bw.close();
         fw.close();
     } catch (Exception e) {
-        e.printStackTrace();
+            e.printStackTrace();
+        }
     }
-}
 
 
-
-    //ดึงข้อมูลมาดึงข้อมูลของ csv เข้ามาเก็บใน hash
+    /**
+    * โหลดข้อมูลห้องพักจากไฟล์ CSV เข้าสู่ hash
+    * @throws IOException หากเกิดข้อผิดพลาดระหว่างการอ่านไฟล์
+    */
    public boolean loadRoomFromCSV() {
     File fi = new File("File/Room.csv");
     
@@ -180,6 +224,6 @@ public class RoomRepository {
         }
     }
 
-    return true;
-}
+        return true;
+    }
 }
