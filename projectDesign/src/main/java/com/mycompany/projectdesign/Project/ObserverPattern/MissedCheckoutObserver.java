@@ -5,13 +5,25 @@ import com.mycompany.projectdesign.Project.Model.*;
 
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
+
+/**
+ * เป็น Concrete Observer ที่ทำหน้าที่แสดงหน้าต่างแจ้งเตือน (UI Alert)
+ * เมื่อได้รับเหตุการณ์เกี่ยวกับลูกค้าที่ยังไม่มาเช็คเอาท์ (MissedCheckoutEvent) แจ้งเตือนก่อนถึงเวลา checkout 5 นาที
+ */
 public class MissedCheckoutObserver implements HotelObserver {
-    //แจ้งเตือนก่อนถึงเวลา checkout 5 นาที
+    
+    /**
+     * เมธอดที่จะถูกเรียกโดย Subject เมื่อมีเหตุการณ์ใหม่เกิดขึ้น
+     * @param event ออบเจกต์ของเหตุการณ์ที่เกิดขึ้น
+     */
     @Override
     public void update(HotelEvent event) {
+        // Observer นี้จะทำงานเฉพาะเมื่อเหตุการณ์ที่ได้รับเป็น MissedCheckoutEvent เท่านั้น
         if (event instanceof MissedCheckoutEvent) {
             Bookings missedEvent = ((MissedCheckoutEvent) event).getBookings();
 
+            // ใช้ Platform.runLater เพื่อให้แน่ใจว่าการอัปเดต UI (การแสดง Alert)
+            // จะถูกประมวลผลบน JavaFX Application Thread ซึ่งเป็น Thread ที่ถูกต้อง
                 Platform.runLater(() ->{
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("ตรวจสอบลูกค้าเช็คเอาส์");
@@ -19,8 +31,10 @@ public class MissedCheckoutObserver implements HotelObserver {
                     alert.setContentText(
                         "ลูกค้า : " + missedEvent.getCustomer().getFullName() + "\n" +
                         "เบอร์โทรศัพท์ : " + missedEvent.getCustomer().getPhone() + "\n" +
-                        "กำหนดเวลาที่เช็คเอาส์ : " + missedEvent.getTimeCheckin().toString()
+                        "กำหนดเวลาที่เช็คเอาส์ : " + missedEvent.getTimeCheckout().toString()
                     );
+
+                    // แสดงหน้าต่างและรอให้ผู้ใช้กดปิด
                     alert.showAndWait();
                 });
             }

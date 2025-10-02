@@ -19,8 +19,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 
 import javafx.util.Callback; 
@@ -153,7 +151,7 @@ public class HomeController implements Initializable {
         //เซตเวลาของ checkin
         ObservableList<String> timeCheckin = FXCollections.observableArrayList(
   "14:00" , "14:30", "15:00" , "15:30", "16:00" , "16:30", "17:00" , 
-           "17:30", "18:00" , "18:30", "19:00" , "19:30", "20:00","21:40"
+           "17:30", "18:00" , "18:30", "19:00" , "19:30", "20:00"
         );
         //เซตเวลาของ checkout
         ObservableList<String> timeCheckout = FXCollections.observableArrayList(

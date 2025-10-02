@@ -2,31 +2,46 @@ package com.mycompany.projectdesign.Project.Model;
 import java.io.*;
 import java.util.*;
 
-/*
- * เป็นคลังเก็บข้อมูลลูกค้า จะเก็บข้อมูลคล้ายห้องแต่จะใช้ key เป็นตัวหมายเลขห้อง
+/**
+ * Repository สำหรับจัดการข้อมูลลูกค้าทั้งหมดในระบบ
+ * ทำหน้าที่เป็นตัวกลางระหว่างตัวรับข้อมูล/ตัวแสดงผลข้อมูลกับฐานข้อมูล (ในที่นี้คือ CSV ไฟล์)
+ * ข้อมูลลูกค้าจะถูกจัดเก็บใน Map โดยใช้รหัสบัตรประชาชน (idCard) เป็น Key หลัก
  */
 
 public class CustomerRepository {
 
     private static final CustomerRepository instance = new CustomerRepository();
-    HashMap<String, Room > allRoomsByKey = new HashMap<String, Room>(); // สร้าง hash map มีตัวของ key เป็น Integer และ value เป็น Room (เริ่มแรกจะใช้ String แต่น่าจะเข้าถึงข้อมูลลำบากขึ้น)
-    
+    private HashMap<String, List<Customer>> customersByRoom = new HashMap<>(); //สร้าง hash map มีตัวของ Key: หมายเลขห้อง (String) Value: รายการของลูกค้า (List<Customer>) ที่ผูกกับห้องนั้น
+  
+
+    /**
+    * Private Constructor เพื่อป้องกันการสร้างอินสแตนซ์จากภายนอก
+    * จะทำการโหลดข้อมูลห้องจาก CSV ไฟล์โดยอัตโนมัติเมื่อถูกสร้างครั้งแรก
+    */  
     //เปิดให้ใช้ CustomerRepository เดียวทั้งแอป ไม่ให้ new ด้านนอก
     private CustomerRepository(){
         loadCustomerFromCSV();
     }
     
+    /**
+     * ดึงอินสแตนซ์เดียวของ CustomerRepository
+     * @return อินสแตนซ์ของ CustomerRepository
+     */
     public static CustomerRepository getInstance(){
         return instance;
     }
 
-    private HashMap<String, List<Customer>> customersByRoom = new HashMap<>();
+
 
     public List<Customer> getCustomersByRoom(String roomNo) {
         return customersByRoom.getOrDefault(roomNo, new ArrayList<>());
     }
 
-
+    /**
+     * ดึงข้อมูลลูกค้าจากรหัสบัตรประชาชน
+     * @param idCard รหัสบัตรประชาชนของลูกค้าที่ต้องการค้นหา
+     * @return ออบเจกต์ Customer ถ้าพบ, หรือ null ถ้าไม่พบ
+     */
     public Customer getCustomerById(String idCard) {
     for (List<Customer> list : customersByRoom.values()) {
         for (Customer c : list) {
@@ -38,19 +53,36 @@ public class CustomerRepository {
         return null;
     }
 
+    /**
+     * เพิ่มข้อมูลลูกค้าเข้าไปในรายการของห้องที่ระบุ
+     * หากยังไม่มีรายการสำหรับห้องนั้น จะสร้างรายการใหม่ขึ้นมาก่อน
+     * @param roomNo หมายเลขห้องที่จะเพิ่มลูกค้าเข้าไป
+     * @param customer ออบเจกต์ลูกค้าที่ต้องการเพิ่ม
+     */
     public void addCustomer(String roomNo, Customer customer){
         customersByRoom.putIfAbsent(roomNo, new ArrayList<>());
         customersByRoom.get(roomNo).add(customer);
     }
 
+    /**
+     * ดึงโครงสร้างข้อมูลลูกค้าทั้งหมดที่จัดกลุ่มตามห้อง
+     * @return Map ที่มี Key เป็นหมายเลขห้อง และ Value เป็นรายการลูกค้า
+     */
     public Map<String, List<Customer>> getAllCustomers(){
         return customersByRoom;
     }
 
+    /**
+     * ลบข้อมูลลูกค้าทั้งหมดออกจาก hash
+     */
     public void removeAllCustomer(){
         customersByRoom.clear();
     }
 
+    /**
+     * บันทึกข้อมูลลูกค้าทั้งหมดจาก hash ลงในไฟล์ CSV (เขียนทับไฟล์เดิม)
+     * @throws IOException หากเกิดข้อผิดพลาดระหว่างการเขียนไฟล์
+     */
     public void saveCustomerToCSV(){
         //กดปิดโปรแกรม จะเรียก method นี้ โหลดข้อมูลกลายเป็น CSV (ไว้ restore ตอนเปิดระบบใหม่)
         File fi = null;
@@ -87,9 +119,13 @@ public class CustomerRepository {
             } catch (Exception e) {
                 System.out.println(e);
             }
+        }
     }
-}
 
+    /**
+     * บันทึกข้อมูลลูกค้าปัจจุบันลงในไฟล์ประวัติ (ต่อท้ายไฟล์เดิม)
+     * @throws IOException หากเกิดข้อผิดพลาดระหว่างการเขียนไฟล์
+     */
     public void UpdateHistory(){
         //กดปิดโปรแกรม จะเรียก method นี้ โหลดข้อมูลกลายเป็น CSV (ไว้ restore ตอนเปิดระบบใหม่)
         File fi = new File("File/Customer_History.csv");
@@ -127,9 +163,13 @@ public class CustomerRepository {
             } catch (Exception e) {
                 System.out.println(e);
             }
+        }
     }
-}
 
+    /**
+    * โหลดข้อมูลลูกค้าจากไฟล์ CSV เข้าสู่ hash
+    * @throws IOException หากเกิดข้อผิดพลาดระหว่างการอ่านไฟล์
+    */
     public boolean loadCustomerFromCSV(){
         File fi = new File("File/Customer.csv");
         FileReader fr = null;

@@ -1,9 +1,10 @@
 package com.mycompany.projectdesign.Project.ObserverPattern;
-/**
-     * interface สำหรับกำหนด Evet ในการแจ้งเตือน
-     */
 
 import java.time.LocalDateTime;
+
+/**
+* interface สำหรับกำหนด Evet ในการแจ้งเตือน
+*/
 
 public interface HotelEvent {
     LocalDateTime getTimetamp();

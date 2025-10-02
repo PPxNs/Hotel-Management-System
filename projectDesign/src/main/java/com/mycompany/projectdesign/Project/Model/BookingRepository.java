@@ -1,17 +1,7 @@
 package com.mycompany.projectdesign.Project.Model;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.io.*;
+import java.time.*;
+import java.util.*;
 
 
 public class BookingRepository {
@@ -19,25 +9,46 @@ public class BookingRepository {
     private static final BookingRepository instance = new BookingRepository();
     private Map<String, Bookings> bookingByID = new HashMap<>();
 
-    private CustomerRepository customerRepository;
-    private RoomRepository roomRepository;
+    private CustomerRepository customerRepository;  //สำหรับเข้าถึงข้อมูลลูกค้า
+    private RoomRepository roomRepository;          //สำหรับเข้าถึงข้อมูลห้องพัก
 
+    /**
+     * Private Constructor เพื่อป้องกันการสร้างอินสแตนซ์จากภายนอก
+     */
     private BookingRepository(){}
-    
+
+    /**
+     * ดึงอินสแตนซ์เดียวของ BookingRepository
+     * @return อินสแตนซ์ของ BookingRepository
+     */
     public static BookingRepository getInstance(){
         return instance;
     }
 
+    /**
+     * ตั้งค่าเริ่มต้น
+     * @param customerRepo อินสแตนซ์ของ CustomerRepository
+     * @param roomRepo     อินสแตนซ์ของ RoomRepository
+     */
     public void initialize(CustomerRepository customerRepo, RoomRepository roomRepo) {
         this.customerRepository = customerRepo;
         this.roomRepository = roomRepo;
         loadBookingFromCSV();
     }
 
+    /**
+     * เพิ่มการจองใหม่เข้าสู่ BookingRepository
+     * @param booking ออบเจกต์การจองที่ต้องการเพิ่ม
+     */
     public void addBooking(Bookings booking){
         bookingByID.put(booking.getBookingID(), booking);
     }
 
+    /**
+     * ค้นหาการจองที่ตรงกับหมายเลขห้องที่ระบุ
+     * @param roomNo หมายเลขห้องที่ต้องการค้นหา
+     * @return ออบเจกต์การจอง (Bookings) ที่พบ หรือ null ถ้าไม่พบ
+     */
     public Bookings getBookingByRoom(String roomNo) {
     for (Bookings booking : bookingByID.values()) {
         if (booking.getRoom().getNumberRoom().equals(roomNo)) {
@@ -47,6 +58,11 @@ public class BookingRepository {
         return null; 
     }
 
+    /**
+     * ค้นหาการจองทุกรายการที่ตรงกับหมายเลขห้องที่ระบุ
+     * @param roomNo หมายเลขห้องที่ต้องการค้นหา
+     * @return รายการของการจอง (List<Bookings>) ทั้งหมดที่พบสำหรับห้องนั้น
+     */
     public List<Bookings> getBookingsByRoom(String roomNo) {
         List<Bookings> result = new ArrayList<>();
         for (Bookings booking : bookingByID.values()) {
@@ -57,15 +73,30 @@ public class BookingRepository {
         return result;
     }
 
-
+    /**
+     * ดึงข้อมูลการจองโดยตรงจาก Booking ID
+     * @param bookinID Booking ID ที่ต้องการค้นหา 
+     * @return ออบเจกต์การจอง (Bookings) ที่พบ หรือ null ถ้าไม่พบ
+     */
     public Bookings getBookingByID(String bookinID){
         return bookingByID.get(bookinID);
     }
 
+    /**
+     * ดึงข้อมูลการจองทั้งหมดที่อยู่ใน BookingRepository
+     * @return รายการการจองทั้งหมดในรูปแบบ ArrayList
+     */
     public List<Bookings> getAllBookings(){
         return new ArrayList<>(bookingByID.values());
     }
-    // เมธอดสำหรับตรวจสอบการจองที่ซ้อนทับกัน
+
+    /**
+     * ตรวจสอบว่าช่วงวันที่จองใหม่สำหรับห้องที่ระบุ ซ้อนทับกับการจองอื่นที่มีสถานะเป็น CONFIRMED หรือ CHECKED_IN หรือไม่
+     * @param room        ห้องที่ต้องการตรวจสอบ
+     * @param newCheckIn  วันที่เช็คอินของการจองใหม่
+     * @param newCheckOut วันที่เช็คเอาท์ของการจองใหม่
+     * @return true ถ้าพบการจองที่ซ้อนทับ, false ถ้าไม่พบ
+     */
     public boolean hasOverlappingBooking(Room room, LocalDate newCheckIn , LocalDate newCheckOut){
         for(Bookings existBookings : bookingByID.values()){
             boolean isActiveBooking = existBookings.getStatus() == BookingStatus.CONFIRMED || 
@@ -80,6 +111,10 @@ public class BookingRepository {
         return false ; //ไม่ทับกัน
     }
 
+    /**
+     * สร้าง Booking ID ใหม่ที่ไม่ซ้ำกับของเดิมในระบบ
+     * @return Booking ID ใหม่ในรูปแบบ "LUNA" ตามด้วยตัวเลข 16 หลัก (เช่น LUNA0000000000000001)
+     */
     public String generateNextBookingId() {
     String prefix = "LUNA";
 
@@ -97,7 +132,10 @@ public class BookingRepository {
         return prefix + String.format("%016d", nextId);       
     }
 
-
+    /**
+     * บันทึกข้อมูลการจองทั้งหมดจาก hash ลงในไฟล์ CSV (เขียนทับไฟล์เดิม)
+     * @throws IOException หากเกิดข้อผิดพลาดระหว่างการเขียนไฟล์
+     */
     public void saveBookingToCSV() {
     File fi = new File("File/Booking.csv");
     try {
@@ -138,11 +176,11 @@ public class BookingRepository {
         }
     }
 
-
-
-    //ดึงข้อมูลมาดึงข้อมูลของ csv เข้ามาเก็บใน hash
-    // ค่อยเพิ่มเติมตรงจุด แจ้ง exception กรณีไม่เจอไฟล์
-   public boolean loadBookingFromCSV() {
+    /**
+    * โหลดข้อมูลการจองจากไฟล์ CSV เข้าสู่ hash
+    * @throws IOException หากเกิดข้อผิดพลาดระหว่างการอ่านไฟล์
+    */
+    public boolean loadBookingFromCSV() {
     File fi = new File("File/Booking.csv");
     try {
         if (!fi.getParentFile().exists()) {
@@ -150,7 +188,7 @@ public class BookingRepository {
         }
         if (!fi.exists()) {
             fi.createNewFile();
-            System.out.println("สร้างไฟล์ Room.csv ใหม่ (ว่าง)");
+            System.out.println("สร้างไฟล์ Booking.csv ใหม่ (ว่าง)");
             return false;
         }
     } catch (IOException e) {
