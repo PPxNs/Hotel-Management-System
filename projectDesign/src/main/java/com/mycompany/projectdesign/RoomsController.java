@@ -86,13 +86,14 @@ public class RoomsController implements Initializable {
     private ObservableList<RoomsTableView> roomList = FXCollections.observableArrayList();
     private Room currentEditRoom = null ; //ตัวแปรเก็บข้อมูลเพื่อแก้ไข
 
+    /**
+     * เมธอดหลักที่ถูกเรียกโดยอัตโนมัติเมื่อ FXML โหลดเสร็จ
+     * ทำหน้าที่ตั้งค่าเริ่มต้นทั้งหมดของหน้าจอจัดการห้องพัก
+     */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 
-            System.out.println("ขนาดของข้อมูลห้องพักที่โหลดมาคือ: " + roomRepository.getAllRooms().size());
-
-
-        /*roomRepository.loadRoomFromCSV();*/
+        System.out.println("ขนาดของข้อมูลห้องพักที่โหลดมาคือ: " + roomRepository.getAllRooms().size());
 
         //อันนี้ set item ใน combobox     
         ObservableList<String> roomType = FXCollections.observableArrayList(
@@ -127,6 +128,8 @@ public class RoomsController implements Initializable {
         
         allCheckbox = Arrays.asList(jacuzziCheckBox, lakeViewCheckBox,petFriendlyCheckBox,privatePoolCheckBox,tvCheckBox,wifiCheckBox);
 
+        // ตั้งค่าคอลัมน์ของ TableView
+        // ผูกคอลัมน์พื้นฐานกับ Properties ใน RoomsTableView
         roomNoColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("numberRoom"));
         imageColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("image"));
         typeColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("roomType"));
@@ -134,6 +137,7 @@ public class RoomsController implements Initializable {
         peopleColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("people"));
         propertyColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("property"));
 
+        // ตั้งค่าคอลัมน์ Status ให้แก้ไขได้ด้วย ComboBox
         ObservableList<String> statusObtions = FXCollections.observableArrayList();
         for(RoomStatus status : RoomStatus.values()){
             statusObtions.add(status.name());
@@ -142,12 +146,13 @@ public class RoomsController implements Initializable {
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
         statusColumn.setCellFactory(ComboBoxTableCell.forTableColumn(statusObtions));
         
-        //ปรับการกรอง
+        // กำหนด Logic ที่จะทำงานหลังจากแก้ไขสถานะเสร็จ
         statusColumn.setOnEditCommit(event -> {
             RoomsTableView roomView = event.getRowValue();
             Room roomUpdate = roomView.getRoom();
             RoomStatus newStatus = RoomStatus.valueOf(event.getNewValue());
             
+            // ตรวจสอบเงื่อนไขพิเศษ: ป้องกันการเปลี่ยนสถานะห้องที่มีคนพักอยู่ให้เป็น "ว่าง"
             if (newStatus == RoomStatus.AVAILABLE && isRoomCurrentlyOccupied(roomUpdate)) {
                 Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
                 confirmationAlert.setTitle("ยืนยันการจอง");
@@ -158,17 +163,18 @@ public class RoomsController implements Initializable {
 
                 if (result.isPresent() && result.get() == ButtonType.OK) {
                     //ยืนยันเจ้าก็เปลี่ยนได้
-                    roomUpdate.setStatus(newStatus);
+                    roomUpdate.setStatus(newStatus); // ถ้าผู้ใช้ยืนยัน ก็ให้เปลี่ยน
                     roomRepository.saveRoomToCSV();
                 }
             }else{
-                    roomUpdate.setStatus(newStatus);
+                    roomUpdate.setStatus(newStatus); // กรณีอื่นๆ ให้เปลี่ยนได้เลย
                     roomRepository.saveRoomToCSV(); 
             }
 
             roomTable.refresh();
         });
 
+        // ตั้งค่าคอลัมน์ Image ให้แสดงเป็นรูปภาพ
         //Lambda Expression หลักการ (parameter) -> { statements }
         imageColumn.setCellFactory(col -> new TableCell<RoomsTableView,String>() {
             private final ImageView imageView = new ImageView();{
@@ -194,15 +200,19 @@ public class RoomsController implements Initializable {
         }
         );
 
-
+        // โหลดข้อมูลจาก Repository มาใส่ใน List
         for (Room room : roomRepository.getAllRooms()) {
             roomList.add(new RoomsTableView(room)); 
         }
 
         roomTable.setEditable(true); //แก้ตารางได้
         statusColumn.setEditable(true); //แก้สเตตัสได้
+
         //set เรื่องการค้นหา
+        //สร้าง FilteredList เพื่อกรองข้อมูลจาก `roomList`
         FilteredList<RoomsTableView> filteredData = new FilteredList<>(roomList, p -> true);
+
+        //ติดตั้ง Listeners ให้กับ Filter Controls
         searchField.textProperty().addListener((obs, oldVal,newVal) ->{
             filteredData.setPredicate(createPredicate(newVal, allTypeComboBox.getValue(), statusComboBox.getValue()));
         });
@@ -215,30 +225,39 @@ public class RoomsController implements Initializable {
             filteredData.setPredicate(createPredicate(searchField.getText(), allTypeComboBox.getValue(), newVal));
         });
         
+        // สร้าง SortedList เพื่อจัดเรียงข้อมูล และผูกเข้ากับ TableView
         SortedList<RoomsTableView> sortedData = new SortedList<>(filteredData);
         sortedData.comparatorProperty().bind(roomTable.comparatorProperty());
         //เราข้อมูลทั้งหมดใส่ใน tableview
-
         roomTable.setItems(sortedData);
         
-        //สร้างปุ่มใน action
+        //สร้างปุ่มใน action ตั้งค่าคอลัมน์ Actions
         setupActionColumn();
     } 
 
-    
+    /**
+     * สร้าง ฟังก์ชันทดสอบ สำหรับใช้ในการกรองข้อมูลใน TableView
+     * @param searchText ข้อความจากช่องค้นหา
+     * @param type       ประเภทห้องที่เลือกจาก ComboBox
+     * @param status     สถานะที่เลือกจาก ComboBox
+     * @return Predicate ที่รวมเงื่อนไขการกรองทั้งหมด
+     */
     private Predicate<RoomsTableView> createPredicate(String searchText, String type, String status){
         //ส่งข้อมูลก็ต่อเมื่อ ....
         return room -> {
+            // ค้นหาด้วยข้อความ
             boolean searchMatch = true;
             if (searchText != null && !searchText.isEmpty()) {
                 searchMatch = room.getNumberRoom().toLowerCase().contains(searchText.toLowerCase());
             }
 
+            // กรองด้วยประเภทห้อง
             boolean typeMatch = true;
             if (type != null && !type.equals("All Types")) {
                 typeMatch = room.getRoomType().equalsIgnoreCase(type);
             }
 
+            // กรองด้วยสถานะ
             boolean statusMatch = true;
             if (status != null && !status.equalsIgnoreCase("All status")) {
                 statusMatch = room.getStatus().equalsIgnoreCase(status);
@@ -248,18 +267,25 @@ public class RoomsController implements Initializable {
         };
     }
 
+    /**
+     * ตั้งค่าคอลัมน์ "Actions" ใน TableView ให้มีปุ่ม Edit และ Delete
+     * ใช้วิธีการสร้าง Custom TableCell ที่บรรจุ HBox ซึ่งมีปุ่มอยู่ข้างใน
+     */
     private void setupActionColumn() {
+        // Callback คือ "โรงงาน" ที่ TableView จะใช้เพื่อสร้าง Cell ในแต่ละแถว
         Callback<TableColumn<RoomsTableView, Void>, TableCell<RoomsTableView, Void>> cellFactory = new Callback<>() {
             @Override
             public TableCell<RoomsTableView, Void> call(final TableColumn<RoomsTableView, Void> param) {
+                // สร้าง Custom TableCell ขึ้นมาใหม่
                 final TableCell<RoomsTableView, Void> cell = new TableCell<>() {
 
                     private final Button editButton = new Button();
                     private final Button deleteButton = new Button();
 
+                    // โค้ดในปีกกาจะทำงานแค่ครั้งเดียวตอนที่ Cell ถูกสร้าง
                     //ออกแบบตัวปุ่ม
                     {
-                       
+                       // ออกแบบและตั้งค่าปุ่ม 
                         ImageView editIcon = new ImageView(new Image(getClass().getResourceAsStream("/img/icons8-edit-64.png")));
                         editIcon.setFitHeight(16);
                         editIcon.setFitWidth(16);
@@ -284,20 +310,23 @@ public class RoomsController implements Initializable {
                         });
 
                         deleteButton.setOnAction(event -> {
+                            // ดึงข้อมูลของแถวที่ปุ่มอยู่
                             RoomsTableView roomView = getTableView().getItems().get(getIndex());
-                            deleteRoom(roomView); //
+                            deleteRoom(roomView); // เรียกเมธอดเพื่อทำการลบ
                         });
                     }
 
                     private final HBox pane = new HBox(10, editButton, deleteButton);
 
+                    // อัปเดตการแสดงผลของ Cell 
+                    // ถูกเรียกทุกครั้งที่ตารางมีการเปลี่ยนแปลง
                     @Override
                     public void updateItem(Void item, boolean empty) {
                         super.updateItem(item, empty);
                         if (empty) {
-                            setGraphic(null);
+                            setGraphic(null); // ถ้าเป็นแถวว่าง ให้ซ่อนปุ่ม
                         } else {
-                            setGraphic(pane);
+                            setGraphic(pane); // ถ้าเป็นแถวที่มีข้อมูล ให้แสดงปุ่ม
                         }
                     }
                 };
@@ -308,53 +337,76 @@ public class RoomsController implements Initializable {
         actionColumn.setCellFactory(cellFactory);
     }
 
+    /**
+     * นำข้อมูลของห้องพักที่เลือกมาเติมลงในฟอร์มด้านข้าง และเปลี่ยน UI ให้แก้ไขได้
+     * @param room Room object ที่ต้องการแก้ไข
+     */
     private void populateFormForEdit(Room room){
+
+        // เก็บห้องที่กำลังแก้ไขไว้
         currentEditRoom = room;
+
+        // นำข้อมูลจาก Room object ไปใส่ใน UI Controls
         roomNoField.setText(room.getNumberRoom());
         roomTypeComboBox.setValue(room.getType());
         priceField.setText(String.valueOf(room.getPrice()));
         peopleField.setText(String.valueOf(room.getPeople()));
         imagePartField.setText(room.getImagePath());
 
+        // ตั้งค่า CheckBox ตามคุณสมบัติของห้อง
         List<String> features = room.getProperties();
         for(CheckBox cb : allCheckbox){
             cb.setSelected(features.contains(cb.getText()));
         }
 
-        roomNoField.setDisable(true); // ไม่ให้แก้เลขห้อง
-        AddRoomButton.setDisable(true);
-        SaveEditButton.setDisable(false);
+        // เปลี่ยนสถานะของ UI ให้อยู่ใน "โหมดแก้ไข"
+        roomNoField.setDisable(true);       // ไม่ให้แก้เลขห้อง
+        AddRoomButton.setDisable(true);     // ปิดปุ่ม Add
+        SaveEditButton.setDisable(false);   // เปิดปุ่ม Save Edit
     }
 
+    /**
+     * ทำการลบห้องพักที่เลือกออกจากระบบ
+     * @param roomsTableViewToDelete RoomsTableView object ของแถวที่ต้องการลบ
+     */
     private void deleteRoom(RoomsTableView roomsTableViewToDelete){
         Room roomToDelete = roomsTableViewToDelete.getRoom();
 
+        // แสดงหน้าต่างยืนยันเพื่อป้องกันการลบโดยไม่ตั้งใจ
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm Deletion");
         alert.setHeaderText("ห้องที่ต้องการลบ " + roomsTableViewToDelete.getNumberRoom());
         alert.setContentText("คุณแน่ใจใช่ไหมที่จะลบห้องนี้ !?");
 
         Optional <ButtonType> result = alert.showAndWait();
+
+        // ดำเนินการลบเมื่อผู้ใช้กดยืนยัน "OK"
         if (result.isPresent() && result.get() == ButtonType.OK) {
+            // ลบออกจาก Repository 
             roomRepository.removeRoom(roomToDelete.getNumberRoom());
+            // บันทึกการเปลี่ยนแปลงลงไฟล์ CSV
             roomRepository.saveRoomToCSV();
+            // ลบออกจาก ObservableList เพื่ออัปเดต TableView ทันที
             roomList.remove(roomsTableViewToDelete);
         }
     }
 
-
-
-    
+    /**
+     * ดึงข้อมูลจากฟอร์ม, ตรวจสอบข้อมูลว่าครบมั้ย, และสร้างเป็น Room object ใหม่
+     * @return Room object ที่มีข้อมูลครบ หรือ null หากข้อมูลไม่ครบถ้วน
+     */
     public Room getRoomDatafromFome(){
+        // ตรวจสอบว่ากรอกข้อมูลที่จำเป็นครบหรือไม่
         if (roomNoField.getText().isEmpty() || roomTypeComboBox.getValue() == null ||
             imagePartField.getText().isEmpty() ||priceField.getText().isEmpty() || peopleField.getText().isEmpty() ) {
             
                 Alert alert = new Alert(Alert.AlertType.WARNING, "โปรดกรอกข้อมูลให้ครบถ้วน");
                 alert.showAndWait();
-                return null;
+                return null; // คืนค่า null เพื่อหยุด
 
         } else{
 
+        // ถ้าข้อมูลครบ รวมข้อมูลทั้งหมด
         String rooomNo = roomNoField.getText().toUpperCase();
         String roomType = roomTypeComboBox.getValue();
         String roomImage = imagePartField.getText();
@@ -362,29 +414,36 @@ public class RoomsController implements Initializable {
         int numberOfpeople = 0;
 
         try {
+            // แปลง String เป็นตัวเลข
             roomPrice = Double.parseDouble(priceField.getText());
             numberOfpeople = Integer.parseInt(peopleField.getText());
         } catch (Exception e) {
-             System.out.println("Error: Invalid price or number of people format.");
-             //อาจขึ้น pop up แจ้ง
+            System.out.println("Error: Invalid price or number of people format.");
+            new Alert(Alert.AlertType.ERROR, "ราคาและจำนวนคนต้องเป็นตัวเลขเท่านั้น").showAndWait();
+            return null; // หยุดถ้าแปลงค่าไม่ได้
         }
 
+        // รวบรวมคุณสมบัติจาก CheckBox
         seselectedProperties.clear();
         for(CheckBox cb : allCheckbox){
             if (cb != null && cb.isSelected()) {
                 seselectedProperties.add(cb.getText());
             }
         }
-
-
-
+        // สร้างและคืนค่า Room object ใหม่
         return new Room(rooomNo, roomType, roomPrice, roomImage ,numberOfpeople,seselectedProperties,RoomStatus.AVAILABLE);
         }
     }
 
+    /**
+     * Action-Handler หลักสำหรับปุ่ม Add Room
+     * ทำหน้าที่ตรวจสอบข้อมูลซ้ำ, บันทึกห้องใหม่, และอัปเดต UI
+     */
     @FXML private void  handleSaveButtonAction(){
+        // ดึงข้อมูลจากฟอร์ม
         Room newRoom = getRoomDatafromFome();
 
+        // ตรวจสอบว่ามีหมายเลขห้องนี้อยู่แล้วหรือไม่
         if (roomRepository.findByRoomNo(newRoom.getNumberRoom())) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("ข้อมูลซ้ำ");
@@ -394,11 +453,12 @@ public class RoomsController implements Initializable {
             return ;
         }
 
+        // ถ้าข้อมูลถูกต้องและไม่ซ้ำ ให้ทำการบันทึก
         if (newRoom != null) { 
             roomRepository.addRoom(newRoom);
             roomRepository.saveRoomToCSV();
 
-            roomList.add(new RoomsTableView(newRoom));
+            roomList.add(new RoomsTableView(newRoom)); // เพิ่มแถวใหม่ในคอลลัมอัตโนมัติ
 
             //เคลียร์หลัง save
             clearForm();
@@ -408,17 +468,13 @@ public class RoomsController implements Initializable {
 
     @FXML private void saveRoom(ActionEvent event) {
         handleSaveButtonAction();
-        //หลัง save ให้นางแสดงผล
-        /*ObservableList<RoomsTableView> updatedList = FXCollections.observableArrayList();
-        for (Room room : roomRepository.getAllRooms()) {
-            updatedList.add(new RoomsTableView(room));
-        }
-        
-        roomTable.setItems(updatedList);*/
-
     }
 
     //สามารถแอดรูปได้
+    /**
+     * Action-Handler สำหรับปุ่ม Browse Image
+     * ทำหน้าที่เปิด FileChooser ให้ผู้ใช้เลือกไฟล์รูปภาพ
+     */
     @FXML private void handleChooseImg(){
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select img");
@@ -432,6 +488,9 @@ public class RoomsController implements Initializable {
         }
     }
 
+    /**
+     * method สำหรับล้างข้อมูลในฟอร์มทั้งหมด
+     */
     private void clearForm(){
         roomNoField.clear();
         priceField.clear();
@@ -444,15 +503,23 @@ public class RoomsController implements Initializable {
         }
     }
 
+    /**
+     * Action-Handler สำหรับปุ่ม "Save Edit"
+     * ทำหน้าที่บันทึกข้อมูลที่ถูกแก้ไขในฟอร์ม
+     */
     @FXML private void handleSaveEditButtonAction(){
-        updateRoomDataFromForm();
-        roomRepository.saveRoomToCSV();
-        roomTable.refresh();
-        clearFormAndResetMode();
+        updateRoomDataFromForm();       // อัปเดตข้อมูลใน object ที่กำลังแก้ไข
+        roomRepository.saveRoomToCSV(); // บันทึกการเปลี่ยนแปลงลงไฟล์
+        roomTable.refresh();            // คอลลัมทำข้อมูลใหม่เพื่อแสดงผลการแก้ไข
+        clearFormAndResetMode();        
 
     }
 
+    /**
+     * method ที่อ่านข้อมูลจากฟอร์มและอัปเดตลงใน `currentEditRoom` object
+     */
     private void updateRoomDataFromForm(){
+        // ตรวจสอบว่าอยู่ในโหมดแก้ไขจริง
         if (currentEditRoom != null) {
             try {
                 // อัพเดทข้อมูล
@@ -461,6 +528,7 @@ public class RoomsController implements Initializable {
                 currentEditRoom.setPeople(Integer.parseInt(peopleField.getText()));
                 currentEditRoom.setImagePath(imagePartField.getText());
 
+                // รวมคุณสมบัติจาก CheckBox ที่เลือกใหม่
                 seselectedProperties.clear();
                 for(CheckBox cb : allCheckbox){
                     if (cb != null && cb.isSelected()) {
@@ -471,11 +539,15 @@ public class RoomsController implements Initializable {
                 currentEditRoom.setProperties(new ArrayList<>(seselectedProperties));
 
             } catch (Exception e) {
-                System.out.println(e.getMessage()); // ค่อยทำ popup 
+                System.out.println(e.getMessage()); 
+                new Alert(Alert.AlertType.ERROR, "ราคาและจำนวนคนต้องเป็นตัวเลขเท่านั้น").showAndWait();
             }
         }
     }
 
+    /**
+     * method สำหรับล้างฟอร์มและรีเซ็ตสถานะ UI เพื่อเพิ่มข้อมูล
+     */
     private void clearFormAndResetMode(){
         clearForm();
         currentEditRoom = null;
@@ -486,6 +558,11 @@ public class RoomsController implements Initializable {
     }
 
     //มีใครอยู่บ่
+    /**
+     * ตรวจสอบว่าห้องที่ระบุมีผู้เข้าพักอยู่จริงในเวลาปัจจุบันหรือไม่
+     * @param room ห้องที่ต้องการตรวจสอบ
+     * @return true ถ้ามีผู้เข้าพักอยู่, false ถ้าไม่มี
+     */
     private boolean isRoomCurrentlyOccupied(Room room){
         BookingRepository bookingRepository = BookingRepository.getInstance();
         LocalDateTime now = LocalDateTime.now();
@@ -497,16 +574,11 @@ public class RoomsController implements Initializable {
                     LocalDateTime checkout = booking.getCheckoutDateTime();
 
                     if (!now.isBefore(checkin) && now.isBefore(checkout)) {
-                        return true; //มีคนเด้อ
+                        return true; // เจอคนพักอยู่
                     }
                 }
             }
         }
-        return false;
+        return false; // ไม่เจอใครพักอยู่
     }
-
-
-
-    
-    
 }
