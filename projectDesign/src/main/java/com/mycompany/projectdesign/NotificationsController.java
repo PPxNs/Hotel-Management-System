@@ -42,13 +42,13 @@ public class NotificationsController  {
 
         if (events.isEmpty()) {
             Label noNotifi = new Label("ไม่มีการแจ้งเตือน");
-            noNotifi.setFont(new Font(16));
+             noNotifi.getStyleClass().add("no-notification-label");
             notificationVBox.getChildren().add(noNotifi);
         }else {
             // วน Loop เพื่อสร้าง UI สำหรับแต่ละ Event
             for(HotelEvent event : events){
                 VBox notificationEntry = new VBox(5); // VBox สำหรับการแจ้งเตือน 1 รายการ
-                notificationEntry.setStyle("-fx-border-color: #cccccc; -fx-border-width: 1; -fx-padding: 10; -fx-border-radius: 5;");
+                notificationEntry.getStyleClass().add("notification-entry");
 
                 String titleText = "";
                 String detailsText = "";
@@ -72,9 +72,10 @@ public class NotificationsController  {
 
                 // สร้าง Labels และกำหนด Style
                 Label titleLabel = new Label(titleText);
-                titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+                titleLabel.getStyleClass().add("notification-title");
 
                 Label detailsLabel = new Label(detailsText);
+                detailsLabel.getStyleClass().add("notification-details");
                 detailsLabel.setWrapText(true);
 
                 // นำ Labels ใส่ใน VBox ของรายการแจ้งเตือน

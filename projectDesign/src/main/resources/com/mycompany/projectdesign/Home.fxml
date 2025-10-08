@@ -24,9 +24,9 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="mainPane" minHeight="-Infinity" minWidth="-Infinity" prefHeight="640.0" prefWidth="1085.0" styleClass="root" stylesheets="@../../../CSS/home.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.projectdesign.HomeController">
+<BorderPane fx:id="mainPane" minHeight="-Infinity" minWidth="-Infinity" prefHeight="733.0" prefWidth="1085.0" styleClass="root" stylesheets="@../../../CSS/home.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.projectdesign.HomeController">
    <right>
-      <ScrollPane vbarPolicy="ALWAYS" BorderPane.alignment="CENTER">
+      <ScrollPane hbarPolicy="NEVER" vbarPolicy="ALWAYS" BorderPane.alignment="CENTER">
          <BorderPane.margin>
             <Insets bottom="20.0" left="20.0" right="20.0" />
          </BorderPane.margin>
@@ -35,7 +35,7 @@
                <center>
                   <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="1480.0" prefWidth="465.0" styleClass="form-field">
                      <children>
-                        <Label maxWidth="1.7976931348623157E308" prefHeight="51.0" prefWidth="240.0" styleClass="form-title" text="Selected Room">
+                        <Label maxWidth="1.7976931348623157E308" prefHeight="51.0" prefWidth="240.0" styleClass="h3" text="Selected Room">
                            <VBox.margin>
                               <Insets left="20.0" top="20.0" />
                            </VBox.margin>
@@ -205,13 +205,13 @@
                               <CheckBox fx:id="wifiCheckBox" mnemonicParsing="false" text="WIFI" GridPane.columnIndex="1" GridPane.rowIndex="3" />
                            </children>
                         </GridPane>
-                        <Button fx:id="clearFilterButton" mnemonicParsing="false" onAction="#handleclearFilterButton" prefHeight="38.0" prefWidth="77.0" text="Clear">
+                        <Button fx:id="clearFilterButton" mnemonicParsing="false" onAction="#handleclearFilterButton" prefHeight="38.0" prefWidth="77.0" styleClass="primary-button" text="Clear">
                            <VBox.margin>
                               <Insets bottom="20.0" left="360.0" top="20.0" />
                            </VBox.margin>
                         </Button>
                         <Separator prefWidth="200.0" />
-                        <Label maxWidth="1.7976931348623157E308" prefHeight="51.0" prefWidth="240.0" styleClass="form-title" text="Details of the selected room">
+                        <Label maxWidth="1.7976931348623157E308" prefHeight="51.0" prefWidth="240.0" styleClass="h3" text="Details of the selected room">
                            <font>
                               <Font name="System Bold Italic" size="17.0" />
                            </font>
@@ -472,7 +472,7 @@
                                     <Insets left="20.0" right="10.0" />
                                  </GridPane.margin>
                               </DatePicker>
-                              <DatePicker fx:id="checkoutDatePicker1" prefHeight="27.0" prefWidth="206.0" GridPane.rowIndex="3">
+                              <DatePicker fx:id="checkoutDatePicker1" prefHeight="27.0" prefWidth="196.0" GridPane.rowIndex="3">
                                  <GridPane.margin>
                                     <Insets left="20.0" right="10.0" />
                                  </GridPane.margin>
@@ -557,12 +557,7 @@
                         </HBox>
                         <HBox alignment="CENTER_RIGHT" prefHeight="47.0" prefWidth="428.0" spacing="15.0">
                            <children>
-                              <Button maxWidth="188.0" mnemonicParsing="false" onAction="#handlePrintBillButtonAction" prefHeight="35.0" prefWidth="188.0" text="Print Summary and Save">
-                                 <styleClass>
-                                    <String fx:value="menu-button" />
-                                    <String fx:value="secondary-button" />
-                                 </styleClass>
-                              </Button>
+                              <Button maxWidth="188.0" mnemonicParsing="false" onAction="#handlePrintBillButtonAction" prefHeight="35.0" prefWidth="188.0" styleClass="secondary-button" text="Print Summary and Save" />
                               <Button fx:id="ProceedButton" maxWidth="100.0" mnemonicParsing="false" onAction="#handleProceedButtonAction" prefHeight="120.0" text="Proceed">
                                  <styleClass>
                                     <String fx:value="primary-button" />
@@ -571,7 +566,7 @@
                               </Button>
                            </children>
                            <VBox.margin>
-                              <Insets bottom="10.0" right="20.0" />
+                              <Insets bottom="20.0" right="20.0" top="10.0" />
                            </VBox.margin>
                         </HBox>
                      </children>
@@ -584,9 +579,9 @@
    <center>
       <BorderPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
          <center>
-            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="987.0" prefWidth="636.0" styleClass="card" BorderPane.alignment="CENTER">
+            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="800.0" prefWidth="568.0" styleClass="card" BorderPane.alignment="CENTER">
                <children>
-                  <HBox alignment="CENTER" prefHeight="108.0" prefWidth="870.0" styleClass="card">
+                  <HBox alignment="CENTER" prefHeight="168.0" prefWidth="518.0" styleClass="content-header">
                      <children>
                         <Label alignment="CENTER" prefHeight="28.0" prefWidth="131.0" styleClass="content-header-title" text="Guest List">
                            <font>
@@ -596,21 +591,21 @@
                         <Pane prefHeight="33.0" prefWidth="350.0" HBox.hgrow="ALWAYS" />
                      </children>
                   </HBox>
-                  <TableView id="R0" fx:id="bookingTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="850.0" prefWidth="630.0" styleClass="card">
+                  <TableView id="R0" fx:id="bookingTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="700.0" prefWidth="518.0" styleClass="card">
                      <columns>
-                        <TableColumn id="R5" fx:id="bookingIDColumn" prefWidth="100.0" styleClass="column-header" text="BookingID" />
-                        <TableColumn id="R1" fx:id="newGuestColumn" prefWidth="120.0" styleClass="column-header" text="New Guest" />
-                        <TableColumn id="R6" fx:id="roomNumberColumn" prefWidth="125.0" styleClass="column-header" text="Room Number" />
-                        <TableColumn id="R2" fx:id="checkinColumn" minWidth="0.0" prefWidth="120.0" styleClass="column-header" text="Check in" />
-                        <TableColumn id="R4" fx:id="checkoutColumn" prefWidth="120.0" styleClass="column-header" text="Check out" />
-                        <TableColumn id="R6" fx:id="amountPaidColumn" prefWidth="110.0" styleClass="column-header" text="Amount paid" />
-                        <TableColumn id="R5" fx:id="statusColumn" prefWidth="100.0" styleClass="column-header" text="Status" />
+                        <TableColumn id="R5" fx:id="bookingIDColumn" styleClass="column-header" text="BookingID" />
+                        <TableColumn id="R1" fx:id="newGuestColumn" minWidth="0.0" prefWidth="7.0" styleClass="column-header" text="New Guest" />
+                        <TableColumn id="R6" fx:id="roomNumberColumn" prefWidth="64.0" styleClass="column-header" text="Room Number" />
+                        <TableColumn id="R2" fx:id="checkinColumn" minWidth="0.0" prefWidth="83.0" styleClass="column-header" text="Check in" />
+                        <TableColumn id="R4" fx:id="checkoutColumn" prefWidth="94.0" styleClass="column-header" text="Check out" />
+                        <TableColumn id="R6" fx:id="amountPaidColumn" prefWidth="76.0" styleClass="column-header" text="Amount paid" />
+                        <TableColumn id="R5" fx:id="statusColumn" prefWidth="82.0" styleClass="column-header" text="Status" />
                      </columns>
                      <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                      </columnResizePolicy>
                      <VBox.margin>
-                        <Insets />
+                        <Insets top="10.0" />
                      </VBox.margin>
                   </TableView>
                </children>
@@ -624,4 +619,10 @@
          </BorderPane.margin>
       </BorderPane>
    </center>
+   <opaqueInsets>
+      <Insets />
+   </opaqueInsets>
+   <padding>
+      <Insets top="20.0" />
+   </padding>
 </BorderPane>

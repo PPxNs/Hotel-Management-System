@@ -1,14 +1,28 @@
+:root {
+    -main-black: #141414;      /* พื้นหลัง Content */
+    -main-panel: #1F1F1F;      /* พื้นหลัง Frame (Menu/Header) */
+    -main-dark-gray: #333333;  /* พื้นหลัง Hover / Input */
+    -main-red: #E50914;        /* สีไฮไลท์หลัก */
+    -main-white: #FFFFFF;      /* สีตัวหนังสือหลัก */
+    -main-gray: #A9A9A9;       /* สีตัวหนังสือรอง */
+    -border-color: #383838;       /* สีเส้นขอบ */
+}
 /*ตัวฐานหลัก*/
 .root {
     -fx-font-family: 'Segoe UI', Arial, sans-serif;
-    -fx-background-color: #F8F9FA;
+    -fx-background-color: -main-black;
 }
 
-/* หัวข้อหลัก Reservation */
+.content-header {
+    -fx-background-color: #b20710;
+    -fx-background-radius: 12px;
+    -fx-padding: 25px;
+    -fx-effect: dropshadow(gaussian, rgba(102, 0, 0, 0.05), 15, 0, 0, 5);
+}
 .content-header-title {
     -fx-font-size: 22px;
     -fx-font-weight: bold;
-    -fx-text-fill: #343a40;
+    -fx-text-fill: #ffffff;
 }
 
 /* ทำให้ Paneลอยเด่นขึ้นมา */
@@ -82,6 +96,103 @@
 .table-view .table-row-cell:selected {
     -fx-background-color: #EFF6FF; 
 }
+.combo-box {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #D1D5DB;
+    -fx-background-radius: 10px;
+    -fx-border-radius: 8px;
+    -fx-font-size: 13px;
+}
+.combo-box:focused {
+    -fx-border-color: #3B82F6;
+    -fx-background-color: white;
+}
+
+/*
+ * =========================================
+ * สไตล์สำหรับ TableView (ตารางแสดงข้อมูล)
+ * =========================================
+ */
+
+/* 1. ภาพรวมและพื้นหลังของตาราง */
+.table-view {
+    /* ทำให้พื้นหลังโปร่งใส เพื่อให้เข้ากับ .card */
+    -fx-background-color: transparent;
+    -fx-background-radius: 12px; /* ทำให้มุมโค้งมนเหมือน card */
+    -fx-border-color: #E2E8F0; /* สีขอบเทาอ่อนๆ */
+    -fx-border-radius: 12px;
+}
+
+/* 2. ส่วนหัวตาราง (Table Header) */
+/* พื้นหลังของแถบหัวข้อทั้งหมด */
+.table-view .column-header-background {
+    -fx-background-color: #F8F9FA; /* สีพื้นหลังหัวข้อ เทาอ่อน */
+    -fx-background-radius: 12px 12px 0 0;
+    -fx-background-insets: 0 0 0 0;
+}
+/* แต่ละคอลัมน์ในหัวข้อ */
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #E2E8F0 transparent; /* เส้นขีดล่างบางๆ */
+    -fx-padding: 15px 12px; /* เพิ่มระยะห่างให้โปร่งขึ้น */
+}
+/* ตัวหนังสือในหัวข้อ */
+.table-view .column-header .label {
+    -fx-text-fill: #4A5568; /* สีตัวหนังสือเทาเข้ม */
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+/* พื้นที่ว่างหลังคอลัมน์สุดท้าย */
+.table-view .filler {
+    -fx-background-color: transparent;
+}
+/* ลูกศรชี้ตอนเรียงข้อมูล */
+.table-view .column-header .arrow {
+    -fx-background-color: -main-red;
+}
 
 
+/* 3. แถวและข้อมูล (Rows and Data) */
+/* สไตล์ของแต่ละแถว */
+.table-view .table-row-cell {
+    -fx-background-color: white;
+    -fx-border-color: transparent transparent #F1F5F9 transparent; /* เส้นคั่นแนวนอน */
+    -fx-border-width: 1px;
+    -fx-padding: 4px 0px; /* ลด padding แนวตั้งเล็กน้อย */
+}
 
+/* เอฟเฟกต์เมื่อเอาเมาส์ชี้แถว */
+.table-view .table-row-cell:hover {
+    -fx-background-color: #FFF5F5; /* สีแดงอ่อนๆ */
+}
+/* แถวที่ถูกเลือก */
+.table-view .table-row-cell:selected {
+    -fx-background-color: rgb(247, 219, 219);
+}
+/* ตัวหนังสือในแถวที่ถูกเลือก */
+.table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: rgb(36, 35, 35);
+}
+
+
+/* 4. เซลล์ข้อมูล (Data Cells) */
+.table-view .table-cell {
+    -fx-padding: 12px 12px; /* เพิ่มระยะห่างให้ข้อมูลไม่อึดอัด */
+    -fx-text-fill: #2D3748;
+    -fx-border-color: transparent; /* เอาเส้นขอบแนวตั้งออก */
+    -fx-font-size: 13px;
+    -fx-alignment: CENTER;
+}
+
+/* 5. (โบนัส) สกอลล์บาร์ (Scrollbar) */
+.table-view .scroll-bar:vertical,
+.table-view .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+.table-view .scroll-bar .thumb {
+    -fx-background-color: #D1D5DB;
+    -fx-background-radius: 8px;
+}
+.table-view .scroll-bar .track {
+    -fx-background-color: transparent;
+}

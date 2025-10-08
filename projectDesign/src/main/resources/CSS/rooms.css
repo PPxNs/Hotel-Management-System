@@ -1,20 +1,35 @@
+:root {
+    -main-black: #141414;      /* พื้นหลัง Content */
+    -main-panel: #1F1F1F;      /* พื้นหลัง Frame (Menu/Header) */
+    -main-dark-gray: #333333;  /* พื้นหลัง Hover / Input */
+    -main-red: #E50914;        /* สีไฮไลท์หลัก */
+    -main-white: #FFFFFF;      /* สีตัวหนังสือหลัก */
+    -main-gray: #A9A9A9;       /* สีตัวหนังสือรอง */
+    -border-color: #383838;       /* สีเส้นขอบ */
+}
+
 /*ตัวฐานหลัก*/
 
 .root {
     -fx-font-family: 'Segoe UI', Arial, sans-serif;
-    -fx-background-color: #F8F9FA;
+    -fx-background-color: -main-black;
 }
 
-/* หัวข้อหลัก Rooms */
+.content-header {
+    -fx-background-color: #b20710;
+    -fx-background-radius: 12px;
+    -fx-padding: 25px;
+    -fx-effect: dropshadow(gaussian, rgba(102, 0, 0, 0.05), 15, 0, 0, 5);
+}
 .content-header-title {
     -fx-font-size: 22px;
     -fx-font-weight: bold;
-    -fx-text-fill: #343a40;
+    -fx-text-fill: #ffffff;
 }
 
 /* หัวข้อของฟอร์ม Add Room */
 .form-title {
-    -fx-font-size: 18px;
+    -fx-font-size: 22px;
     -fx-font-weight: bold;
     -fx-text-fill: #343a40;
 }
@@ -129,18 +144,31 @@
 
 /* ตรงพื้นที่อัปโหลด */
 .upload-text-main {
-    -fx-text-fill: #0d6efd; 
+    -fx-background-fill: #0d6efd; 
     -fx-font-weight: bold;
 }
 
 .upload-text-sub {
-    -fx-text-fill: #6b7280; 
+    -fx-text-fill: -main-white; 
     -fx-font-size: 11px;
 }
 
+/*ปุ่ม บวก */
+.upload-button {
+    -fx-background-color: #E50914;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8px;
+    -fx-padding: 3px 10px;
+    -fx-cursor: hand;
+    -fx-font-size: 18px;
+}
+.upload-button:hover {
+    -fx-background-color: #b20710;
+}
 /* ปุ่ม add room */
 .primary-button {
-    -fx-background-color: #3B82F6;
+    -fx-background-color: #E50914;
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-background-radius: 8px;
@@ -149,7 +177,7 @@
     -fx-font-size: 13px;
 }
 .primary-button:hover {
-    -fx-background-color: #2563EB;
+    -fx-background-color: #b20710;
 }
 
 /* ปุ่ม Save as Draft */
@@ -164,6 +192,7 @@
 }
 .secondary-button:hover {
     -fx-background-color: #F3F4F6;
+    -fx-text-fill: #b20710;
 }
 
 .filter-combo-box {
@@ -173,4 +202,147 @@
     -fx-background-radius: 8px;
 }
 
+/*
+ * =========================================
+ * สไตล์สำหรับ TitledPane (แถบพับ Add Room)
+ * =========================================
+ */
 
+/* สไตล์โดยรวมของ TitledPane */
+.titled-pane {
+    -fx-text-fill: white; /* สีตัวหนังสือโดยรวม */
+}
+
+/* 1. ส่วนหัวข้อ (Title Bar) */
+.titled-pane > .title {
+    -fx-background-color: #E50914; /* << เปลี่ยนสีพื้นหลังหัวข้อที่นี่ */
+    -fx-background-radius: 2px 2px 0 0; /* ทำให้มุมบนโค้งมน */
+    -fx-border-color: #E50914;
+    -fx-border-radius: 2px 2px 0 0;
+}
+
+/* 2. สีของลูกศร (Arrow) */
+.titled-pane > .title > .arrow-button .arrow {
+    -fx-background-color: white; /* << เปลี่ยนสีลูกศรที่นี่ */
+}
+
+/* 3. ส่วนเนื้อหา (Content Area) */
+.titled-pane > .content {
+    -fx-background-color: #F9FAFB; /* << เปลี่ยนสีพื้นหลังเนื้อหาที่นี่ */
+    -fx-padding: 5px;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 0 1px 1px 1px; /* ใส่เส้นขอบเฉพาะด้านข้างและล่าง */
+}
+
+/*
+ * =========================================
+ * สไตล์สำหรับ TableView (ตารางแสดงข้อมูล)
+ * =========================================
+ */
+
+/* 1. ภาพรวมและพื้นหลังของตาราง */
+.table-view {
+    /* ทำให้พื้นหลังโปร่งใส เพื่อให้เข้ากับ .card */
+    -fx-background-color: transparent;
+    -fx-background-radius: 12px; /* ทำให้มุมโค้งมนเหมือน card */
+    -fx-border-color: #E2E8F0; /* สีขอบเทาอ่อนๆ */
+    -fx-border-radius: 12px;
+}
+
+/* 2. ส่วนหัวตาราง (Table Header) */
+/* พื้นหลังของแถบหัวข้อทั้งหมด */
+.table-view .column-header-background {
+    -fx-background-color: #F8F9FA; /* สีพื้นหลังหัวข้อ เทาอ่อน */
+    -fx-background-radius: 12px 12px 0 0;
+    -fx-background-insets: 0 0 0 0;
+}
+/* แต่ละคอลัมน์ในหัวข้อ */
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #E2E8F0 transparent; /* เส้นขีดล่างบางๆ */
+    -fx-padding: 15px 12px; /* เพิ่มระยะห่างให้โปร่งขึ้น */
+}
+/* ตัวหนังสือในหัวข้อ */
+.table-view .column-header .label {
+    -fx-text-fill: #4A5568; /* สีตัวหนังสือเทาเข้ม */
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+/* พื้นที่ว่างหลังคอลัมน์สุดท้าย */
+.table-view .filler {
+    -fx-background-color: transparent;
+}
+/* ลูกศรชี้ตอนเรียงข้อมูล */
+.table-view .column-header .arrow {
+    -fx-background-color: -main-red;
+}
+
+
+/* 3. แถวและข้อมูล (Rows and Data) */
+/* สไตล์ของแต่ละแถว */
+.table-view .table-row-cell {
+    -fx-background-color: white;
+    -fx-border-color: transparent transparent #F1F5F9 transparent; /* เส้นคั่นแนวนอน */
+    -fx-border-width: 1px;
+    -fx-padding: 4px 0px; /* ลด padding แนวตั้งเล็กน้อย */
+}
+
+/* เอฟเฟกต์เมื่อเอาเมาส์ชี้แถว */
+.table-view .table-row-cell:hover {
+    -fx-background-color: #FFF5F5; /* สีแดงอ่อนๆ */
+}
+/* แถวที่ถูกเลือก */
+.table-view .table-row-cell:selected {
+    -fx-background-color: rgb(247, 219, 219);
+}
+/* ตัวหนังสือในแถวที่ถูกเลือก */
+.table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: rgb(36, 35, 35);
+}
+
+
+/* 4. เซลล์ข้อมูล (Data Cells) */
+.table-view .table-cell {
+    -fx-padding: 12px 12px; /* เพิ่มระยะห่างให้ข้อมูลไม่อึดอัด */
+    -fx-text-fill: #2D3748;
+    -fx-border-color: transparent; /* เอาเส้นขอบแนวตั้งออก */
+    -fx-font-size: 13px;
+    -fx-alignment: CENTER;
+}
+
+/* 5. (โบนัส) สกอลล์บาร์ (Scrollbar) */
+.table-view .scroll-bar:vertical,
+.table-view .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+.table-view .scroll-bar .thumb {
+    -fx-background-color: #D1D5DB;
+    -fx-background-radius: 8px;
+}
+.table-view .scroll-bar .track {
+    -fx-background-color: transparent;
+}
+
+
+/*
+ * =========================================
+ * สไตล์สำหรับปุ่ม Action ในตาราง (แบบธีมสีแดง)
+ * =========================================
+ */
+
+.action-button {
+    /* สถานะปกติ: ไม่มีพื้นหลัง, ไม่มีเส้นขอบ */
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-cursor: hand; /* เปลี่ยนเมาส์เป็นรูปมือ */
+    -fx-padding: 5px; /* เพิ่มพื้นที่รอบไอคอนเล็กน้อย */
+    -fx-background-radius: 6px; /* เตรียมมุมโค้งมนไว้เลย */
+}
+
+.action-button:hover {
+    /* สถานะเมื่อเมาส์ชี้: ใช้สีแดงอ่อนๆ จากธีม */
+    -fx-background-color: #FFF5F5; /* สีพื้นหลังตอน hover แถวตาราง */
+    -fx-border-color: #E50914;  /* ใช้สีแดงหลักเป็นเส้นขอบ */
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+}

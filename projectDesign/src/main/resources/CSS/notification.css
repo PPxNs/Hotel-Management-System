@@ -1,0 +1,77 @@
+/* --- พื้นหลังหลักและสไตล์โดยรวม --- */
+.notification-container {
+    -fx-background-color: #141414; 
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 15, 0.5, 0.0, 0.0);
+}
+
+/* --- สไตล์สำหรับ ScrollPane --- */
+.notification-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.notification-scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* --- สไตล์ของ Scroll Bar --- */
+.notification-scroll-pane .scroll-bar:vertical {
+    -fx-background-color: #222222;
+    -fx-pref-width: 10;
+}
+
+.notification-scroll-pane .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+}
+
+.notification-scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #E50914; 
+    -fx-background-radius: 5;
+}
+
+/* --- พื้นที่แสดงผลการแจ้งเตือน --- */
+.notification-list-vbox {
+    -fx-padding: 15px;
+}
+
+/* --- กล่องของการแจ้งเตือนแต่ละรายการ --- */
+.notification-entry {
+    -fx-background-color: #2F2F2F; /* สีเทาเข้ม */
+    -fx-padding: 12;
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+    -fx-spacing: 5;
+}
+
+/* --- สไตล์ตัวอักษรสำหรับหัวข้อและรายละเอียด --- */
+.notification-title {
+    -fx-font-family: "Arial";
+    -fx-font-weight: bold;
+    -fx-font-size: 15px;
+    -fx-text-fill: #E5E5E5; /* สีขาวอมเทา */
+}
+
+.notification-details, .no-notification-label {
+    -fx-font-family: "Arial";
+    -fx-font-size: 13px;
+    -fx-text-fill: #A9A9A9; /* สีเทาอ่อน */
+}
+
+/* --- สไตล์ปุ่ม --- */
+.notification-button {
+    -fx-background-color: #E50914; /* สีแดง Netflix */
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-pref-height: 35;
+    -fx-pref-width: 350; /* ทำให้ปุ่มเต็มความกว้าง */
+    -fx-background-radius: 3;
+    -fx-cursor: hand;
+}
+
+.notification-button:hover {
+    -fx-background-color: #B20710; /* สีแดงเข้มขึ้นเมื่อ hover */
+}

@@ -15,71 +15,78 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="920.0" prefWidth="1480.0" styleClass="root" stylesheets="@../../../CSS/reservations.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.projectdesign.ReservationsController">
+<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="1404.0" prefWidth="1480.0" styleClass="root" stylesheets="@../../../CSS/reservations.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.projectdesign.ReservationsController">
    <children>
-      <BorderPane fx:id="mainPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="848.0" prefWidth="1460.0" styleClass="root" stylesheets="@../../../CSS/guests.css">
-         <center>
-            <VBox styleClass="content-pane" BorderPane.alignment="CENTER">
+      <VBox prefHeight="3000.0" prefWidth="1460.0" styleClass="content-pane">
+         <children>
+            <HBox alignment="CENTER" prefHeight="93.0" prefWidth="1410.0" styleClass="content-header">
                <children>
-                  <HBox alignment="CENTER" prefHeight="57.0" prefWidth="820.0" styleClass="card">
+                  <Label alignment="CENTER" prefHeight="28.0" prefWidth="189.0" styleClass="content-header-title" text="Reservation">
+                     <font>
+                        <Font name="Arial Bold" size="14.0" />
+                     </font>
+                  </Label>
+                  <Pane prefHeight="35.0" prefWidth="171.0" HBox.hgrow="ALWAYS" />
+                  <HBox alignment="CENTER" prefHeight="35.0" prefWidth="867.0" styleClass="profile-menu-button">
                      <children>
-                        <Label alignment="CENTER" prefHeight="28.0" prefWidth="189.0" styleClass="content-header-title" text="Reservation">
-                           <font>
-                              <Font name="Arial Bold" size="14.0" />
-                           </font>
-                        </Label>
-                        <Pane prefHeight="35.0" prefWidth="171.0" HBox.hgrow="ALWAYS" />
-                        <HBox alignment="CENTER" prefHeight="35.0" prefWidth="867.0" styleClass="profile-menu-button">
+                        <StackPane prefHeight="35.0" prefWidth="850.0" styleClass="search-box">
                            <children>
-                              <StackPane prefHeight="35.0" prefWidth="850.0" styleClass="search-box">
-                                 <children>
-                                    <TextField fx:id="searchField" prefHeight="35.0" prefWidth="742.0" promptText="search room number or name guest ..." styleClass="search-field" />
-                                    <Label prefHeight="18.0" prefWidth="24.0" styleClass="search-icon">
-                                       <StackPane.margin>
-                                          <Insets />
-                                       </StackPane.margin>
-                                       <graphic>
-                                          <ImageView fitHeight="24.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
-                                             <image>
-                                                <Image url="@../../../img/icons8-search-50.png" />
-                                             </image>
-                                          </ImageView>
-                                       </graphic>
-                                    </Label>
-                                 </children>
-                              </StackPane>
+                              <TextField fx:id="searchField" prefHeight="35.0" prefWidth="742.0" promptText="search room number or name guest ..." styleClass="search-field" />
+                              <Label prefHeight="18.0" prefWidth="24.0" styleClass="search-icon">
+                                 <StackPane.margin>
+                                    <Insets />
+                                 </StackPane.margin>
+                                 <graphic>
+                                    <ImageView fitHeight="24.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../../../img/icons8-search-50.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Label>
                            </children>
-                        </HBox>
-                        <ComboBox fx:id="statusComboBox" prefHeight="27.0" prefWidth="285.0" promptText="All Status" styleClass="filter-combo-box">
-                           <HBox.margin>
-                              <Insets left="20.0" />
-                           </HBox.margin>
-                        </ComboBox>
+                        </StackPane>
                      </children>
                   </HBox>
-                  <TableView id="R0" fx:id="ReservationsTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="796.0" prefWidth="1410.0" styleClass="card">
-                     <columns>
-                        <TableColumn id="R6" fx:id="BookingIDColumn" prefWidth="150.0" styleClass="column-header" text="Booking ID" />
-                        <TableColumn id="R4" fx:id="DateBookingColumn" prefWidth="150.0" styleClass="column-header" text="DateBooking" />
-                        <TableColumn id="R5" fx:id="RoomNoColumn" prefWidth="100.0" styleClass="column-header" text="Room Number" />
-                        <TableColumn id="R1" fx:id="GuestColumn" prefWidth="200.0" styleClass="column-header" text="Guest" />
-                        <TableColumn id="R2" fx:id="CheckInColumn" minWidth="0.0" prefWidth="150.0" styleClass="column-header" text="Check in" />
-                        <TableColumn id="R6" fx:id="CheckoutColumn" prefWidth="150.0" styleClass="column-header" text="Check out" />
-                        <TableColumn id="R6" fx:id="StatusColumn" prefWidth="100.0" styleClass="column-header" text="Status" />
-                     </columns>
-                     <columnResizePolicy>
-                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                     </columnResizePolicy>
-                     <VBox.margin>
-                        <Insets top="20.0" />
-                     </VBox.margin>
-                  </TableView>
+                  <ComboBox fx:id="statusComboBox" prefHeight="27.0" prefWidth="285.0" promptText="All Status" styleClass="filter-combo-box">
+                     <HBox.margin>
+                        <Insets left="20.0" />
+                     </HBox.margin>
+                  </ComboBox>
                </children>
-               <opaqueInsets>
+               <VBox.margin>
                   <Insets />
-               </opaqueInsets>
-            </VBox>
-         </center>
+               </VBox.margin>
+            </HBox>
+            <TableView id="R0" fx:id="ReservationsTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="1124.0" prefWidth="1410.0" styleClass="card">
+               <columns>
+                  <TableColumn id="R6" fx:id="BookingIDColumn" prefWidth="150.0" styleClass="column-header" text="Booking ID" />
+                  <TableColumn id="R4" fx:id="DateBookingColumn" prefWidth="150.0" styleClass="column-header" text="DateBooking" />
+                  <TableColumn id="R5" fx:id="RoomNoColumn" prefWidth="100.0" styleClass="column-header" text="Room Number" />
+                  <TableColumn id="R1" fx:id="GuestColumn" prefWidth="200.0" styleClass="column-header" text="Guest" />
+                  <TableColumn id="R2" fx:id="CheckInColumn" minWidth="0.0" prefWidth="150.0" styleClass="column-header" text="Check in" />
+                  <TableColumn id="R6" fx:id="CheckoutColumn" prefWidth="150.0" styleClass="column-header" text="Check out" />
+                  <TableColumn id="R6" fx:id="StatusColumn" prefWidth="100.0" styleClass="column-header" text="Status" />
+               </columns>
+               <columnResizePolicy>
+                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+               </columnResizePolicy>
+               <VBox.margin>
+                  <Insets top="20.0" />
+               </VBox.margin>
+            </TableView>
+         </children>
+         <opaqueInsets>
+            <Insets />
+         </opaqueInsets>
+         <VBox.margin>
+            <Insets top="20.0" />
+         </VBox.margin>
+      </VBox>
+      <BorderPane fx:id="mainPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="940.0" prefWidth="1460.0" styleClass="root" stylesheets="@../../../CSS/guests.css">
+         <VBox.margin>
+            <Insets top="80.0" />
+         </VBox.margin>
       </BorderPane>
    </children>
    <padding>

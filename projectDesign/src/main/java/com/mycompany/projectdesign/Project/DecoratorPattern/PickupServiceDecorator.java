@@ -15,7 +15,7 @@ public class PickupServiceDecorator extends DepositDecorator{
     }
    
     public String getDescription(){
-        return super.getDescription() + "\n + Pickup Service            --> 300.00" ;
+        return super.getDescription() + "\n + Pickup Service = 300.00" ;
     }
     @Override
     public double getCost() {

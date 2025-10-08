@@ -22,26 +22,19 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="root" stylesheets="@../../../CSS/rooms.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.projectdesign.RoomsController">
+<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="1056.0" prefWidth="1410.0" styleClass="root" stylesheets="@../../../CSS/rooms.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.projectdesign.RoomsController">
    <children>
-      <BorderPane fx:id="mainPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="920.0" prefWidth="1410.0" styleClass="root" stylesheets="@../../../CSS/rooms.css">
+      <BorderPane fx:id="mainPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="1086.0" prefWidth="1410.0" styleClass="root" stylesheets="@../../../CSS/rooms.css">
          <right>
             <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="card" BorderPane.alignment="CENTER">
                <children>
-                  <Label maxWidth="1.7976931348623157E308" prefHeight="51.0" prefWidth="240.0" styleClass="form-title" text="Add Room">
-                     <padding>
-                        <Insets left="20.0" />
-                     </padding>
-                  </Label>
+                  <Label maxWidth="1.7976931348623157E308" prefHeight="51.0" prefWidth="240.0" styleClass="form-title" text="Add Room" />
                   <Label maxWidth="1.7976931348623157E308" text="Room Type">
-                     <padding>
-                        <Insets left="20.0" />
-                     </padding>
                      <VBox.margin>
                         <Insets bottom="10.0" top="20.0" />
                      </VBox.margin>
                   </Label>
-                  <ComboBox id="roomTypeComboBox" fx:id="roomTypeComboBox" prefHeight="30.0" prefWidth="385.0">
+                  <ComboBox id="roomTypeComboBox" fx:id="roomTypeComboBox" prefHeight="30.0" prefWidth="407.0">
                      <padding>
                         <Insets left="20.0" />
                      </padding>
@@ -52,7 +45,7 @@
                         <String fx:value="type-special" />
                      </styleClass>
                      <VBox.margin>
-                        <Insets left="20.0" />
+                        <Insets />
                      </VBox.margin>
                   </ComboBox>
                   <GridPane prefHeight="59.0" prefWidth="180.0">
@@ -66,46 +59,39 @@
                     </rowConstraints>
                      <children>
                         <Label maxWidth="1.7976931348623157E308" prefHeight="15.0" prefWidth="75.0" text="Number of people" GridPane.columnIndex="1">
-                           <padding>
-                              <Insets left="10.0" />
-                           </padding>
-                        </Label>
-                        <TextField fx:id="peopleField" styleClass="form-field" GridPane.columnIndex="1" GridPane.rowIndex="1">
                            <GridPane.margin>
                               <Insets left="10.0" />
                            </GridPane.margin>
-                        </TextField>
-                        <Label maxWidth="1.7976931348623157E308" prefHeight="15.0" prefWidth="75.0" text="Room No.">
-                           <padding>
-                              <Insets left="20.0" />
-                           </padding>
                         </Label>
-                        <TextField fx:id="roomNoField" styleClass="form-field" GridPane.rowIndex="1">
+                        <Label maxWidth="1.7976931348623157E308" prefHeight="15.0" prefWidth="75.0" text="Room No." />
+                        <TextField fx:id="roomNoField" prefHeight="27.0" prefWidth="109.0" styleClass="form-field" GridPane.rowIndex="1">
                            <GridPane.margin>
-                              <Insets left="20.0" />
+                              <Insets />
                            </GridPane.margin>
                         </TextField>
+                        <ComboBox fx:id="peopleCombobox" prefHeight="27.0" prefWidth="198.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                           <GridPane.margin>
+                              <Insets left="10.0" />
+                           </GridPane.margin>
+                        </ComboBox>
                      </children>
                      <VBox.margin>
                         <Insets top="20.0" />
                      </VBox.margin>
                   </GridPane>
                   <Label maxWidth="1.7976931348623157E308" text="Price / Day (THB)">
-                     <padding>
-                        <Insets left="20.0" />
-                     </padding>
                      <VBox.margin>
                         <Insets top="20.0" />
                      </VBox.margin>
                   </Label>
                   <TextField fx:id="priceField" maxWidth="1.7976931348623157E308" styleClass="form-field">
                      <VBox.margin>
-                        <Insets bottom="20.0" left="20.0" top="5.0" />
+                        <Insets bottom="20.0" top="5.0" />
                      </VBox.margin>
                   </TextField>
                   <TitledPane fx:id="SpecialFeaturesCheckBox" animated="false" prefHeight="103.0" prefWidth="408.0" text="Special Features">
                      <content>
-                        <VBox prefHeight="186.0" prefWidth="377.0" spacing="10.0">
+                        <VBox prefHeight="220.0" prefWidth="342.0" spacing="10.0">
                            <children>
                               <CheckBox fx:id="jacuzziCheckBox" mnemonicParsing="false" text="Jacuzzi" />
                               <CheckBox fx:id="lakeViewCheckBox" mnemonicParsing="false" text="Lake View" />
@@ -122,17 +108,16 @@
                   </TitledPane>
                   <HBox alignment="CENTER" prefHeight="53.0" prefWidth="353.0">
                      <children>
-                        <ImageView fitHeight="34.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fitHeight="35.0" fitWidth="36.0" pickOnBounds="true" preserveRatio="true">
                            <image>
-                              <Image url="@../../../img/icons8-add-image-60.png" />
-                           </image>
-                        </ImageView>
-                        <TextField fx:id="imagePartField" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="210.0" styleClass="form-field" HBox.hgrow="ALWAYS">
+                              <Image url="@../../../img/icons8-add-image-30.png" />
+                           </image></ImageView>
+                        <TextField fx:id="imagePartField" maxWidth="1.7976931348623157E308" prefHeight="27.0" prefWidth="340.0" styleClass="form-field" HBox.hgrow="ALWAYS">
                            <HBox.margin>
                               <Insets left="10.0" />
                            </HBox.margin>
                         </TextField>
-                        <Button fx:id="addImgButton" mnemonicParsing="false" onAction="#handleChooseImg" text="+">
+                        <Button fx:id="addImgButton" mnemonicParsing="false" onAction="#handleChooseImg" prefHeight="17.0" prefWidth="18.0" styleClass="upload-button" text="+">
                            <HBox.margin>
                               <Insets left="5.0" />
                            </HBox.margin>
@@ -169,11 +154,11 @@
             </VBox>
          </right>
          <center>
-            <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" BorderPane.alignment="CENTER">
+            <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="980.0" prefWidth="912.0" BorderPane.alignment="CENTER">
                <center>
                   <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="card" BorderPane.alignment="CENTER">
                      <children>
-                        <HBox alignment="CENTER" prefHeight="26.0" prefWidth="483.0" spacing="15.0">
+                        <HBox alignment="CENTER" prefHeight="81.0" prefWidth="862.0" spacing="15.0" styleClass="content-header">
                            <children>
                               <Label alignment="CENTER" prefHeight="26.0" prefWidth="73.0" styleClass="content-header-title" text="Rooms">
                                  <HBox.margin>
@@ -223,9 +208,9 @@
                               <Insets bottom="10.0" />
                            </VBox.margin>
                         </HBox>
-                        <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="665.0" prefWidth="838.0">
+                        <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="779.0" prefWidth="862.0">
                            <children>
-                              <TableView id="R0" fx:id="roomTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="734.0" prefWidth="973.0" HBox.hgrow="ALWAYS">
+                              <TableView id="R0" fx:id="roomTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="799.0" prefWidth="862.0" HBox.hgrow="ALWAYS">
                                 <columns>
                                     <TableColumn id="R1" fx:id="roomNoColumn" prefWidth="100.0" styleClass="column-header" text="Room No." />
                                   <TableColumn id="R1" fx:id="imageColumn" prefWidth="140.0" styleClass="column-header" text="Image" />
@@ -239,6 +224,9 @@
                                  <columnResizePolicy>
                                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                                  </columnResizePolicy>
+                                 <HBox.margin>
+                                    <Insets top="20.0" />
+                                 </HBox.margin>
                               </TableView>
                            </children>
                         </HBox>
@@ -253,6 +241,9 @@
                </BorderPane.margin>
             </BorderPane>
          </center>
+         <VBox.margin>
+            <Insets top="20.0" />
+         </VBox.margin>
       </BorderPane>
    </children>
 </VBox>
