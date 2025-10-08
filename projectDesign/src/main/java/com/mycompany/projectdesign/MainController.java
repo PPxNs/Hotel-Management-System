@@ -5,6 +5,7 @@ import javafx.scene.control.Button;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 import com.mycompany.projectdesign.Project.ObserverPattern.*;
@@ -31,6 +32,13 @@ public class MainController implements Initializable, HotelObserver{
     @FXML private Button notificationButton;    // ปุ่มกระดิ่งแจ้งเตือน
     @FXML private BorderPane mainContentPane;   // พื้นที่ส่วนกลางสำหรับแสดงเนื้อหาของแต่ละหน้า
 
+    private List<Button> menuButtons; // List สำหรับเก็บปุ่มเมนูทั้งหมด
+    private Button currentSelectedButton; // ปุ่มที่ถูกเลือกอยู่ปัจจุบัน
+    @FXML private Button homeButton;
+    @FXML private Button roomsButton;
+    @FXML private Button reservationsButton;
+    @FXML private Button guestsButton;
+
     private final HotelEventManager eventManager = HotelEventManager.getInstance();
     private List<HotelEvent> notifications = new ArrayList<>(); // List สำหรับเก็บ Event ที่ยังไม่ได้อ่าน
     private Node notificationPopup = null;  // Node สำหรับเก็บ Pop-up ที่แสดงอยู่ (ถ้ามี)
@@ -42,24 +50,33 @@ public class MainController implements Initializable, HotelObserver{
      */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        menuButtons = Arrays.asList(homeButton, guestsButton, reservationsButton, roomsButton);
+        // ตั้งค่าปุ่ม Home เป็นปุ่มเริ่มต้นเมื่อเปิดโปรแกรม
+        currentSelectedButton = homeButton;
+        updateselectedButton();
         loadPage("Home.fxml");
         eventManager.addObserver(this);
+        eventManager.addObserver(new BillObserver());
     }
 
     //เมธอดไปหน้าต่อ ๆ ไป
     @FXML private void showRoomsPage(ActionEvent event){
+        updateCurrentButton(roomsButton);
         loadPage("Rooms.fxml");
     }
 
     @FXML private void showHomePage(ActionEvent event) {
+        updateCurrentButton(homeButton);
         loadPage("Home.fxml");
     }
 
     @FXML private void showReservationsPage(ActionEvent event) {
+        updateCurrentButton(reservationsButton);
         loadPage("Reservations.fxml");
     }
 
     @FXML private void showGuestsPage(ActionEvent event) {
+        updateCurrentButton(guestsButton);
         loadPage("Guests.fxml");
     }
     
@@ -127,8 +144,8 @@ public class MainController implements Initializable, HotelObserver{
                 controller.setNotifications(notifications, this::hideNotificationPopup);
                 
                 // ตั้งค่าตำแหน่งของ Pop-up
-                AnchorPane.setTopAnchor(notificationPopup, 60.0);
-                AnchorPane.setRightAnchor(notificationPopup, 20.0);
+                AnchorPane.setTopAnchor(notificationPopup, 40.0);
+                AnchorPane.setLeftAnchor(notificationPopup, 200.0);
                 
                 rootPane.getChildren().add(notificationPopup); // แสดง Pop-up
 
@@ -158,5 +175,28 @@ public class MainController implements Initializable, HotelObserver{
         notifications.clear();
         notificationButton.setText("");
         notificationButton.getStyleClass().remove("has-notification");
+    }
+    /**
+     * อัปเดตปุ่มที่ถูกเลือกล่าสุด โดยจะลบคลาส "selected" ออกจากปุ่มเก่าก่อน
+     * @param selectedBtn ปุ่มที่เพิ่งถูกคลิก
+     */
+    private void updateCurrentButton(Button selectedButton){
+         // ลบคลาส selected ออกจากปุ่มเดิมที่เคยถูกเลือก
+        if (currentSelectedButton != null) {
+            currentSelectedButton.getStyleClass().remove("selected");
+        }
+        // อัปเดตปุ่มที่ถูกเลือกล่าสุดให้เป็นปุ่มใหม่
+        currentSelectedButton = selectedButton;
+        // เรียกเมธอดเพื่อเพิ่มคลาส selected ให้ปุ่มใหม่
+        updateselectedButton();
+    }
+
+    /**
+     * เพิ่มคลาส "selected" ให้กับปุ่มที่ถูกเลือกในปัจจุบัน
+     */
+    private void updateselectedButton(){
+        if (currentSelectedButton != null) {
+            currentSelectedButton.getStyleClass().add("selected");
+        }
     }
 }

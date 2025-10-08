@@ -1,48 +1,79 @@
-/*ตัวฐานหลัก*/
+/* =================================================================== */
+/* THE DEFINITIVE "NETFLIX REFINED" THEME                  */
+/* =================================================================== */
+
+/* --- 1. GLOBAL & FONT DEFINITIONS --- */
+:root {
+    -main-black: #141414;      /* พื้นหลัง Content */
+    -main-panel: #1F1F1F;      /* พื้นหลัง Frame (Menu/Header) */
+    -main-dark-gray: #333333;  /* พื้นหลัง Hover / Input */
+    -main-red: #E50914;        /* สีไฮไลท์หลัก */
+    -main-white: #FFFFFF;      /* สีตัวหนังสือหลัก */
+    -main-gray: #A9A9A9;       /* สีตัวหนังสือรอง */
+    -border-color: #383838;       /* สีเส้นขอบ */
+}
+
 .root {
     -fx-font-family: 'Segoe UI', Arial, sans-serif;
-    -fx-background-color: #F8F9FA;
-}
-
-.content-header-title {
-    -fx-font-size: 22px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #343a40;
+    -fx-background-color: -main-black;
 }
 
 
-/*
- * แถบเมนูบนสุด
- */
-.header-bar {
-    -fx-background-color: rgb(153, 174, 233);
-    -fx-padding: 10px 25px;
-    -fx-border-width: 0 0 1px 0;
-    -fx-border-color: #E5E7EB;
+.side-menu {
+    -fx-background-color: -main-panel;
 }
+.side-menu { -fx-border-color: transparent #000 transparent transparent; -fx-border-width: 1px; }
 
-/*
- * เมนูด้านซ้าย
- */
 .menu-button {
     -fx-background-color: transparent;
-    -fx-background-radius: 8px;
-    -fx-text-fill: #495057;
-    -fx-font-size: 14px;
-    -fx-alignment: CENTER_LEFT;
-    -fx-padding: 10px 20px;
+    -fx-text-fill: -main-gray;
+    -fx-font-weight: bold;
+    -fx-font-size: 15px;
+    -fx-padding: 14px 20px;
     -fx-cursor: hand;
 }
+.menu-button .imageView {
+    -fx-effect: innershadow(gaussian, -main-gray, 10, 0, 0, 0);
+}
 
-/* อยากให้มีการจัดการ เมื่อกดเลือกก็จะขึ้นสี ๆ โค้ดที่กั้นไว้ผิดพลาด*/
-/*
+.menu-button:hover {
+    -fx-background-color: -main-dark-gray;
+    -fx-text-fill: -main-white;
+}
+.menu-button:hover .imageView {
+    -fx-effect: innershadow(gaussian, -main-white, 20, 0, 0, 0);
+}
+
+
 .menu-button.selected {
-    -fx-background-color: #E9F4FF;
-    -fx-text-fill: #0d6efd;
-    -fx-border-width: 0 0 0 4px;
-    -fx-border-color: #0d6efd;
-    -fx-background-insets: 0;
-    -fx-border-insets: 0;
-}*/
+    -fx-background-color: -main-dark-gray; /* Use subtle highlight */
+    -fx-text-fill: -main-white;
+    -fx-border-color: transparent transparent transparent -main-red;
+    -fx-border-width: 0 0 0 5px; /* Only left border */
+}
+.menu-button.selected .imageView {
+    -fx-effect: innershadow(gaussian, -main-red, 20, 0, 0, 0);
+}
 
+/* --- 5. NOTIFICATION STYLING --- */
+.notification-button { -fx-background-color: transparent; -fx-padding: 5px; -fx-cursor: hand;}
+.notification-button .imageView { -fx-effect: innershadow(gaussian, -main-white, 10, 0, 0, 0); }
+.notification-button.has-notification .text {
+    -fx-fill: -main-red;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    
+}
+.notification-button:hover .imageView {
+    -fx-effect: innershadow(gaussian, -main-red, 20, 0, 0, 0);
+ 
+}
 
+.notification-button.selected {
+    -fx-background-color: -main-red; /* Use subtle highlight */
+    -fx-fill: -main-red;
+}
+.notification-button.selected .imageView {
+    -fx-effect: innershadow(gaussian, -main-red, 20, 0, 0, 0);
+    
+}

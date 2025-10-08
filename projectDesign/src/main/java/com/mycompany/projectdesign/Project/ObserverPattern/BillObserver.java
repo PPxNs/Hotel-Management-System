@@ -1,87 +1,134 @@
 package com.mycompany.projectdesign.Project.ObserverPattern;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
+import java.io.IOException;
 import com.mycompany.projectdesign.Project.FactoryMethodPattern.DepositRoom;
 import com.mycompany.projectdesign.Project.Model.*;
 import com.mycompany.projectdesign.Project.StrategyPattern.*;
-import com.lowagie.text.*;
-import com.lowagie.text.pdf.PdfWriter;
+import com.itextpdf.forms.PdfAcroForm;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfReader;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * เป็น Concrete Observer ที่ทำหน้าที่สร้างใบเสร็จ (Bill) ในรูปแบบไฟล์ PDF
  * คลาสนี้จะทำงานเมื่อได้รับแจ้งเหตุการณ์ (Event) ที่เป็นประเภท BillEvent
  * โดยจะดึงข้อมูลจาก Event มาคำนวณราคาสุทธิและสร้างเป็นเอกสาร PDF
  */
-
-public class BillObserver implements HotelObserver{
+public class BillObserver implements HotelObserver {
 
     /**
      * เมธอดที่จะถูกเรียกโดย Subject เมื่อมีเหตุการณ์ใหม่เกิดขึ้น
      * @param event ออบเจกต์ของเหตุการณ์ที่เกิดขึ้น
      */
-
     @Override
     public void update(HotelEvent event) {
-
         // Observer นี้จะทำงานเฉพาะเมื่อเหตุการณ์ที่ได้รับเป็น BillEvent เท่านั้น
         if (event instanceof BillEvent) {
-        BillEvent billevent = (BillEvent) event;
-            
-        // ดึงข้อมูลที่จำเป็นทั้งหมดจาก Event Object
-        Room room = billevent.getRoom();
-        Bookings bookings = billevent.getBookings();
-        DepositRoom deposit = billevent.getDepositRoom();
+            BillEvent billevent = (BillEvent) event;
 
-        //ใช้ Strategy Pattern เพื่อคำนวณราคาส่วนลดของห้องพัก
-        DiscountStrategy discountStrategy = DiscountSelector.getStrategy(room, bookings);
-        HotelCalculator calculator = new HotelCalculator();
+            // ดึงข้อมูลที่จำเป็นทั้งหมดจาก Event Object
+            Room room = billevent.getRoom();
+            Bookings bookings = billevent.getBookings();
+            DepositRoom deposit = billevent.getDepositRoom();
 
-        //คำนวณยอดต่าง ๆ เพื่อแสดงในบิล
-        double finalPriceRoom = calculator.calculateFinalPrice(room, bookings, discountStrategy);
-        
-        //ใช้ Decorator Pattern เพื่อดึงยอดรวมของเงินมัดจำและบริการเสริม
-        double discount = room.getPrice() - finalPriceRoom ;  
-        double totalPrice = finalPriceRoom + deposit.getCost();
-        
-        //สร้างไฟล์ PDF
-        String filename = "bill_" + bookings.getBookingID().replace(":", "-") + ".pdf";
+            //ใช้ Strategy Pattern เพื่อคำนวณราคาส่วนลดของห้องพัก
+            DiscountStrategy discountStrategy = DiscountSelector.getStrategy(room, bookings);
+            HotelCalculator calculator = new HotelCalculator();
 
-                try {
-                Document document = new Document();
-                PdfWriter.getInstance(document, new FileOutputStream(filename));
-                document.open();
+            //คำนวณยอดต่าง ๆ เพื่อแสดงในบิล
+            double finalPriceRoom = calculator.calculateFinalPrice(room, bookings, discountStrategy);
+
+            //ใช้ Decorator Pattern เพื่อดึงยอดรวมของเงินมัดจำและบริการเสริม
+            double discount = room.getPrice() - finalPriceRoom;
+            double totalPrice = finalPriceRoom + deposit.getCost();
+
+            // === ส่วนใหม่: เตรียมข้อมูลเพื่อเติมลงในเทมเพลต ===
+            Map<String, String> data = new HashMap<>();
+
+            // Key ของ Map ต้องตรงกับ "Name" ของฟิลด์ในไฟล์ PDF Template
+            data.put("booking_id", bookings.getBookingID());
+            data.put("booking_date", billevent.getFormattedTimestamp()); 
+            data.put("check_in", bookings.getDateCheckin() + " " + bookings.getTimeCheckin());
+            data.put("check_out", bookings.getDateCheckout() + " " + bookings.getTimeCheckout());
+
+            data.put("customer_name", bookings.getCustomer().getFullName());
+            data.put("customer_tel", bookings.getCustomer().getPhone() != null ? bookings.getCustomer().getPhone() : "");
+            data.put("customer_address", bookings.getCustomer().getAddress() != null ? bookings.getCustomer().getAddress() : "");
+
+            data.put("room_number", room.getNumberRoom());
+            data.put("room_type", room.getType());
+            data.put("room_price", String.format("%.2f บาท/คืน", room.getPrice()));
+
+            data.put("deposit_amount", String.format("%.2f", deposit.getCost()));
+            data.put("special_service", deposit.getDescription());
+
+            // คำนวณราคารวมก่อนหักส่วนลด
+            double totalBeforeDiscount = room.getPrice() + deposit.getCost();
+            data.put("price_amount", String.format("%.2f", totalBeforeDiscount));
+            data.put("price_discount", String.format("%.2f", discount));
+
+            // grand_total คือราคาสุทธิที่ต้องจ่าย
+            data.put("total_charge", String.format("%.2f บาท", totalPrice)); 
+
+
+        // === นี่คือโค้ดส่วนสร้าง PDF (ฉบับแก้ไขและตรวจสอบปัญหา) ===
+            try {
+                String templatePath = "/PDF/billv2.pdf";
+
+                // --- ส่วนแก้ไขที่แนะนำและแก้ปัญหาได้แน่นอน ---
                 
-                Paragraph title = new Paragraph("HOTEL BILL");
-                title.setAlignment(Element.ALIGN_CENTER);
-                document.add(title);
+                // 1. สร้างโฟลเดอร์ชื่อ "GeneratedBills" ที่ Root ของโปรเจกต์
+                java.io.File outputDir = new java.io.File("GeneratedBills");
+                if (!outputDir.exists()) {
+                    System.out.println("กำลังสร้างโฟลเดอร์สำหรับเก็บใบเสร็จที่: " + outputDir.getAbsolutePath());
+                    outputDir.mkdirs(); // mkdirs() จะสร้างโฟลเดอร์ให้ถ้ายังไม่มี
+                }
 
-                document.add(new Paragraph("Time Print: " + billevent.getFormattedTimestamp()));
-                document.add(new Paragraph("Customer: " + bookings.getCustomer().getFullName()));
-                document.add(new Paragraph("Room: " + room.getNumberRoom() + " (" + room.getType() + ")"));
-                document.add(new Paragraph("Booking: " + bookings.getDateBooking() + " " + bookings.getTimeBooking()));
-                document.add(new Paragraph("Check-in: " + bookings.getDateCheckin() + " " + bookings.getTimeCheckin()));
-                document.add(new Paragraph("Check-out: " + bookings.getDateCheckout() + " " + bookings.getTimeCheckout()));
-                document.add(new Paragraph("------------------------------"));
-
-                document.add(new Paragraph(String.format("Room Price: %.2f", room.getPrice())));
-                document.add(new Paragraph(String.format("Discount: %.2f", discount)));
-                document.add(new Paragraph("Deposit: " + deposit.getDescription()));
-                document.add(new Paragraph(String.format("Deposit Price: %.2f", deposit.getCost())));
-                document.add(new Paragraph("------------------------------"));
-
+                // 2. สร้างชื่อไฟล์ให้สมบูรณ์
+                String fileName = "receipt_" + bookings.getBookingID().replaceAll("[:/]", "-") + ".pdf";
+                java.io.File outputFile = new java.io.File(outputDir, fileName);
                 
-                document.add(new Paragraph(String.format("TOTAL: %.2f", totalPrice)));
-                document.add(new Paragraph("\nPayment Method: Cash Payment"));
-                document.close();
+                // 3. ดึงตำแหน่งเต็มๆ (Absolute Path) ที่จะบันทึกไฟล์
+                String outputPath = outputFile.getAbsolutePath();
+                
+                // พิมพ์ตำแหน่งที่จะบันทึกไฟล์ออกมาใน Console เพื่อให้เรารู้ว่าโปรแกรมทำงานถูกต้อง
+                System.out.println("โปรแกรมกำลังพยายามบันทึกใบเสร็จที่ตำแหน่ง: " + outputPath);
+                // --- สิ้นสุดส่วนแก้ไข ---
 
-                System.out.println("บิลถูกสร้างเรียบร้อย: " + filename);
 
-            } catch (DocumentException | IOException e) {
+                try (InputStream templateInputStream = BillObserver.class.getResourceAsStream(templatePath)) {
+                    if (templateInputStream == null) {
+                        System.err.println("CRITICAL ERROR: ไม่พบไฟล์เทมเพลตใน resources: " + templatePath);
+                        throw new IOException("Template file not found in resources: " + templatePath);
+                    }
+
+                    PdfDocument pdfDoc = new PdfDocument(new PdfReader(templateInputStream), new PdfWriter(outputPath));
+                    PdfAcroForm form = PdfAcroForm.getAcroForm(pdfDoc, true);
+
+                    for (Map.Entry<String, String> entry : data.entrySet()) {
+                        if (form.getField(entry.getKey()) != null) {
+                            form.getField(entry.getKey()).setValue(entry.getValue());
+                        }
+                    }
+
+                    form.flattenFields();
+                    pdfDoc.close();
+
+                    System.out.println("ใบเสร็จถูกสร้างเรียบร้อยแล้ว!");
+
+                }
+            } catch (IOException e) {
+                System.err.println("เกิดข้อผิดพลาดร้ายแรงระหว่างการสร้าง PDF!");
+                // พิมพ์รายละเอียดของ Error ทั้งหมดออกมาใน Console
                 e.printStackTrace();
             }
-
-        //เวอร์ซ้อมปรินต์เทส
+        }
+    }
+}
+ //เวอร์ซ้อมปรินต์เทส
         /*System.out.println("===== HOTEL BILL =====");
         System.out.println("Time Print: " + billevent.getFormattedTimestamp());
         System.out.println("Number Room: " + room.getNumberRoom());
@@ -103,11 +150,6 @@ public class BillObserver implements HotelObserver{
         System.out.printf("Total Price: %.2f\n", room.getPrice() + deposit.getCost()-discount);  
         System.out.println("Payment Method: Cash Payment");
         System.out.println("======================\n");*/
-
-            }
-        }    
-}
-
 
 
     

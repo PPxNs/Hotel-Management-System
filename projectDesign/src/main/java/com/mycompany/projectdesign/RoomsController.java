@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 import com.mycompany.projectdesign.Project.Model.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -56,7 +58,7 @@ public class RoomsController implements Initializable {
     @FXML private TextField searchField;
     @FXML private TextField roomNoField;
     @FXML private TextField priceField;
-    @FXML private TextField peopleField;
+    @FXML private ComboBox<Integer> peopleCombobox;
     @FXML private TextField imagePartField;
     @FXML private CheckBox jacuzziCheckBox;
     @FXML private CheckBox lakeViewCheckBox;
@@ -119,13 +121,23 @@ public class RoomsController implements Initializable {
                 "MAINTENANCE"      
         );
 
+         ObservableList<Integer> numberPeople = FXCollections.observableArrayList(
+   1,
+            2,
+            3,
+            4,
+            5
+        );
+
         //อันนี้เซตค่าใน combobox 
         roomTypeComboBox.setItems(roomType);
         allTypeComboBox.setItems(allType);
         allTypeComboBox.setValue("All Types");
         statusComboBox.setItems(allStatus);
         statusComboBox.setValue("All status");
-        
+        peopleCombobox.setItems(numberPeople);
+
+
         allCheckbox = Arrays.asList(jacuzziCheckBox, lakeViewCheckBox,petFriendlyCheckBox,privatePoolCheckBox,tvCheckBox,wifiCheckBox);
 
         // ตั้งค่าคอลัมน์ของ TableView
@@ -146,6 +158,8 @@ public class RoomsController implements Initializable {
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
         statusColumn.setCellFactory(ComboBoxTableCell.forTableColumn(statusObtions));
         
+    
+
         // กำหนด Logic ที่จะทำงานหลังจากแก้ไขสถานะเสร็จ
         statusColumn.setOnEditCommit(event -> {
             RoomsTableView roomView = event.getRowValue();
@@ -335,6 +349,7 @@ public class RoomsController implements Initializable {
         };
 
         actionColumn.setCellFactory(cellFactory);
+        
     }
 
     /**
@@ -350,7 +365,7 @@ public class RoomsController implements Initializable {
         roomNoField.setText(room.getNumberRoom());
         roomTypeComboBox.setValue(room.getType());
         priceField.setText(String.valueOf(room.getPrice()));
-        peopleField.setText(String.valueOf(room.getPeople()));
+        peopleCombobox.setValue((room.getPeople()));
         imagePartField.setText(room.getImagePath());
 
         // ตั้งค่า CheckBox ตามคุณสมบัติของห้อง
@@ -398,7 +413,7 @@ public class RoomsController implements Initializable {
     public Room getRoomDatafromFome(){
         // ตรวจสอบว่ากรอกข้อมูลที่จำเป็นครบหรือไม่
         if (roomNoField.getText().isEmpty() || roomTypeComboBox.getValue() == null ||
-            imagePartField.getText().isEmpty() ||priceField.getText().isEmpty() || peopleField.getText().isEmpty() ) {
+            imagePartField.getText().isEmpty() ||priceField.getText().isEmpty() || peopleCombobox.getValue() == null ) {
             
                 Alert alert = new Alert(Alert.AlertType.WARNING, "โปรดกรอกข้อมูลให้ครบถ้วน");
                 alert.showAndWait();
@@ -410,13 +425,16 @@ public class RoomsController implements Initializable {
         String rooomNo = roomNoField.getText().toUpperCase();
         String roomType = roomTypeComboBox.getValue();
         String roomImage = imagePartField.getText();
+        Integer selectpeople = peopleCombobox.getValue();
         double roomPrice = 0.0;
         int numberOfpeople = 0;
+        
+
 
         try {
             // แปลง String เป็นตัวเลข
             roomPrice = Double.parseDouble(priceField.getText());
-            numberOfpeople = Integer.parseInt(peopleField.getText());
+            numberOfpeople = Integer.valueOf(peopleCombobox.getSelectionModel().getSelectedItem());
         } catch (Exception e) {
             System.out.println("Error: Invalid price or number of people format.");
             new Alert(Alert.AlertType.ERROR, "ราคาและจำนวนคนต้องเป็นตัวเลขเท่านั้น").showAndWait();
@@ -494,7 +512,7 @@ public class RoomsController implements Initializable {
     private void clearForm(){
         roomNoField.clear();
         priceField.clear();
-        peopleField.clear();
+        peopleCombobox.getSelectionModel().clearSelection();
         imagePartField.clear();
         roomTypeComboBox.getSelectionModel().clearSelection();
 
@@ -525,7 +543,7 @@ public class RoomsController implements Initializable {
                 // อัพเดทข้อมูล
                 currentEditRoom.setRoomType(roomTypeComboBox.getValue());
                 currentEditRoom.setPrice(Double.parseDouble(priceField.getText()));
-                currentEditRoom.setPeople(Integer.parseInt(peopleField.getText()));
+                currentEditRoom.setPeople(Integer.valueOf(peopleCombobox.getValue()));
                 currentEditRoom.setImagePath(imagePartField.getText());
 
                 // รวมคุณสมบัติจาก CheckBox ที่เลือกใหม่

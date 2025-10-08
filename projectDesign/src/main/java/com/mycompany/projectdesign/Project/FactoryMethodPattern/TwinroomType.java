@@ -8,7 +8,7 @@ public class TwinroomType implements DepositRoom{
 
     @Override
     public String getDescription() {
-       return "Deposit for the Twin room --> 1000.00" ;
+       return "Deposit for the Twin room = 1000.00" ;
     }
 
     @Override

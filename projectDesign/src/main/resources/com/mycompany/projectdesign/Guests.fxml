@@ -20,18 +20,18 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="885.0" prefWidth="1284.0" styleClass="root" stylesheets="@../../../CSS/guests.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.projectdesign.GuestsController">
+<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="1039.0" prefWidth="1284.0" styleClass="root" stylesheets="@../../../CSS/guests.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.projectdesign.GuestsController">
    <children>
-      <BorderPane fx:id="mainPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="920.0" prefWidth="1284.0" styleClass="root" stylesheets="@../../../CSS/guests.css">
+      <BorderPane fx:id="mainPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="1016.0" prefWidth="1284.0" styleClass="root" stylesheets="@../../../CSS/guests.css">
          <center>
             <BorderPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                <center>
-                  <VBox prefHeight="833.0" prefWidth="815.0" styleClass="content-pane" BorderPane.alignment="CENTER">
+                  <VBox prefHeight="847.0" prefWidth="921.0" styleClass="content-pane" BorderPane.alignment="CENTER">
                      <BorderPane.margin>
                         <Insets right="20.0" />
                      </BorderPane.margin>
                      <children>
-                        <HBox alignment="CENTER" prefHeight="57.0" prefWidth="820.0" styleClass="card">
+                        <HBox alignment="CENTER" prefHeight="57.0" prefWidth="871.0" styleClass="content-header">
                            <children>
                               <Label alignment="CENTER" prefHeight="28.0" prefWidth="189.0" styleClass="content-header-title" text="Guests">
                                  <font>
@@ -242,6 +242,9 @@
                </BorderPane.margin>
             </VBox>
          </right>
+         <VBox.margin>
+            <Insets top="20.0" />
+         </VBox.margin>
       </BorderPane>
    </children>
 </VBox>

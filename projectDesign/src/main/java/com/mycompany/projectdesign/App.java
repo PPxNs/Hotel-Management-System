@@ -6,8 +6,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-
+import javafx.scene.image.Image;
 import java.io.IOException;
+
+import javax.swing.ImageIcon;
 
 import com.mycompany.projectdesign.Project.Model.AmountPaidRepository;
 import com.mycompany.projectdesign.Project.Model.BookingRepository;
@@ -38,7 +40,9 @@ public class App extends Application {
 
         scene = new Scene(loadFXML("MainView"), 1410, 780); 
         stage.setScene(scene);
-        stage.setTitle("Hotel Management System");
+        stage.setTitle("HRK | Hotel Management System");
+        Image icon = new Image(getClass().getResourceAsStream("/img/hrk.png"));
+        stage.getIcons().add(icon);
         stage.show();
 
         bookingScheduler = new BookingScheduler();
