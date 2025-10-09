@@ -20,23 +20,26 @@ public class ReservationsTableView {
     private final StringProperty Checkout;
     private final StringProperty status ;
     private final StringProperty booking;
+    private final StringProperty amount;
 
     // เก็บออบเจกต์ต้นฉบับไว้ เพื่อให้ Controller สามารถเข้าถึงข้อมูลจริงได้เมื่อต้องการ
     private final Room room;
     private final Customer customer;
     private final Bookings bookings;
-
+    private final AmountPaid amountPaid;
     
     /**
      * Constructor ที่ทำหน้าที่หุ้มข้อมูล จาก Model หลัก (Room, Customer, Bookings) มาเป็น JavaFX Properties
      * @param room     ออบเจกต์ Room ต้นฉบับ
      * @param customer ออบเจกต์ Customer ต้นฉบับ
      * @param bookings ออบเจกต์ Bookings ต้นฉบับ
+     * @param amountPaid ออบเจกต์ amountPaid ต้นฉบับ
      */
-    public ReservationsTableView(Room room, Customer customer, Bookings bookings) {
+    public ReservationsTableView(Room room, Customer customer, Bookings bookings, AmountPaid amountPaid) {
         this.room = room;
         this.customer = customer;
         this.bookings = bookings;
+        this.amountPaid = amountPaid;
         this.bookingID = new SimpleStringProperty(bookings.getBookingID());
         this.numberRoom = new SimpleStringProperty(room.getNumberRoom());
         this.fullnameCustomer = new SimpleStringProperty(customer.getFullName());
@@ -44,7 +47,8 @@ public class ReservationsTableView {
         this.Checkout = new SimpleStringProperty(bookings.getCheckOut());
         this.status = new SimpleStringProperty(bookings.getStatus().name());
         this.booking = new SimpleStringProperty(bookings.getBooking());
-    }
+        this.amount = new SimpleStringProperty(String.format("%.2f", amountPaid.getAmount()));
+    }   
 
     // Getter
     // เมธอดเหล่านี้คืนค่าเป็น String ธรรมดา เพื่อให้ TableView ดึงไปแสดงผล
@@ -56,11 +60,12 @@ public class ReservationsTableView {
     public String getCheckout() { return Checkout.get(); }
     public String getStatus(){ return status.get();}
     public String getBooking() { return booking.get(); }
-
+    public String getAmount(){ return amount.get();}
      
     // getter object จริง
     // เมธอดเหล่านี้เพื่อให้ Controller สามารถดึงออบเจกต์ข้อมูลจริงๆ ไปใช้งานต่อได้
     public Room getRoom() { return room; }
     public Customer getCustomer() { return customer; }
     public Bookings getBookings() { return bookings;}
+    public AmountPaid getAmountPaid() { return amountPaid;}
 }

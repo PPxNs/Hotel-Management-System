@@ -234,7 +234,7 @@ public class HomeController implements Initializable {
 
     // ถ้ายังไม่มี ให้เพิ่มข้อมูลใหม่เข้าไป
     if (!exists) {
-        homeBookingList.add(newEntry);
+        homeBookingList.add(0, newEntry);
         }
     }
 
@@ -715,14 +715,14 @@ public class HomeController implements Initializable {
         
         // คำนวณราคาสุทธิ
         double totalCostAfterDiscount = calculateTotalCost();
-
+        double finalTotalCostAfterDiscount = Math.round(totalCostAfterDiscount * 100.0)/100.0 ;
         // แสดงหน้าต่างเพื่อขอคำยืนยันจากผู้ใช้
         Alert confirmationDialog = new Alert(Alert.AlertType.CONFIRMATION);
         confirmationDialog.setTitle("ยืนยันการจอง");
         confirmationDialog.setHeaderText("กรุณาตรวจสอบรายละเอียดการจองก่อนบันทึก");
         confirmationDialog.setContentText("ลูกค้า: " + newCustomer.getFullName() + "\n" +
                                      "ห้อง: " + newBookings.getRoom().getNumberRoom() + "\n\n" +
-                                     "ยอดรวม: " + String.format("%.2f",totalCostAfterDiscount)+ " บาท\n\n" +
+                                     "ยอดรวม: " + String.format("%.2f",finalTotalCostAfterDiscount)+ " บาท\n\n" +
                                      "ยืนยันเพื่อบันทึกข้อมูล");
 
         Optional<ButtonType> result = confirmationDialog.showAndWait();
@@ -730,7 +730,7 @@ public class HomeController implements Initializable {
         // บันทึกเมื่อผู้ใช้กดยืนยัน "OK" 
         if (result.isPresent() && result.get() == ButtonType.OK) {
             // สร้าง AmountPaid object
-            AmountPaid amountObj = new AmountPaid(newBookings, totalCostAfterDiscount);
+            AmountPaid amountObj = new AmountPaid(newBookings, finalTotalCostAfterDiscount);
             // บันทึกข้อมูลทั้งหมด
             saveBookingData(newCustomer, newBookings, amountObj);
 
@@ -1099,6 +1099,30 @@ public class HomeController implements Initializable {
         if (newBookings == null) {
             return; // หยุดทำงานถ้าข้อมูลลูกค้าไม่ครบ
         }
+        
+        // ตรวจสอบความถูกต้องของข้อมูลบริการเสริม
+        // ตรวจสอบข้อมูลบริการอาหาร
+        if (mealCheckBox.isSelected()) {
+            int mealDay = 0;   
+            try {
+                    mealDay = Integer.parseInt(dayMealTextfield.getText());
+                    if (mealDay <=0) throw new NumberFormatException();
+                
+                
+            } catch (NumberFormatException e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "กรุณากรอกจำนวนวันสำหรับบริการอาหารเป็นตัวเลขที่มากกว่า 0");
+                alert.showAndWait();
+                return; // หยุดทำงาน
+            }
+
+            long stayDays = getNumberOfStayDay();
+            if (mealDay > stayDays) {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "จำนวนวันสำหรับบริการอาหาร (" + mealDay + " วัน) ต้องไม่เกินจำนวนวันที่เข้าพัก (" + stayDays + " วัน)");
+                alert.showAndWait();
+                return; // หยุดทำงาน
+            }
+
+        }
 
         // คำนวณราคาสุทธิโดยใช้ Design Pattern ต่าง ๆ
         Room roomForBill = newBookings.getRoom();
@@ -1115,14 +1139,14 @@ public class HomeController implements Initializable {
         
         // คำนวณยอดรวมสุดท้าย
         double totalCostAfterDiscount = finalPriceRoom + depositRoom.getCost();  
-
+        double finalTotalCostAfterDiscount = Math.round(totalCostAfterDiscount*100.0) /100.0 ;
         // แสดงหน้าต่างเพื่อขอคำยืนยันจากผู้ใช้
         Alert confirmationDialog = new Alert(Alert.AlertType.CONFIRMATION);
         confirmationDialog.setTitle("ยืนยันการจองและต้องการปรินต์ใบเสร็จ");
         confirmationDialog.setHeaderText("กรุณาตรวจสอบรายละเอียดการจองก่อนบันทึก");
         confirmationDialog.setContentText("ลูกค้า: " + newCustomer.getFullName() + "\n" +
                                      "ห้อง: " + newBookings.getRoom().getNumberRoom() + "\n\n" +
-                                     "ยอดรวม: " + String.format("%.2f",totalCostAfterDiscount)+ " บาท\n\n" +
+                                     "ยอดรวม: " + String.format("%.2f",finalTotalCostAfterDiscount)+ " บาท\n\n" +
                                      "ยืนยันเพื่อบันทึกข้อมูลและพิมพ์ใบเสร็จ?");
 
         Optional<ButtonType> result = confirmationDialog.showAndWait();
@@ -1130,7 +1154,7 @@ public class HomeController implements Initializable {
         // ดำเนินการหลังผู้ใช้กดยืนยัน "OK"
         if (result.isPresent() && result.get() == ButtonType.OK) {
             // บันทึกข้อมูลทั้งหมดลงในระบบ (Repositories และ CSV)
-            AmountPaid amountObj = new AmountPaid(newBookings, totalCostAfterDiscount);
+            AmountPaid amountObj = new AmountPaid(newBookings, finalTotalCostAfterDiscount);
             saveBookingData(newCustomer, newBookings, amountObj);
 
             // สั่งการพิมพ์ใบเสร็จผ่าน Observer Pattern

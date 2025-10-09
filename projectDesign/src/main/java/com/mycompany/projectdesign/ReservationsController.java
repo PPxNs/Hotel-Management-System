@@ -37,6 +37,7 @@ public class ReservationsController implements Initializable {
     @FXML private TableColumn<ReservationsTableView,String> CheckInColumn;
     @FXML private TableColumn<ReservationsTableView,String> CheckoutColumn;
     @FXML private TableColumn<ReservationsTableView,String> StatusColumn;
+    @FXML private TableColumn<ReservationsTableView,String> totalAmountColum;
 
     // @FXML Components: ส่วนกรองข้อมูล 
     @FXML private ComboBox<String> statusComboBox;
@@ -47,7 +48,7 @@ public class ReservationsController implements Initializable {
     private RoomRepository roomRepository = RoomRepository.getInstance();
     private BookingRepository bookingRepository = BookingRepository.getInstance();
     private ObservableList<ReservationsTableView> bookingList = FXCollections.observableArrayList();
-
+    private AmountPaidRepository amountPaidRepository = AmountPaidRepository.getInstance();
     /**
      * เมธอดหลักที่ถูกเรียกโดยอัตโนมัติเมื่อ FXML โหลดเสร็จ
      * ใช้สำหรับตั้งค่าเริ่มต้นทั้งหมดของหน้าจอ
@@ -62,7 +63,29 @@ public class ReservationsController implements Initializable {
         DateBookingColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("booking"));
         CheckInColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("checkin"));
         CheckoutColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("checkout"));
-        
+        totalAmountColum.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("amount"));
+
+        // โหลดข้อมูลเริ่มต้นสำหรับตารางคอลลัม
+        for (Bookings booking : bookingRepository.getAllBookings()) {
+            Room room = booking.getRoom();
+            Customer customer = booking.getCustomer();
+            AmountPaid paid = amountPaidRepository.getAmountByBookingID(booking.getBookingID());
+            // ตรวจสอบว่า Booking นั้นมีข้อมูล Room และ Customer ครบถ้วนหรือไม่
+            if (room != null && customer != null) {
+            if (paid == null) {
+            // ถ้าไม่มีข้อมูลการจ่ายเงิน (paid เป็น null) ให้สร้างออบเจกต์ชั่วคราวขึ้นมาเพื่อแสดงผลเป็น 0.00
+            paid = new AmountPaid(booking, 0.00); 
+            }
+            // เพิ่มข้อมูลที่ถูกต้องลงใน bookingList
+            bookingList.add(new ReservationsTableView(room, customer, booking, paid));
+            } else {
+            // บรรทัดนี้มีประโยชน์มากสำหรับตรวจสอบข้อผิดพลาดของข้อมูล
+            System.out.println("Booking " + booking.getBookingID() + " is missing Room or Customer data.");
+            }
+        }
+
+        CheckInColumn.setSortType(TableColumn.SortType.ASCENDING); // กำหนดให้เรียงจากน้อยไปมาก
+        ReservationsTable.getSortOrder().add(CheckInColumn); // สั่งให้ TableView ใช้คอลัมน์นี้ในการเรียงเป็นอันดับแรก
         //กำหนด item ใน combobox
         ObservableList<String> allStatus = FXCollections.observableArrayList(
        "All Status",
@@ -116,7 +139,7 @@ public class ReservationsController implements Initializable {
         sortedData.comparatorProperty().bind(ReservationsTable.comparatorProperty());
 
         // โหลดข้อมูลใหม่ทั้งหมดเพื่อรีเฟรชตาราง
-        loadReservationsData();
+        //loadReservationsData();
 
         // ผูก TableView เข้ากับ SortedList
         ReservationsTable.setItems(sortedData);
@@ -170,14 +193,19 @@ public class ReservationsController implements Initializable {
             Room room = booking.getRoom();
             Customer customer = booking.getCustomer();
 
-            if (room != null && customer != null) {
-                bookingList.add(new ReservationsTableView(room, customer, booking));
+            AmountPaid paid = amountPaidRepository.getAmountByBookingID(booking.getBookingID());
+            
+            if (paid == null) {
+                // ถ้าไม่มีข้อมูล ให้สร้างออบเจกต์ชั่วคราวที่มีค่าเป็น 0.00
+                paid = new AmountPaid(booking, 0.00); 
+            
+            // ส่งออบเจกต์ paid ที่ถูกต้องเข้าไป
+            bookingList.add(new ReservationsTableView(room, customer, booking, paid));
             } else {
                 System.out.println("Booking " + booking.getBookingID() + " is missing Room or Customer data.");
             }
         }
     }
-
     /**
      * เมธอดสาธารณะสำหรับสั่งให้ตารางโหลดข้อมูลใหม่ (อาจถูกเรียกใช้จาก Controller อื่น)
      */   
