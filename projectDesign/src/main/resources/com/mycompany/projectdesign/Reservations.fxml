@@ -66,6 +66,7 @@
                   <TableColumn id="R1" fx:id="GuestColumn" prefWidth="200.0" styleClass="column-header" text="Guest" />
                   <TableColumn id="R2" fx:id="CheckInColumn" minWidth="0.0" prefWidth="150.0" styleClass="column-header" text="Check in" />
                   <TableColumn id="R6" fx:id="CheckoutColumn" prefWidth="150.0" styleClass="column-header" text="Check out" />
+                  <TableColumn fx:id="totalAmountColum" prefWidth="75.0" styleClass="column-header" text="Total Amount" />
                   <TableColumn id="R6" fx:id="StatusColumn" prefWidth="100.0" styleClass="column-header" text="Status" />
                </columns>
                <columnResizePolicy>

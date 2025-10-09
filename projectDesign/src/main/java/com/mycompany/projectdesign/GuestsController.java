@@ -88,6 +88,8 @@ public class GuestsController implements Initializable{
         //set ข้อมูลที่จะแสดงในแต่ละคอลลัม
         setupTableColumns();
 
+        CheckInColumn.setSortType(TableColumn.SortType.ASCENDING); // กำหนดให้เรียงจากน้อยไปมาก
+        guestTable.getSortOrder().add(CheckInColumn); // สั่งให้ TableView ใช้คอลัมน์นี้ในการเรียงเป็นอันดับแรก
         //กำหนด item ใน combobox
         ObservableList<String> allStatus = FXCollections.observableArrayList(
        "All Status",

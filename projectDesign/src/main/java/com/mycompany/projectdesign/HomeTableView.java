@@ -43,7 +43,7 @@ public class HomeTableView {
         this.checkin = new SimpleStringProperty(bookings.getCheckin());
         this.checkout = new SimpleStringProperty(bookings.getCheckOut());
         this.status = new SimpleStringProperty(bookings.getStatus().name());
-        this.amount = new SimpleStringProperty(amountPaid.getAmount().toString());
+        this.amount = new SimpleStringProperty(String.format("%.2f", amountPaid.getAmount()));
     }
 
     // Getter

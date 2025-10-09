@@ -56,7 +56,7 @@ public class BillObserver implements HotelObserver {
 
             data.put("customer_name", bookings.getCustomer().getFullName());
             data.put("customer_tel", bookings.getCustomer().getPhone() != null ? bookings.getCustomer().getPhone() : "");
-            data.put("customer_address", bookings.getCustomer().getAddress() != null ? bookings.getCustomer().getAddress() : "");
+            data.put("customer_address", (bookings.getCustomer().getAddress() != null && bookings.getCustomer().getCity() != null && bookings.getCustomer().getCountry() != null)  ? bookings.getCustomer().getAddress() + ", " + bookings.getCustomer().getCity() + ", " + bookings.getCustomer().getCountry(): "");
 
             data.put("room_number", room.getNumberRoom());
             data.put("room_type", room.getType());

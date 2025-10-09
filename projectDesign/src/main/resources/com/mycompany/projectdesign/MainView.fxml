@@ -22,12 +22,15 @@
 
                   <HBox alignment="CENTER_RIGHT" styleClass="profile-menu-button">
                      <children>
-                        <ImageView fitHeight="55.0" fitWidth="63.0" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fitHeight="52.0" fitWidth="268.0" pickOnBounds="true" preserveRatio="true">
                            <image>
-                              <Image url="@../../../img/hrk.png" />
+                              <Image url="@../../../img/logohrk.png" />
                            </image>
+                           <HBox.margin>
+                              <Insets />
+                           </HBox.margin>
                         </ImageView>
-                        <Pane prefHeight="10.0" prefWidth="73.0" />
+                        <Pane prefHeight="52.0" prefWidth="60.0" />
                         <Button fx:id="notificationButton" mnemonicParsing="false" onAction="#handleBellCheck" styleClass="notification-button">
                            <graphic>
                               <ImageView fx:id="handleBellChick" fitHeight="30.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true" styleClass="imageView">
@@ -36,6 +39,9 @@
                                  </image>
                               </ImageView>
                            </graphic>
+                           <HBox.margin>
+                              <Insets right="10.0" />
+                           </HBox.margin>
                         </Button>
                      </children>
                      <VBox.margin>

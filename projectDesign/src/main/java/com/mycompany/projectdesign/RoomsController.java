@@ -149,6 +149,8 @@ public class RoomsController implements Initializable {
         peopleColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("people"));
         propertyColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("property"));
 
+        roomNoColumn.setSortType(TableColumn.SortType.ASCENDING); // กำหนดให้เรียงจากน้อยไปมาก
+        roomTable.getSortOrder().add(roomNoColumn); // สั่งให้ TableView ใช้คอลัมน์นี้ในการเรียงเป็นอันดับแรก
         // ตั้งค่าคอลัมน์ Status ให้แก้ไขได้ด้วย ComboBox
         ObservableList<String> statusObtions = FXCollections.observableArrayList();
         for(RoomStatus status : RoomStatus.values()){

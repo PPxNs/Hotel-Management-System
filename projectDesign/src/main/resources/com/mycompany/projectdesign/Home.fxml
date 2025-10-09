@@ -598,7 +598,7 @@
                         <TableColumn id="R6" fx:id="roomNumberColumn" prefWidth="64.0" styleClass="column-header" text="Room Number" />
                         <TableColumn id="R2" fx:id="checkinColumn" minWidth="0.0" prefWidth="83.0" styleClass="column-header" text="Check in" />
                         <TableColumn id="R4" fx:id="checkoutColumn" prefWidth="94.0" styleClass="column-header" text="Check out" />
-                        <TableColumn id="R6" fx:id="amountPaidColumn" prefWidth="76.0" styleClass="column-header" text="Amount paid" />
+                        <TableColumn id="R6" fx:id="amountPaidColumn" prefWidth="76.0" styleClass="column-header" text="Total Amount" />
                         <TableColumn id="R5" fx:id="statusColumn" prefWidth="82.0" styleClass="column-header" text="Status" />
                      </columns>
                      <columnResizePolicy>
