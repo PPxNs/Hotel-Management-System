@@ -1100,6 +1100,31 @@ public class HomeController implements Initializable {
             return; // หยุดทำงานถ้าข้อมูลลูกค้าไม่ครบ
         }
 
+        // ตรวจสอบความถูกต้องของข้อมูลบริการเสริม
+        // ตรวจสอบข้อมูลบริการอาหาร
+        if (mealCheckBox.isSelected()) {
+            int mealDay = 0;   
+            try {
+                    mealDay = Integer.parseInt(dayMealTextfield.getText());
+                    if (mealDay <=0) throw new NumberFormatException();
+                
+                
+            } catch (NumberFormatException e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "กรุณากรอกจำนวนวันสำหรับบริการอาหารเป็นตัวเลขที่มากกว่า 0");
+                alert.showAndWait();
+                return; // หยุดทำงาน
+            }
+
+            long stayDays = getNumberOfStayDay();
+            if (mealDay > stayDays) {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "จำนวนวันสำหรับบริการอาหาร (" + mealDay + " วัน) ต้องไม่เกินจำนวนวันที่เข้าพัก (" + stayDays + " วัน)");
+                alert.showAndWait();
+                return; // หยุดทำงาน
+            }
+
+        }
+        
+
         // คำนวณราคาสุทธิโดยใช้ Design Pattern ต่าง ๆ
         Room roomForBill = newBookings.getRoom();
 

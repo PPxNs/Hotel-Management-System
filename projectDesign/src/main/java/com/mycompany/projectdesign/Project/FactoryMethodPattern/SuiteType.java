@@ -8,7 +8,7 @@ public class SuiteType implements DepositRoom{
 
     @Override
     public String getDescription() {
-       return "Deposit for the suite = 3000.00" ;
+       return "\nDeposit for the suite = 3000.00" ;
     }
 
     @Override
