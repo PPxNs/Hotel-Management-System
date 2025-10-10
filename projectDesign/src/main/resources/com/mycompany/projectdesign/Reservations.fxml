@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="1404.0" prefWidth="1480.0" styleClass="root" stylesheets="@../../../CSS/reservations.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.projectdesign.ReservationsController">
+<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="1404.0" prefWidth="1480.0" styleClass="root" stylesheets="@../../../CSS/reservations.css" xmlns="http://javafx.com/javafx/24" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.projectdesign.ReservationsController">
    <children>
       <VBox prefHeight="3000.0" prefWidth="1460.0" styleClass="content-pane">
          <children>

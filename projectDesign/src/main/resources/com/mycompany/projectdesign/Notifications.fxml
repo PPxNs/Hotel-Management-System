@@ -5,7 +5,7 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox maxHeight="400.0" maxWidth="350.0" spacing="10.0" styleClass="notification-container" stylesheets="@../../../CSS/notification.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.projectdesign.NotificationsController">
+<VBox maxHeight="400.0" maxWidth="350.0" spacing="10.0" styleClass="notification-container" stylesheets="@../../../CSS/notification.css" xmlns="http://javafx.com/javafx/24" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.projectdesign.NotificationsController">
     <children>
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="notification-scroll-pane" VBox.vgrow="ALWAYS">
             <content>

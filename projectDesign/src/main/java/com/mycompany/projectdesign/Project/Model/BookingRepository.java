@@ -239,8 +239,8 @@ public class BookingRepository {
         e.printStackTrace();
     } finally {
         try {
-            if (br != null) br.close();
-            if (fr != null) fr.close();
+            br.close();
+            fr.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
