@@ -20,7 +20,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="1039.0" prefWidth="1284.0" styleClass="root" stylesheets="@../../../CSS/guests.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.projectdesign.GuestsController">
+<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="1039.0" prefWidth="1284.0" styleClass="root" stylesheets="@../../../CSS/guests.css" xmlns="http://javafx.com/javafx/24" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.projectdesign.GuestsController">
    <children>
       <BorderPane fx:id="mainPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="1016.0" prefWidth="1284.0" styleClass="root" stylesheets="@../../../CSS/guests.css">
          <center>

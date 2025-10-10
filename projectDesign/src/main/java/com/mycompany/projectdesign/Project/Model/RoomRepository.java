@@ -218,7 +218,7 @@ public class RoomRepository {
     } finally {
         try {
             if (br != null) br.close();
-            if (fr != null) fr.close();
+            fr.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
