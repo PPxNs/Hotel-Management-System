@@ -15,7 +15,10 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -56,14 +59,7 @@ public class ReservationsController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
            
-        //ตั้งค่า CellValueFactory สำหรับแต่ละคอลัมน์เพื่อผูกกับ Property ของ ReservationsTableView
-        BookingIDColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>  ("bookingID"));
-        RoomNoColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>  ("numberRoom"));
-        GuestColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String> ("fullnameCustomer"));
-        DateBookingColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("booking"));
-        CheckInColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("checkin"));
-        CheckoutColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("checkout"));
-        totalAmountColum.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("amount"));
+        setupTableColumns();
 
         // โหลดข้อมูลเริ่มต้นสำหรับตารางคอลลัม
         for (Bookings booking : bookingRepository.getAllBookings()) {
@@ -96,25 +92,7 @@ public class ReservationsController implements Initializable {
         statusComboBox.setItems(allStatus);
         statusComboBox.setValue("All Status");
 
-        //set ให้ status แก้ได้
-        ObservableList<String> statusObtions = FXCollections.observableArrayList();
-        for(BookingStatus status : BookingStatus.values()){
-            statusObtions.add(status.name());
-        }
-
-        StatusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
-        StatusColumn.setCellFactory(ComboBoxTableCell.forTableColumn(statusObtions));
-
-        // กำหนด Action ที่จะเกิดขึ้นเมื่อแก้ไขสถานะเสร็จ
-        StatusColumn.setOnEditCommit(event -> {
-            ReservationsTableView reservationsView = event.getRowValue();
-            Bookings reservationsUpdate = reservationsView.getBookings();
-            BookingStatus newStatus = BookingStatus.valueOf(event.getNewValue());
-            reservationsUpdate.setStatus(newStatus);
-            BookingRepository.getInstance().saveBookingToCSV();
-            loadReservationsData();
-        });
-
+    
         ReservationsTable.setEditable(true); //แก้ตารางได้
         StatusColumn.setEditable(true); //แก้สเตตัสได้
 
@@ -143,6 +121,114 @@ public class ReservationsController implements Initializable {
 
         // ผูก TableView เข้ากับ SortedList
         ReservationsTable.setItems(sortedData);
+    }
+
+    /**
+     * ตั้งค่าการผูกข้อมูลระหว่างคอลัมน์กับ Property ของ GuestsTableView
+     */
+    private void setupTableColumns(){
+        ReservationsTable.setEditable(true);
+
+        BookingIDColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>  ("bookingID"));
+        RoomNoColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>  ("numberRoom"));
+        GuestColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String> ("fullnameCustomer"));
+        DateBookingColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("booking"));
+        CheckInColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("checkin"));
+        CheckoutColumn.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("checkout"));
+        totalAmountColum.setCellValueFactory(new PropertyValueFactory<ReservationsTableView,String>("amount"));
+        StatusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+        setupEditStatusColumns();
+    }
+
+    /**
+     * ตั้งค่าคอลัมน์ที่สามารถแก้ไขได้ และ Logic การทำงานเมื่อแก้ไขเสร็จ
+     */
+    private void setupEditStatusColumns(){
+
+         //set ให้ status แก้ได้
+        ObservableList<String> statusObtions = FXCollections.observableArrayList();
+        for(BookingStatus status : BookingStatus.values()){
+            statusObtions.add(status.name());
+        }
+
+        
+        StatusColumn.setCellFactory(ComboBoxTableCell.forTableColumn(statusObtions));
+       StatusColumn.setCellFactory(column -> {
+
+        // สร้าง Anonymous Inner Class ที่สืบทอดจาก TableCell
+        return new TableCell<ReservationsTableView, String>() {
+            private final Label statusLabel = new Label();
+            private final ComboBox<String> comboBox = new ComboBox<>(statusObtions);
+
+            {
+                comboBox.setOnAction(event -> {
+                    if (isEditing()) {
+                        commitEdit(comboBox.getValue());
+                    }
+                });
+                setAlignment(Pos.CENTER);
+            }
+
+            @Override
+            public void startEdit() {
+                super.startEdit();
+                setText(null);
+                comboBox.setValue(getItem());
+                setGraphic(comboBox);
+            }
+
+            @Override
+            public void cancelEdit() {
+                super.cancelEdit();
+                setGraphic(statusLabel);
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    if (isEditing()) {
+                        setText(null);
+                        comboBox.setValue(item);
+                        setGraphic(comboBox);
+                    } else {
+                        statusLabel.setText(item);
+                        String style = "";
+                        switch (item) {
+                        case "CONFIRMED":
+                            
+                            style = "-fx-background-color: #77b9ff; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 3 10 3 10; -fx-font-weight: bold;";
+                            break;
+                        case "CHECKED_IN":
+                            style = "-fx-background-color: #28a745; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 3 10 3 10; -fx-font-weight: bold;";
+                            break;
+
+                        default:
+                            return;
+                    }
+                        statusLabel.setStyle(style);
+                        setGraphic(statusLabel);
+                    }
+                }
+            }
+        };
+    });
+        
+        // กำหนด Action ที่จะเกิดขึ้นเมื่อแก้ไขสถานะเสร็จ
+        StatusColumn.setOnEditCommit(event -> {
+            ReservationsTableView reservationsView = event.getRowValue();
+            Bookings reservationsUpdate = reservationsView.getBookings();
+            BookingStatus newStatus = BookingStatus.valueOf(event.getNewValue());
+            reservationsUpdate.setStatus(newStatus);
+            BookingRepository.getInstance().saveBookingToCSV();
+            loadReservationsData();
+        });
+
+        ReservationsTable.refresh();
+
     }
 
     /**

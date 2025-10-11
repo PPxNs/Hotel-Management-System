@@ -18,10 +18,12 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -198,6 +200,46 @@ public class GuestsController implements Initializable{
         CheckInColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("checkin"));
         CheckOutColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("checkout"));
         StatusColumn.setCellValueFactory(new PropertyValueFactory<GuestsTableView,String> ("status"));
+
+         StatusColumn.setCellFactory(column -> {
+        return new TableCell<GuestsTableView, String>() {
+            private final Label statusLabel = new Label();
+            
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty); 
+
+                if (item == null || empty) {
+                    setGraphic(null); // เคลียร์ Graphic เมื่อเซลล์ว่าง
+                } else {
+                    // กำหนดข้อความให้ Label
+                    statusLabel.setText(item);
+                    String style = "";
+
+                    // กำหนดสไตล์สำหรับ Label ตามสถานะ
+                    switch (item) {
+                        case "CONFIRMED":
+                            
+                            style = "-fx-background-color: #77b9ff; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 3 10 3 10; -fx-font-weight: bold;";
+                            break;
+                        case "CHECKED_IN":
+                            style = "-fx-background-color: #6eff90ff; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 3 10 3 10; -fx-font-weight: bold;";
+                            break;
+                        default:
+                            return;
+                    }
+                    
+                    // กำหนดสไตล์ให้กับ Label 
+                    statusLabel.setStyle(style);
+
+                    // นำ Label ไปใส่ในเซลล์ และจัดให้อยู่ตรงกลาง
+                    setGraphic(statusLabel);
+                    setText(null);
+                    setAlignment(Pos.CENTER);
+                }
+            }
+        };
+    });
 
         setupEditabeColumns();
     }
