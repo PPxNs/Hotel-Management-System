@@ -11,8 +11,13 @@ import javafx.event.ActionEvent;
 import com.mycompany.projectdesign.Project.Model.Bookings;
 import com.mycompany.projectdesign.Project.ObserverPattern.*;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
+import java.util.function.Consumer; //Import Consumer สำหรับ Callback
+import javafx.scene.control.Button; //Import Button
+import javafx.scene.layout.HBox; //Import HBox
+import javafx.scene.layout.Priority; //Import Priority
+
 
 /**
  * Controller สำหรับหน้าจอ/พาเนลแสดงรายการแจ้งเตือน (Notifications.fxml)
@@ -28,27 +33,27 @@ public class NotificationsController  {
      * ได้รับมาจากคลาสที่สร้างและควบคุม View นี้
      */
     private Runnable closeAction;
-
+    private Runnable clearAllAction;
 
     /**
      * ตั้งค่าและแสดงผลรายการแจ้งเตือนใน View
      * เมธอดนี้เป็น Entry Point หลักสำหรับ Controller นี้ โดยจะรับข้อมูลที่จะแสดงและ Action ที่จะทำเมื่อปิดเข้ามาจากภายนอก
      * @param events      รายการของ HotelEvent ที่ต้องการแสดงผล
+     * @param deleteAction โค้ดที่จะถูกรันเมื่อผู้ใช้กดปุ่มลบรายการแจ้งเตือน (Callback)
      * @param closeAction โค้ดที่จะถูกรันเมื่อมีการเรียกเมธอด closeWindow (Callback)
      */
-    public void setNotifications(List<HotelEvent> events, Runnable closeAction){
+    public void setNotifications(List<HotelEvent> events, Consumer<HotelEvent> deleteAction,Runnable clearAllAction, Runnable closeAction){
         this.closeAction = closeAction;
+        this.clearAllAction = clearAllAction;
         notificationVBox.getChildren().clear(); // ล้างข้อมูลเก่าทิ้งก่อน
 
-        if (events.isEmpty()) {
-            Label noNotifi = new Label("ไม่มีการแจ้งเตือน");
-             noNotifi.getStyleClass().add("no-notification-label");
-            notificationVBox.getChildren().add(noNotifi);
+        if (events == null || events.isEmpty()) {
+            showNoNotificationsLabel();
         }else {
             // วน Loop เพื่อสร้าง UI สำหรับแต่ละ Event
             for(HotelEvent event : events){
-                VBox notificationEntry = new VBox(5); // VBox สำหรับการแจ้งเตือน 1 รายการ
-                notificationEntry.getStyleClass().add("notification-entry");
+                VBox contentVBox = new VBox(5); // VBox สำหรับการแจ้งเตือน 1 รายการ
+                contentVBox.getStyleClass().add("notification-entry-content");
 
                 String titleText = "";
                 String detailsText = "";
@@ -77,13 +82,63 @@ public class NotificationsController  {
                 Label detailsLabel = new Label(detailsText);
                 detailsLabel.getStyleClass().add("notification-details");
                 detailsLabel.setWrapText(true);
-
+                
                 // นำ Labels ใส่ใน VBox ของรายการแจ้งเตือน
-                notificationEntry.getChildren().addAll(titleLabel, detailsLabel);
+                contentVBox.getChildren().addAll(titleLabel, detailsLabel);
+
+                // 2. สร้างปุ่มลบ
+                Button deleteButton = new Button("X");
+                deleteButton.getStyleClass().add("delete-notification-button");
+
+                // 3. สร้าง HBox เพื่อจัดวางเนื้อหากับปุ่มลบให้อยู่ในแถวเดียวกัน
+                HBox notificationEntryHBox = new HBox(10, contentVBox, deleteButton);
+                notificationEntryHBox.getStyleClass().add("notification-entry");
+                notificationEntryHBox.setAlignment(Pos.CENTER_LEFT);
+                HBox.setHgrow(contentVBox, Priority.ALWAYS); // ทำให้ contentVBox ขยายเต็มพื้นที่
+
+                // 4. กำหนด Action ให้กับปุ่มลบ
+                deleteButton.setOnAction(e -> {
+                    // เรียก Callback ที่ส่งมาจาก Controller หลัก เพื่อลบข้อมูล Event จริงๆ
+                    deleteAction.accept(event);
+                    // ลบ UI ของรายการนี้ออกจากหน้าจอ
+                    notificationVBox.getChildren().remove(notificationEntryHBox);
+
+                    // ตรวจสอบว่าถ้าลบจนหมดแล้ว ให้แสดงข้อความว่า "ไม่มีการแจ้งเตือน"
+                    if (notificationVBox.getChildren().isEmpty()) {
+                        showNoNotificationsLabel();
+                    }
+                });
+
                 // นำ VBox ของรายการแจ้งเตือนไปใส่ใน VBox หลัก
-                notificationVBox.getChildren().add(notificationEntry);
+                notificationVBox.getChildren().add(notificationEntryHBox);
 
             }
+        }
+    }
+
+    /**
+     * เมธอดสำหรับแสดงข้อความว่าไม่มีการแจ้งเตือน
+     */
+    private void showNoNotificationsLabel() {
+        Label noNotifi = new Label("ไม่มีการแจ้งเตือน");
+        noNotifi.getStyleClass().add("no-notification-label");
+        notificationVBox.getChildren().add(noNotifi);
+    }
+
+    /**
+     *
+     * เมธอดนี้จะถูกเรียกโดยปุ่ม "Clear All"
+     * ทำหน้าที่ 2 อย่าง: เคลียร์ข้อมูล และ ปิดหน้าต่าง
+     */
+    @FXML
+    private void clearAllNotifications() {
+        // 1. เรียก Callback เพื่อล้างข้อมูลใน MainController
+        if (clearAllAction != null) {
+            clearAllAction.run();
+        }
+        // 2. เรียก Callback เพื่อปิด/ซ่อนหน้าต่าง
+        if (closeAction != null) {
+            closeAction.run();
         }
     }
 

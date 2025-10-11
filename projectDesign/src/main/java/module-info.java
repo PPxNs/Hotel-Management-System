@@ -6,6 +6,8 @@ module com.mycompany.projectdesign {
     requires java.base;
     requires java.desktop;
     requires kernel;
+    requires layout;
+    requires io;
     requires forms;
 
     // VVV --- 2. เปิด Package หลักและ Package ย่อยเพื่อให้ FXML เข้าถึงได้ --- VVV

@@ -109,7 +109,7 @@ public class MainController implements Initializable, HotelObserver{
              // ใช้ Platform.runLater เพื่อให้แน่ใจว่าการแก้ไข List และ UI ทำงานบน Thread ที่ถูกต้อง
             Platform.runLater(() ->{
                 notifications.add(event);
-                showNotification();
+                updateNotificationUI();
             });
         }
     }
@@ -117,15 +117,18 @@ public class MainController implements Initializable, HotelObserver{
     /**
      * อัปเดต UI ของปุ่มแจ้งเตือน (แสดงจำนวน, เพิ่มเอฟเฟกต์)
      */
-    private void showNotification(){
-        notificationButton.setText(String.valueOf(notifications.size()));
-
-        //เอาให้เจ้เจ๊ทำ css ต่อ
-        if (!notificationButton.getStyleClass().contains("has-notification")) {
-            notificationButton.getStyleClass().add("has-notification");
+    private void updateNotificationUI(){
+        // ถ้าไม่มีการแจ้งเตือน
+        if (notifications.isEmpty()) {
+            notificationButton.setText("");
+            notificationButton.getStyleClass().remove("has-notification");
+        } else { // ถ้ามีการแจ้งเตือน
+            notificationButton.setText(String.valueOf(notifications.size()));
+            if (!notificationButton.getStyleClass().contains("has-notification")) {
+                notificationButton.getStyleClass().add("has-notification");
+            }
         }
-
-        System.out.println("มีการแจ้งเตือนทั้งหมด : " + notifications.size() + "รายการ");
+        System.out.println("มีการแจ้งเตือนทั้งหมด : " + notifications.size() + " รายการ");
     }
 
     /**
@@ -141,7 +144,7 @@ public class MainController implements Initializable, HotelObserver{
                 
                 // ส่งข้อมูล (List notifications) และ Callback Action (เมธอด hideNotificationPopup)
                 // ไปให้ NotificationsController
-                controller.setNotifications(notifications, this::hideNotificationPopup);
+                controller.setNotifications(notifications, this::deleteNotification, this::hideNotificationPopup, this::clearNotifications);
                 
                 // ตั้งค่าตำแหน่งของ Pop-up
                 AnchorPane.setTopAnchor(notificationPopup, 40.0);
@@ -164,7 +167,6 @@ public class MainController implements Initializable, HotelObserver{
         if (notificationPopup != null) {
             rootPane.getChildren().remove(notificationPopup);
             notificationPopup = null;
-            clearNotifications();
         }
     }
 
@@ -176,6 +178,18 @@ public class MainController implements Initializable, HotelObserver{
         notificationButton.setText("");
         notificationButton.getStyleClass().remove("has-notification");
     }
+
+    /**
+     * เมธอดสำหรับลบการแจ้งเตือนทีละรายการ (จะถูกเรียกจาก NotificationsController)
+     * @param eventToDelete Event ที่ต้องการลบ
+     */
+    private void deleteNotification(HotelEvent eventToDelete) {
+        notifications.remove(eventToDelete); // ลบออกจาก List หลัก
+        updateNotificationUI(); // อัปเดต UI ปุ่มกระดิ่ง
+    }
+
+
+
     /**
      * อัปเดตปุ่มที่ถูกเลือกล่าสุด โดยจะลบคลาส "selected" ออกจากปุ่มเก่าก่อน
      * @param selectedBtn ปุ่มที่เพิ่งถูกคลิก
