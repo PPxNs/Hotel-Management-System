@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import com.mycompany.projectdesign.Project.Model.*;
 import javafx.collections.FXCollections;
@@ -22,10 +21,12 @@ import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -39,6 +40,8 @@ import javafx.scene.layout.HBox;
 import java.util.Optional;
 import javafx.scene.control.ButtonType;
 import javafx.util.Callback; 
+import javafx.scene.text.Text;
+import javafx.scene.layout.Region;
 
 /**
  * Controller สำหรับหน้าจอจัดการห้องพัก (Rooms.fxml)
@@ -140,14 +143,7 @@ public class RoomsController implements Initializable {
 
         allCheckbox = Arrays.asList(jacuzziCheckBox, lakeViewCheckBox,petFriendlyCheckBox,privatePoolCheckBox,tvCheckBox,wifiCheckBox);
 
-        // ตั้งค่าคอลัมน์ของ TableView
-        // ผูกคอลัมน์พื้นฐานกับ Properties ใน RoomsTableView
-        roomNoColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("numberRoom"));
-        imageColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("image"));
-        typeColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("roomType"));
-        priceColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("price"));
-        peopleColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("people"));
-        propertyColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("property"));
+        setupTableColumns();
 
         roomNoColumn.setSortType(TableColumn.SortType.ASCENDING); // กำหนดให้เรียงจากน้อยไปมาก
         roomTable.getSortOrder().add(roomNoColumn); // สั่งให้ TableView ใช้คอลัมน์นี้ในการเรียงเป็นอันดับแรก
@@ -157,38 +153,6 @@ public class RoomsController implements Initializable {
             statusObtions.add(status.name());
         }
 
-        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
-        statusColumn.setCellFactory(ComboBoxTableCell.forTableColumn(statusObtions));
-        
-    
-
-        // กำหนด Logic ที่จะทำงานหลังจากแก้ไขสถานะเสร็จ
-        statusColumn.setOnEditCommit(event -> {
-            RoomsTableView roomView = event.getRowValue();
-            Room roomUpdate = roomView.getRoom();
-            RoomStatus newStatus = RoomStatus.valueOf(event.getNewValue());
-            
-            // ตรวจสอบเงื่อนไขพิเศษ: ป้องกันการเปลี่ยนสถานะห้องที่มีคนพักอยู่ให้เป็น "ว่าง"
-            if (newStatus == RoomStatus.AVAILABLE && isRoomCurrentlyOccupied(roomUpdate)) {
-                Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
-                confirmationAlert.setTitle("ยืนยันการจอง");
-                confirmationAlert.setHeaderText("คำเตือน : อาจมีการจองซ้ำ");
-                confirmationAlert.setContentText("ห้องนี้ปัจจุบันมีผู้เข้าพักแล้ว การเปลี่ยนสถานะเป็นว่างอาจทำให้เกิดการจองซ้ำ คุณแน่ใจหรือว่าต้องการดำเนินการต่อ?"); 
-            
-                Optional<ButtonType> result = confirmationAlert.showAndWait();
-
-                if (result.isPresent() && result.get() == ButtonType.OK) {
-                    //ยืนยันเจ้าก็เปลี่ยนได้
-                    roomUpdate.setStatus(newStatus); // ถ้าผู้ใช้ยืนยัน ก็ให้เปลี่ยน
-                    roomRepository.saveRoomToCSV();
-                }
-            }else{
-                    roomUpdate.setStatus(newStatus); // กรณีอื่นๆ ให้เปลี่ยนได้เลย
-                    roomRepository.saveRoomToCSV(); 
-            }
-
-            roomTable.refresh();
-        });
 
         // ตั้งค่าคอลัมน์ Image ให้แสดงเป็นรูปภาพ
         //Lambda Expression หลักการ (parameter) -> { statements }
@@ -252,6 +216,187 @@ public class RoomsController implements Initializable {
     } 
 
     /**
+     * ตั้งค่าการผูกข้อมูลระหว่างคอลัมน์กับ Property ของ GuestsTableView
+     */
+    private void setupTableColumns(){
+        roomTable.setEditable(true);
+        // ผูกคอลัมน์พื้นฐานกับ Properties ใน RoomsTableView
+        roomNoColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("numberRoom"));
+        imageColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("image"));
+        typeColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("roomType"));
+        priceColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("price"));
+        peopleColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("people"));
+        propertyColumn.setCellValueFactory(new PropertyValueFactory<RoomsTableView,String>("property"));
+        setupEditStatusColumns();
+    }
+
+     /**
+     * ตั้งค่าคอลัมน์ที่สามารถแก้ไขได้ และ Logic การทำงานเมื่อแก้ไขเสร็จ
+     */
+    private void setupEditStatusColumns(){
+        // ตั้งค่าคอลัมน์ Status ให้แก้ไขได้ด้วย ComboBox
+        ObservableList<String> statusObtions = FXCollections.observableArrayList();
+        for(RoomStatus status : RoomStatus.values()){
+            statusObtions.add(status.name());
+        }
+
+        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+        statusColumn.setCellFactory(ComboBoxTableCell.forTableColumn(statusObtions));
+        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+        statusColumn.setCellFactory(ComboBoxTableCell.forTableColumn(statusObtions));
+        
+
+        statusColumn.setCellFactory(column -> {
+        // สร้าง Anonymous Inner Class ที่สืบทอดจาก TableCell
+        return new TableCell<RoomsTableView, String>() {
+            private final Label statusLabel = new Label();
+            private final ComboBox<String> comboBox = new ComboBox<>(statusObtions);
+
+            // Instance Initializer Block: โค้ดส่วนนี้จะทำงานครั้งเดียวตอนสร้าง Cell
+            {
+                comboBox.setOnAction(event -> {
+                    if (isEditing()) {
+                        commitEdit(comboBox.getValue());
+                    }
+                });
+                setAlignment(Pos.CENTER);
+            }
+
+            @Override
+            public void startEdit() {
+                super.startEdit();
+                setText(null);
+                comboBox.setValue(getItem());
+                setGraphic(comboBox);
+            }
+
+            @Override
+            public void cancelEdit() {
+                super.cancelEdit();
+                // กลับไปแสดง Label สีๆ
+                setGraphic(statusLabel);
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    if (isEditing()) {
+                        setText(null);
+                        comboBox.setValue(item);
+                        setGraphic(comboBox);
+                    } else {
+                        statusLabel.setText(item);
+                        String style = "";
+                        switch (item) {
+                            case "AVAILABLE":
+                                style = "-fx-background-color: #28a745; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 3 10 3 10; -fx-font-weight: bold;";
+                                break;
+                            case "OCCUPIED":
+                                style = "-fx-background-color: #dc3545; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 3 10 3 10; -fx-font-weight: bold;";
+                                break;
+                            case "MAINTENANCE":
+                                style = "-fx-background-color: #fd7e14; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 3 10 3 10; -fx-font-weight: bold;";
+                                break;
+                            case "CLEANING":
+                                style = "-fx-background-color: #007bff; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 3 10 3 10; -fx-font-weight: bold;";
+                                break;
+                            default:
+                                style = "-fx-background-color: #6c757d; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 3 10 3 10; -fx-font-weight: bold;";
+                                break;
+                        }
+                        statusLabel.setStyle(style);
+                        setGraphic(statusLabel);
+                    }
+                }
+            }
+        };
+    });
+
+        // กำหนด Logic ที่จะทำงานหลังจากแก้ไขสถานะเสร็จ
+        statusColumn.setOnEditCommit(event -> {
+            RoomsTableView roomView = event.getRowValue();
+            Room roomUpdate = roomView.getRoom();
+            RoomStatus newStatus = RoomStatus.valueOf(event.getNewValue());
+            
+            // ตรวจสอบเงื่อนไขพิเศษ: ป้องกันการเปลี่ยนสถานะห้องที่มีคนพักอยู่ให้เป็น "ว่าง"
+            if (newStatus == RoomStatus.AVAILABLE && isRoomCurrentlyOccupied(roomUpdate)) {
+                Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
+                confirmationAlert.setTitle("ยืนยันการจอง");
+                confirmationAlert.setHeaderText("คำเตือน : อาจมีการจองซ้ำ");
+                confirmationAlert.setContentText("ห้องนี้ปัจจุบันมีผู้เข้าพักแล้ว การเปลี่ยนสถานะเป็นว่างอาจทำให้เกิดการจองซ้ำ คุณแน่ใจหรือว่าต้องการดำเนินการต่อ?"); 
+            
+                Optional<ButtonType> result = confirmationAlert.showAndWait();
+
+                if (result.isPresent() && result.get() == ButtonType.OK) {
+                    //ยืนยันเจ้าก็เปลี่ยนได้
+                    roomUpdate.setStatus(newStatus); // ถ้าผู้ใช้ยืนยัน ก็ให้เปลี่ยน
+                    roomRepository.saveRoomToCSV();
+                }
+            }else{
+                    roomUpdate.setStatus(newStatus); // กรณีอื่นๆ ให้เปลี่ยนได้เลย
+                    roomRepository.saveRoomToCSV(); 
+            }
+
+            roomTable.refresh();
+    });
+
+    //property มีหลายบรรทัด
+    propertyColumn.setCellFactory(column -> {
+            return new TableCell<RoomsTableView, String>() {
+            private final Text text;
+            // Instance Initializer Block: ทำงานครั้งเดียวตอนสร้าง Cell
+            {
+                text = new Text();
+                // ตั้งค่าการตัดคำให้ผูกกับความกว้างของคอลัมน์ .subtract(10) คือการนำค่าความกว้างนั้นมา ลบออก 10 ให้ไม่ชิดขอบไป
+                text.wrappingWidthProperty().bind(column.widthProperty().subtract(10));  
+                setGraphic(text);  // นำ Node ที่สร้างไว้ไปใส่ใน Cell
+                setPrefHeight(Region.USE_COMPUTED_SIZE); // ให้ Cell คำนวณความสูงของตัวเองตามเนื้อหา
+            }
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    // ถ้า Cell ว่างเปล่า ไม่ต้องแสดงอะไร
+                    text.setText(null);
+                } else {
+                    // นำข้อมูล (item) มาใส่ใน Text node
+                    text.setText(item);
+                }
+            }
+        };
+    });
+
+    priceColumn.setCellFactory(column -> {
+        return new TableCell<RoomsTableView, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (item == null || empty) {
+                    setText(null);
+                } else {
+                    try {
+                        // แปลง String ที่ได้รับกลับเป็น double
+                        double price = Double.parseDouble(item);
+                        // จัดรูปแบบให้มีทศนิยม 2 ตำแหน่ง แล้วแสดงผล
+                        setText(String.format("%.2f", price));
+                    } catch (NumberFormatException e) {
+                        // หากแปลงค่าไม่ได้ให้แสดงค่าเดิมไปก่อน
+                        setText(item);
+                    }
+                }
+            }
+        };
+    });
+
+    }
+
+    /**
      * สร้าง ฟังก์ชันทดสอบ สำหรับใช้ในการกรองข้อมูลใน TableView
      * @param searchText ข้อความจากช่องค้นหา
      * @param type       ประเภทห้องที่เลือกจาก ComboBox
@@ -297,6 +442,7 @@ public class RoomsController implements Initializable {
 
                     private final Button editButton = new Button();
                     private final Button deleteButton = new Button();
+                    private final HBox pane = new HBox(10, editButton, deleteButton);
 
                     // โค้ดในปีกกาจะทำงานแค่ครั้งเดียวตอนที่ Cell ถูกสร้าง
                     //ออกแบบตัวปุ่ม
@@ -316,6 +462,7 @@ public class RoomsController implements Initializable {
                         //ใส่ใน styclass ส่งต่อให้เจ้เจ๊แต่ง css
                         editButton.getStyleClass().add("action-button");
                         deleteButton.getStyleClass().add("action-button");
+
                     }
 
 	                //ใช้ Instance Initializer Block {...} เพื่อกำหนด Action ให้กับปุ่ม //ทำงานครั้งเดียว
@@ -330,9 +477,10 @@ public class RoomsController implements Initializable {
                             RoomsTableView roomView = getTableView().getItems().get(getIndex());
                             deleteRoom(roomView); // เรียกเมธอดเพื่อทำการลบ
                         });
-                    }
+                    
+                        pane.setAlignment(Pos.CENTER);
 
-                    private final HBox pane = new HBox(10, editButton, deleteButton);
+                    }
 
                     // อัปเดตการแสดงผลของ Cell 
                     // ถูกเรียกทุกครั้งที่ตารางมีการเปลี่ยนแปลง
@@ -366,7 +514,7 @@ public class RoomsController implements Initializable {
         // นำข้อมูลจาก Room object ไปใส่ใน UI Controls
         roomNoField.setText(room.getNumberRoom());
         roomTypeComboBox.setValue(room.getType());
-        priceField.setText(String.valueOf(room.getPrice()));
+        priceField.setText(String.format("%.2f", room.getPrice()));
         peopleCombobox.setValue((room.getPeople()));
         imagePartField.setText(room.getImagePath());
 

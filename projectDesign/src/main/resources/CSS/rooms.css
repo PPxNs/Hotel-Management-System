@@ -337,6 +337,7 @@
     -fx-cursor: hand; /* เปลี่ยนเมาส์เป็นรูปมือ */
     -fx-padding: 5px; /* เพิ่มพื้นที่รอบไอคอนเล็กน้อย */
     -fx-background-radius: 6px; /* เตรียมมุมโค้งมนไว้เลย */
+    
 }
 
 .action-button:hover {

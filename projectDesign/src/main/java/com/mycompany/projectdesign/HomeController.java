@@ -20,9 +20,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
-
+import javafx.scene.control.TableCell;
 import javafx.util.Callback; 
-
 import com.mycompany.projectdesign.Project.DecoratorPattern.*;
 import com.mycompany.projectdesign.Project.FactoryMethodPattern.*;
 import com.mycompany.projectdesign.Project.Model.*;
@@ -36,6 +35,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -43,6 +43,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -165,16 +166,8 @@ public class HomeController implements Initializable {
 
         //รวมเช็คบล็อกทั้งหมด ไว้เอาไว้เคลียร๋
         allCheckbox = Arrays.asList(jacuzziCheckBox, lakeViewCheckBox,petFriendlyCheckBox,privatePoolCheckBox,tvCheckBox,wifiCheckBox,cleaningRoomCheckBox,mealCheckBox, pickupServiceCheckbox);
-
-        //ตั้งค่าคอลัมน์และการผูกข้อมูลสำหรับ TableView หลัก
-        bookingIDColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("bookingID"));
-        newGuestColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("fullnameCustomer"));
-        roomNumberColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("numberRoom"));
-        checkinColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("checkin"));
-        checkoutColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("checkout"));
-        statusColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("status"));
-        amountPaidColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("amount"));
-        
+       
+        setupTableColumns();
         // โหลดข้อมูลเริ่มต้นสำหรับตารางคอลลัม
         for (Bookings booking : bookingRepository.getAllBookings()) {
             AmountPaid paid = amountPaidRepository.getAmountByBookingID(booking.getBookingID());
@@ -236,6 +229,67 @@ public class HomeController implements Initializable {
     if (!exists) {
         homeBookingList.add(0, newEntry);
         }
+    }
+
+    private void setupTableColumns(){
+        bookingTable.setEditable(true);
+        //ตั้งค่าคอลัมน์และการผูกข้อมูลสำหรับ TableView หลัก
+        bookingIDColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("bookingID"));
+        newGuestColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("fullnameCustomer"));
+        roomNumberColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("numberRoom"));
+        checkinColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("checkin"));
+        checkoutColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("checkout"));
+        statusColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("status"));
+        amountPaidColumn.setCellValueFactory(new PropertyValueFactory<HomeTableView,String>("amount"));
+
+        statusColumn.setCellFactory(column -> {
+        return new TableCell<HomeTableView, String>() {
+            private final Label statusLabel = new Label();
+            
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty); 
+
+                if (item == null || empty) {
+                    setGraphic(null); // เคลียร์ Graphic เมื่อเซลล์ว่าง
+                } else {
+                    // กำหนดข้อความให้ Label
+                    statusLabel.setText(item);
+                    String style = "";
+
+                    // กำหนดสไตล์สำหรับ Label ตามสถานะ
+                    switch (item) {
+                        case "CONFIRMED":
+                            
+                            style = "-fx-background-color: #77b9ff; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 3 10 3 10; -fx-font-weight: bold;";
+                            break;
+                        case "CHECKED_IN":
+                            style = "-fx-background-color: #28a745; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 3 10 3 10; -fx-font-weight: bold;";
+                            break;
+
+                        case "CHECKED_OUT":
+                            style = "-fx-background-color: #5e5e5cff; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 3 10 3 10; -fx-font-weight: bold;";
+                            break;
+                        
+                        case "CANCELLED":
+                            style = "-fx-background-color: #ff6e6eff; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 3 10 3 10; -fx-font-weight: bold;";
+                            break;
+
+                        default:
+                            return;
+                    }
+                    
+                    // กำหนดสไตล์ให้กับ Label 
+                    statusLabel.setStyle(style);
+
+                    // นำ Label ไปใส่ในเซลล์ และจัดให้อยู่ตรงกลาง
+                    setGraphic(statusLabel);
+                    setText(null);
+                    setAlignment(Pos.CENTER);
+                }
+            }
+        };
+    });
     }
 
 
