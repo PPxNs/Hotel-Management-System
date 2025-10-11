@@ -9,7 +9,6 @@ import javafx.stage.Stage;
 import javafx.scene.image.Image;
 import java.io.IOException;
 
-import javax.swing.ImageIcon;
 
 import com.mycompany.projectdesign.Project.Model.AmountPaidRepository;
 import com.mycompany.projectdesign.Project.Model.BookingRepository;

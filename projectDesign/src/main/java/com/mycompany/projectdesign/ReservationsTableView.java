@@ -43,8 +43,8 @@ public class ReservationsTableView {
         this.bookingID = new SimpleStringProperty(bookings.getBookingID());
         this.numberRoom = new SimpleStringProperty(room.getNumberRoom());
         this.fullnameCustomer = new SimpleStringProperty(customer.getFullName());
-        this.Checkin = new SimpleStringProperty(bookings.getCheckin());
-        this.Checkout = new SimpleStringProperty(bookings.getCheckOut());
+        this.Checkin = new SimpleStringProperty(bookings.getDisplayCheckin());
+        this.Checkout = new SimpleStringProperty(bookings.getDisplayCheckout());
         this.status = new SimpleStringProperty(bookings.getStatus().name());
         this.booking = new SimpleStringProperty(bookings.getBooking());
         this.amount = new SimpleStringProperty(String.format("%.2f", amountPaid.getAmount()));

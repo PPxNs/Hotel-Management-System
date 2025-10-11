@@ -105,7 +105,7 @@ public class MainController implements Initializable, HotelObserver{
     @Override
     public void update(HotelEvent event) {
         // สนใจเฉพาะ Event ที่เกี่ยวกับการแจ้งเตือน Check-in และ Check-out
-        if (event instanceof MissedCheckinEvent || event instanceof MissedCheckoutEvent) {
+        if (event instanceof MissedCheckinEvent || event instanceof MissedCheckoutEvent || event instanceof MaintenanceRoomEvent) {
              // ใช้ Platform.runLater เพื่อให้แน่ใจว่าการแก้ไข List และ UI ทำงานบน Thread ที่ถูกต้อง
             Platform.runLater(() ->{
                 notifications.add(event);

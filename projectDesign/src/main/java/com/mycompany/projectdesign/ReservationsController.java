@@ -5,10 +5,15 @@
 package com.mycompany.projectdesign;
 
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.ResourceBundle;
 import java.util.function.Predicate;
 
 import com.mycompany.projectdesign.Project.Model.*;
+import com.mycompany.projectdesign.Project.ObserverPattern.BookingUpdatedEvent;
+import com.mycompany.projectdesign.Project.ObserverPattern.HotelEventManager;
+import com.mycompany.projectdesign.Project.Service.RoomService;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -52,6 +57,9 @@ public class ReservationsController implements Initializable {
     private BookingRepository bookingRepository = BookingRepository.getInstance();
     private ObservableList<ReservationsTableView> bookingList = FXCollections.observableArrayList();
     private AmountPaidRepository amountPaidRepository = AmountPaidRepository.getInstance();
+    private final RoomService roomService = new RoomService();
+
+
     /**
      * เมธอดหลักที่ถูกเรียกโดยอัตโนมัติเมื่อ FXML โหลดเสร็จ
      * ใช้สำหรับตั้งค่าเริ่มต้นทั้งหมดของหน้าจอ
@@ -224,6 +232,26 @@ public class ReservationsController implements Initializable {
             BookingStatus newStatus = BookingStatus.valueOf(event.getNewValue());
             reservationsUpdate.setStatus(newStatus);
             BookingRepository.getInstance().saveBookingToCSV();
+            RoomRepository roomRepository = RoomRepository.getInstance();
+            
+            // ตรวจสอบสถานะใหม่ของการจอง และเปลี่ยนสถานะห้องให้สอดคล้องกัน
+            if (newStatus == BookingStatus.CHECKED_IN) {
+                roomService.updateRoomStatusFromBooking(reservationsUpdate);
+                reservationsUpdate.setCheckinDateTime(LocalDateTime.now()); // บันทึกเวลาเช็คอินจริง
+                reservationsUpdate.setActualCheckinDateTime(LocalDateTime.now());
+            } else if (newStatus == BookingStatus.CHECKED_OUT) {
+                roomService.updateRoomStatusFromBooking(reservationsUpdate);
+                reservationsUpdate.setActualCheckoutDateTime(LocalDateTime.now());
+                reservationsUpdate.setCheckoutDateTime(LocalDateTime.now());// บันทึกเวลาเช็คเอาท์จริง
+            } else if (newStatus == BookingStatus.CANCELLED) {
+                roomService.updateRoomStatusFromBooking(reservationsUpdate);
+            }
+
+            BookingUpdatedEvent bookingEvent = new BookingUpdatedEvent(reservationsUpdate,LocalDateTime.now());
+            HotelEventManager.getInstance().notifyObserver(bookingEvent);
+            
+            // 5. บันทึกการเปลี่ยนแปลงของห้องพัก
+            roomRepository.saveRoomToCSV();
             loadReservationsData();
         });
 

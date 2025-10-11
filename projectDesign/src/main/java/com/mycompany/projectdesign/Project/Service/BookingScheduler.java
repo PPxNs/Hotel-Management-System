@@ -47,6 +47,7 @@ public class BookingScheduler {
 
         LocalDateTime now = LocalDateTime.now();
         boolean bookingsModified = false;
+        boolean roomsModified = false;
         //ตรวจสถานะห้องก่อน
         for (Room room : roomRepository.getAllRooms()){
             // ถ้าห้องอยู่ในสถานะ "ทำความสะอาด" และมีเวลาเช็คเอาท์ล่าสุดบันทึกอยู่
@@ -54,9 +55,13 @@ public class BookingScheduler {
                 //ถ้าเวลาปัจจุบันเลยเวลาเช็คเอาท์ไปแล้ว 30 นาที
                 if (now.isAfter(room.getLastCheckoutTime().plusMinutes(30))) {
                     room.setStatus(RoomStatus.AVAILABLE); // เปลี่ยนสถานะเป็น "ว่าง"
-                    room.setLastCheckoutTime(null);
-                    roomRepository.saveRoomToCSV(); // บันทึกการเปลี่ยนแปลง
+                    roomsModified = true;
+                    RoomStatusUpdatedEvent event = new RoomStatusUpdatedEvent(room,LocalDateTime.now());
+                    eventManager.notifyObserver(event);
                 }
+            }
+            if (roomsModified) {
+                roomRepository.saveRoomToCSV(); // บันทึกการเปลี่ยนแปลง
             }
         }
         
