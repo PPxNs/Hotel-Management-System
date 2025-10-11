@@ -43,14 +43,14 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.RadioButton;
-import javafx.scene.control.TableCell;
+import javafx.application.Platform;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.cell.PropertyValueFactory;
 
-public class HomeController implements Initializable {
+public class HomeController implements Initializable, HotelObserver {
 
     @FXML private TextField minRangeField;
     @FXML private TextField maxRangeField;
@@ -129,14 +129,13 @@ public class HomeController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-
         //โหลดข้อมูลห้องพักเข้าลิส
         allRooms = new ArrayList<>(roomRepository.getAllRooms());
 
         //เซตเวลาของ checkin
         ObservableList<String> timeCheckin = FXCollections.observableArrayList(
   "14:00" , "14:30", "15:00" , "15:30", "16:00" , "16:30", "17:00" , 
-           "17:30", "18:00" , "18:30", "19:00" , "19:30", "22:23", "23:32", "23:33"
+           "17:30", "18:00" , "18:30", "19:00" , "19:30","20:00"
         );
 
         //เซตเวลาของ checkout
@@ -214,6 +213,7 @@ public class HomeController implements Initializable {
         clearSelectedRoomDetails();
         bookingScheduler = new BookingScheduler();
         bookingScheduler.start();
+        HotelEventManager.getInstance().addObserver(this);
     }
     
     /**
@@ -1223,6 +1223,18 @@ public class HomeController implements Initializable {
 
                 // กรณีผู้ใช้กด Cancel
                 System.out.println("User cancelled the action.");
+        }
+    }
+
+    @Override
+    public void update(HotelEvent event) {
+            if (event instanceof RoomStatusUpdatedEvent) {
+            // Platform.runLater คือคำสั่ง "บังคับ" ให้โค้ดข้างในไปทำงานบน UI Thread
+            // ซึ่งเป็น Thread เดียวที่สามารถแก้ไขหน้าจอได้อย่างปลอดภัย
+            Platform.runLater(()->{
+                bookingTable.refresh();
+            });
+
         }
     }
 

@@ -14,6 +14,12 @@ import java.util.ResourceBundle;
 import java.util.function.Predicate;
 
 import com.mycompany.projectdesign.Project.Model.*;
+import com.mycompany.projectdesign.Project.ObserverPattern.HotelEvent;
+import com.mycompany.projectdesign.Project.ObserverPattern.HotelEventManager;
+import com.mycompany.projectdesign.Project.ObserverPattern.HotelObserver;
+import com.mycompany.projectdesign.Project.ObserverPattern.MaintenanceRoomEvent;
+import com.mycompany.projectdesign.Project.ObserverPattern.RoomStatusUpdatedEvent;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -42,6 +48,7 @@ import javafx.scene.control.ButtonType;
 import javafx.util.Callback; 
 import javafx.scene.text.Text;
 import javafx.scene.layout.Region;
+import javafx.application.Platform; 
 
 /**
  * Controller สำหรับหน้าจอจัดการห้องพัก (Rooms.fxml)
@@ -49,7 +56,7 @@ import javafx.scene.layout.Region;
  * รวมถึงการแสดงผล, กรองข้อมูล, และการโต้ตอบกับผู้ใช้ผ่านฟอร์มและตาราง
  */
 
-public class RoomsController implements Initializable {
+public class RoomsController implements Initializable, HotelObserver {
 
     // @FXML Components: ส่วนเกี่ยวกับคอลลัมแสดงข้อมูล
     @FXML private TableView<RoomsTableView> roomTable;
@@ -213,6 +220,8 @@ public class RoomsController implements Initializable {
         
         //สร้างปุ่มใน action ตั้งค่าคอลัมน์ Actions
         setupActionColumn();
+
+        HotelEventManager.getInstance().addObserver(this);
     } 
 
     /**
@@ -323,6 +332,34 @@ public class RoomsController implements Initializable {
             Room roomUpdate = roomView.getRoom();
             RoomStatus newStatus = RoomStatus.valueOf(event.getNewValue());
             
+            if (newStatus == RoomStatus.MAINTENANCE) {
+                BookingRepository bookingRepository = BookingRepository.getInstance();
+                List<Bookings> conflictingBookings = new ArrayList<>();
+                LocalDateTime now = LocalDateTime.now();
+                LocalDateTime threeDaysLater = now.plusDays(3);
+
+                // ค้นหาการจองที่อาจได้รับผลกระทบ
+                for (Bookings booking : bookingRepository.getAllBookings()) {
+                    if (booking.getRoom().getNumberRoom().equals(roomUpdate.getNumberRoom()) &&
+                        (booking.getStatus() == BookingStatus.CONFIRMED || booking.getStatus() == BookingStatus.CHECKED_IN) &&
+                        !booking.getCheckinDateTime().isAfter(threeDaysLater) &&
+                        !booking.getCheckoutDateTime().isBefore(now))
+                    {
+                        conflictingBookings.add(booking);
+                        
+                        // สร้างและส่ง Event สำหรับแต่ละการจองที่ได้รับผลกระทบ
+                        MaintenanceRoomEvent maintenanceEvent = new MaintenanceRoomEvent(
+                            booking.getRoom(), 
+                            booking.getCustomer(), 
+                            booking, 
+                            LocalDateTime.now()
+                        );
+                        HotelEventManager.getInstance().notifyObserver(maintenanceEvent);
+                    }
+                }
+            }
+            
+  
             // ตรวจสอบเงื่อนไขพิเศษ: ป้องกันการเปลี่ยนสถานะห้องที่มีคนพักอยู่ให้เป็น "ว่าง"
             if (newStatus == RoomStatus.AVAILABLE && isRoomCurrentlyOccupied(roomUpdate)) {
                 Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -748,5 +785,19 @@ public class RoomsController implements Initializable {
             }
         }
         return false; // ไม่เจอใครพักอยู่
+    }
+    /**
+     * เมธอดนี้ช่วยให้หน้าต่าง update เมื่อมีเปลี่ยนแปลงสถานะจาก CLEANING เป็น AVAILABLE อัตโนมัติ หลังเช็คเอาส์ได้ 30 นาที
+     */
+    @Override
+    public void update(HotelEvent event) {
+        if (event instanceof RoomStatusUpdatedEvent) {
+            // Platform.runLater คือคำสั่ง "บังคับ" ให้โค้ดข้างในไปทำงานบน UI Thread
+            // ซึ่งเป็น Thread เดียวที่สามารถแก้ไขหน้าจอได้อย่างปลอดภัย
+            Platform.runLater(()->{
+                roomTable.refresh();
+            });
+
+        }
     }
 }

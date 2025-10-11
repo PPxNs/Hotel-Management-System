@@ -15,13 +15,15 @@ public class Bookings {
     private final Customer customer;        // ตัวแปรออบเจกต์ของลูกค้าที่ทำการจอง
     private final String bookingID;         // ตัวแปรเก็บหมายเลขจอง (อันนี้จะไม่ซ้ำกัน)
     private final LocalDate dateBooking ;   // ตัวแปรเก็บวันที่จองของลูกค้า
-    private final LocalDate dateCheckin;    // ตัวแปรเก็บวันเข้าพักของลูกค้า _/_/_ เก็บเป็น คศ
-    private final LocalDate dateCheckout;   // ตัวแปรเก็บวันออกของลูกค้า _/_/_ เก็บเป็น คศ
-    private final LocalTime timeCheckin;    // ตัวแปรเก็บเวลาเข้าพักของลูกค้า ชม:นาที
-    private final LocalTime timeCheckout;   // ตัวแปรเก็บเวลาออกของลูกค้า ชม:นาที
+    private LocalDate dateCheckin;    // ตัวแปรเก็บวันเข้าพักของลูกค้า _/_/_ เก็บเป็น คศ
+    private LocalDate dateCheckout;   // ตัวแปรเก็บวันออกของลูกค้า _/_/_ เก็บเป็น คศ
+    private LocalTime timeCheckin;    // ตัวแปรเก็บเวลาเข้าพักของลูกค้า ชม:นาที
+    private LocalTime timeCheckout;   // ตัวแปรเก็บเวลาออกของลูกค้า ชม:นาที
     private final LocalTime timeBooking;    // ตัวแปรเก็บเวลาจองของลูกค้า ชม:นาที
     private BookingStatus status ;          // ตัวแปรสถานะการมายืนยันการจองหรือการใช้บริการ Data type จะเป็น ENUM จากคลาส BookingStatus ซึ่งเป็นคลาสที่กำหนดสถานะต่าง ๆ ของ สถานะการเข้าพักของลูกค้า
     
+    private LocalDateTime actualCheckinDateTime; //มีไว้สำหรับอัพเดทกรณีกดเปลี่ยนสถานะก่อนเวลาจริง
+    private LocalDateTime actualCheckoutDateTime; //มีไว้สำหรับอัพเดทกรณีกดเปลี่ยนสถานะก่อนเวลาจริง
     //หมายเหตุ LocalDate คือของวัน LocalTime คือของเวลา
 
     /**
@@ -252,6 +254,50 @@ public class Bookings {
      */
     public void setCheckoutNotified(boolean checkoutNotified) {
         this.checkoutNotified = checkoutNotified;
+    }
+
+    /**
+     * ตั้งค่าข้อมูลวัน-เวลาเช็คอินตามเวลาปัจจุบัน หรือเวลาที่ระบุ
+     * @param localDateTime เวลาที่ต้องการตั้งค่า
+     */
+    public void setCheckinDateTime(LocalDateTime localDateTime){
+        this.dateCheckin = localDateTime.toLocalDate();
+        this.timeCheckin = localDateTime.toLocalTime();
+    }
+
+    /**
+     * ตั้งค่าข้อมูลวัน-เวลาเช็คเอาท์ตามเวลาปัจจุบัน หรือเวลาที่ระบุ
+     * @param localDateTime เวลาที่ต้องการตั้งค่า
+     */
+    public void setCheckoutDateTime(LocalDateTime localDateTime){
+        this.dateCheckout = localDateTime.toLocalDate();
+        this.timeCheckout = localDateTime.toLocalTime();
+    }
+
+    public String getDisplayCheckin(){
+        if (actualCheckinDateTime != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            return actualCheckinDateTime.format(formatter);
+        }else {
+            return getCheckin();
+        }
+    }
+
+    public String getDisplayCheckout(){
+        if (actualCheckoutDateTime != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            return actualCheckoutDateTime.format(formatter);
+        }else {
+            return getCheckOut();
+        }
+    }
+
+    public void setActualCheckinDateTime(LocalDateTime actualCheckinDateTime) {
+        this.actualCheckinDateTime = actualCheckinDateTime;
+    }
+
+    public void setActualCheckoutDateTime(LocalDateTime actualCheckoutDateTime) {
+        this.actualCheckoutDateTime = actualCheckoutDateTime;
     }
 
 }

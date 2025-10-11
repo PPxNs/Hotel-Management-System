@@ -28,7 +28,7 @@ public class RoomService {
         LocalDateTime now = LocalDateTime.now();
 
         // ตรวจสอบว่ามีผู้เข้าพักอยู่ห้องนั้น ๆ หรือไม่ จากข้อมูลการจองทั้งหมด
-        boolean isOccupied = bookingRepository.getAllBookings().stream().allMatch(
+        boolean isOccupied = bookingRepository.getAllBookings().stream().anyMatch(
             b -> b.getRoom().getNumberRoom().equals(room.getNumberRoom())
             && b.getStatus() == BookingStatus.CHECKED_IN
             && !now.isBefore(b.getDateCheckin().atTime(b.getTimeCheckin()))
@@ -50,4 +50,22 @@ public class RoomService {
         // ถ้าไม่เข้าเงื่อนไขใดๆ เลย แสดงว่าห้องว่าง
         return RoomStatus.AVAILABLE;
     }
+
+    // เมธอดสำหรับอัปเดตสถานะห้องโดยเฉพาะ
+    public void updateRoomStatusFromBooking(Bookings booking) {
+        Room roomToUpdate = booking.getRoom();
+        BookingStatus bookingStatus = booking.getStatus();
+        RoomRepository roomRepository = RoomRepository.getInstance();
+        
+
+        if (bookingStatus == BookingStatus.CHECKED_IN) {
+            roomToUpdate.setStatus(RoomStatus.OCCUPIED);
+        } else if (bookingStatus == BookingStatus.CHECKED_OUT) {
+            roomToUpdate.setStatus(RoomStatus.CLEANING); 
+            roomToUpdate.setLastCheckoutTime(LocalDateTime.now()); // บันทึกเวลาเช็คเอาท์ล่าสุด
+        } 
+        // ให้ Service จัดการการบันทึกข้อมูลห้อง
+        roomRepository.saveRoomToCSV();
+    }
+    
 }

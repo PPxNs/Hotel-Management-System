@@ -11,7 +11,12 @@ import java.util.function.Predicate;
 
 
 import com.mycompany.projectdesign.Project.Model.*;
+import com.mycompany.projectdesign.Project.ObserverPattern.HotelEvent;
+import com.mycompany.projectdesign.Project.ObserverPattern.HotelEventManager;
+import com.mycompany.projectdesign.Project.ObserverPattern.HotelObserver;
+import com.mycompany.projectdesign.Project.ObserverPattern.RoomStatusUpdatedEvent;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -36,7 +41,7 @@ import javafx.scene.control.cell.TextFieldTableCell;
  * ทำหน้าที่จัดการการแสดงผล, ค้นหา, กรอง, และแก้ไขข้อมูลแขกที่กำลังเข้าพักหรือยืนยันการจอง
  * รวมทั้งจัดการ Logic การเช็คอินและเช็คเอาท์ 
  */
-public class GuestsController implements Initializable{
+public class GuestsController implements Initializable, HotelObserver{
 
     // @FXML Components: ส่วนเกี่ยวกับคอลลัมแสดงข้อมูล
     @FXML private TableView<GuestsTableView> guestTable;
@@ -116,6 +121,9 @@ public class GuestsController implements Initializable{
                 showCustomerDetails(newVal.getCustomer(), newVal.getRoom());
             }
         } );
+
+        HotelEventManager.getInstance().addObserver(this);
+
     }
 
     /**
@@ -413,6 +421,18 @@ public class GuestsController implements Initializable{
         LabelCountry.setText(customer.getCountry());
         LabelCity.setText(customer.getCity());
         LabelAddress.setText(customer.getAddress());
+    }
+
+    @Override
+    public void update(HotelEvent event) {
+            if (event instanceof RoomStatusUpdatedEvent) {
+            // Platform.runLater คือคำสั่ง "บังคับ" ให้โค้ดข้างในไปทำงานบน UI Thread
+            // ซึ่งเป็น Thread เดียวที่สามารถแก้ไขหน้าจอได้อย่างปลอดภัย
+            Platform.runLater(()->{
+                guestTable.refresh();
+            });
+
+        }
     }
 
 }

@@ -51,8 +51,8 @@ public class GuestsTableView {
         this.idCard = new SimpleStringProperty(customer.getidCard());
         this.firstName = new SimpleStringProperty(customer.getFirstnameCustomer());
         this.lastName = new SimpleStringProperty(customer.getLastnameCustomer());
-        this.checkin = new SimpleStringProperty(bookings.getCheckin());
-        this.checkout = new SimpleStringProperty(bookings.getCheckOut());
+        this.checkin = new SimpleStringProperty(bookings.getDisplayCheckin());
+        this.checkout = new SimpleStringProperty(bookings.getDisplayCheckout());
         this.status = new SimpleStringProperty(bookings.getStatus().name());
         this.email = new SimpleStringProperty(customer.getEmail());
         this.phone = new SimpleStringProperty(customer.getPhone());

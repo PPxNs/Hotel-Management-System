@@ -73,7 +73,15 @@ public class NotificationsController  {
                      detailsText = "ห้อง: " + booking.getRoom().getNumberRoom() + "\n"
                                 + "ลูกค้า: " + booking.getCustomer().getFullName() + "\n"
                                 + "เวลา: " + booking.getDateCheckout() + " " + booking.getTimeCheckout();
+                }else if (event instanceof MaintenanceRoomEvent) {
+                    MaintenanceRoomEvent mEvent = (MaintenanceRoomEvent) event;
+                    Bookings booking = mEvent.getBookings();
+                    titleText = "แจ้งเตือนห้องซ่อมบำรุง";
+                    detailsText = "ห้อง: " + booking.getRoom().getNumberRoom() + " กระทบการจองของ\n"
+                                + "ลูกค้า: " + booking.getCustomer().getFullName() + "\n"
+                                + "เบอร์: " + booking.getCustomer().getPhone();
                 }
+
 
                 // สร้าง Labels และกำหนด Style
                 Label titleLabel = new Label(titleText);

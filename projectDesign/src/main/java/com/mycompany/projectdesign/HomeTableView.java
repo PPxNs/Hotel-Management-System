@@ -40,8 +40,8 @@ public class HomeTableView {
         this.bookingID = new SimpleStringProperty(bookings.getBookingID());
         this.numberRoom = new SimpleStringProperty(bookings.getRoom().getNumberRoom());
         this.fullnameCustomer = new SimpleStringProperty(bookings.getCustomer().getFullName());
-        this.checkin = new SimpleStringProperty(bookings.getCheckin());
-        this.checkout = new SimpleStringProperty(bookings.getCheckOut());
+        this.checkin = new SimpleStringProperty(bookings.getDisplayCheckin());
+        this.checkout = new SimpleStringProperty(bookings.getDisplayCheckout());
         this.status = new SimpleStringProperty(bookings.getStatus().name());
         this.amount = new SimpleStringProperty(String.format("%.2f", amountPaid.getAmount()));
     }
