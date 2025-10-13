@@ -417,8 +417,7 @@ public class HomeController implements Initializable, HotelObserver {
                 continue; // ห้องไม่ว่างในช่วงเวลานี้ ข้ามไป
             }
 
-            //  ถ้าห้องผ่านทุกเงื่อนไข ให้เพิ่มลงในลิสต์
-            availableRooms.add(room);
+             availableRooms.add(room);
         }
 
         //อัปเดต ComboBox 
