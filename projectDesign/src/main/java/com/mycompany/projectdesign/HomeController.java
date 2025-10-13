@@ -16,6 +16,7 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -436,6 +437,8 @@ public class HomeController implements Initializable, HotelObserver {
         if (!FilterSelected) {
             availableRooms = allRooms.stream()
                             .filter(room -> room.getStatus() != RoomStatus.MAINTENANCE)
+                            //เป็นการสร้างตัวเปรียบเทียบ (Comparator) ที่บอกกับ .sorted() ว่า "ให้เรียงลำดับ Stream นี้ โดยใช้ค่าที่ได้จากการเรียกเมธอด getNumberRoom ของแต่ละอ็อบเจกต์ Room มาเปรียบเทียบกัน
+                            .sorted(Comparator.comparing(Room::getNumberRoom))
                             .collect(Collectors.toList());
         }
 
