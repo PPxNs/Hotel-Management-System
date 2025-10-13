@@ -42,7 +42,7 @@ public class BillObserver implements HotelObserver {
             double finalPriceRoom = calculator.calculateFinalPrice(room, bookings, discountStrategy);
 
             //ใช้ Decorator Pattern เพื่อดึงยอดรวมของเงินมัดจำและบริการเสริม
-            double discount = room.getPrice() - finalPriceRoom;
+            double discount = room.getPrice()*bookings.getDateStay() - finalPriceRoom;
             double totalPrice = finalPriceRoom + deposit.getCost();
 
             // === ส่วนใหม่: เตรียมข้อมูลเพื่อเติมลงในเทมเพลต ===
@@ -60,18 +60,18 @@ public class BillObserver implements HotelObserver {
 
             data.put("room_number", room.getNumberRoom());
             data.put("room_type", room.getType());
-            data.put("room_price", String.format("%.2f บาท/คืน", room.getPrice()));
+            data.put("room_price", String.format("%,.2f / %d Day = %,.2f", room.getPrice(), bookings.getDateStay(), room.getPrice()*bookings.getDateStay()));
 
-            data.put("deposit_amount", String.format("%.2f", deposit.getCost()));
+            data.put("deposit_amount", String.format("%,.2f", deposit.getCost()));
             data.put("special_service", deposit.getDescription());
 
             // คำนวณราคารวมก่อนหักส่วนลด
-            double totalBeforeDiscount = room.getPrice() + deposit.getCost();
-            data.put("price_amount", String.format("%.2f", totalBeforeDiscount));
-            data.put("price_discount", String.format("%.2f", discount));
+            double totalBeforeDiscount = room.getPrice()*bookings.getDateStay() + deposit.getCost();
+            data.put("price_amount", String.format("%,.2f", totalBeforeDiscount));
+            data.put("price_discount", String.format("%,.2f", discount));
 
             // grand_total คือราคาสุทธิที่ต้องจ่าย
-            data.put("total_charge", String.format("%.2f บาท", totalPrice)); 
+            data.put("total_charge", String.format("%,.2f", totalPrice)); 
 
 
         // === นี่คือโค้ดส่วนสร้าง PDF (ฉบับแก้ไขและตรวจสอบปัญหา) ===

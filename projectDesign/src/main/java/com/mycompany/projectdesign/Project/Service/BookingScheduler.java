@@ -22,7 +22,7 @@ public class BookingScheduler {
     private final RoomRepository roomRepository = RoomRepository.getInstance();
     private final BookingRepository bookingRepository = BookingRepository.getInstance();
     private final HotelEventManager eventManager = HotelEventManager.getInstance();
-    
+    private boolean isMaintenanceNotified = false;
     /** Executor Service สำหรับการรัน Task ตามเวลาที่กำหนดบน Background Thread */
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
@@ -38,6 +38,14 @@ public class BookingScheduler {
      */
     public void stop(){
         scheduler.shutdown();
+    }
+
+    public boolean isMaintenanceNotified() {
+        return isMaintenanceNotified;
+    }
+
+    public void setMaintenanceNotified(boolean maintenanceNotified) {
+        isMaintenanceNotified = maintenanceNotified;
     }
 
     /**
@@ -97,7 +105,7 @@ public class BookingScheduler {
             if (booking.getStatus() == BookingStatus.CHECKED_IN) {
 
                 // ถ้าอยู่ในช่วง 5 นาทีก่อนเช็คเอาท์ และยังไม่เคยแจ้งเตือน
-                if (!booking.isCheckoutNotified() && now.isBefore(checkoutTime.minusMinutes(5))&& now.isBefore(checkoutTime)) {
+                if (!booking.isCheckoutNotified() && now.isAfter(checkoutTime.minusMinutes(5)) && now.isBefore(checkoutTime)) {
                     
                     // สร้าง Event และส่งไปให้ Observer (MissedCheckoutObserver)
                     MissedCheckoutEvent event = new MissedCheckoutEvent(booking.getRoom(), booking.getCustomer(), booking, now);
@@ -108,9 +116,41 @@ public class BookingScheduler {
             }
         }
 
+        boolean roomsModifiedForMaintenance = false;
+        for (Room room : roomRepository.getAllRooms()) {
+            if (room.getStatus() == RoomStatus.MAINTENANCE) {
+                LocalDateTime threeDaysLater = now.plusDays(3);
+
+                for (Bookings booking : bookingRepository.getAllBookings()) {
+                    if (booking.getRoom().getNumberRoom().equals(room.getNumberRoom())) {
+
+                        // vvv เปลี่ยนเงื่อนไขการตรวจสอบมาใช้เมธอดใหม่ของ Room vvv
+                        if (!room.getNotifiedBookingIds().contains(booking.getBookingID()) &&
+                            (booking.getStatus() == BookingStatus.CONFIRMED || booking.getStatus() == BookingStatus.CHECKED_IN) &&
+                            booking.getCheckinDateTime() != null && !booking.getCheckinDateTime().isAfter(threeDaysLater) &&
+                            booking.getCheckoutDateTime() != null && !booking.getCheckoutDateTime().isBefore(now))
+                        {
+                            // vvv แก้ไขบรรทัดนี้ vvv
+                            MaintenanceRoomEvent event = new MaintenanceRoomEvent(room, booking.getCustomer(), booking, now);
+                            
+                            Platform.runLater(() -> eventManager.notifyObserver(event));
+
+                            // vvv อัปเดตสถานะการแจ้งเตือนไปที่ Room object vvv
+                            room.addNotifiedBookingId(booking.getBookingID());
+                            roomsModifiedForMaintenance = true; // ตั้งค่าว่ามีการเปลี่ยนแปลงข้อมูลห้อง
+                        }
+                    }
+                }
+            }
+        }
             // ถ้ามีการเปลี่ยนแปลงข้อมูลการจอง ให้บันทึกลง CSV 
             if (bookingsModified) {
                 bookingRepository.saveBookingToCSV();
+            }
+
+            // บันทึกการเปลี่ยนแปลงข้อมูลห้องลง CSV หากมีการอัปเดตสถานะการแจ้งเตือน
+            if (roomsModifiedForMaintenance) {
+                roomRepository.saveRoomToCSV();
             }
         }
     

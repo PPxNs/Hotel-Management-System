@@ -33,6 +33,7 @@ import com.mycompany.projectdesign.Project.StrategyPattern.*;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -179,6 +180,28 @@ public class HomeController implements Initializable, HotelObserver {
             }
         }
 
+        amountPaidColumn.setCellFactory(column -> {
+        return new TableCell<HomeTableView, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (item == null || empty) {
+                    setText(null);
+                } else {
+                    try {
+                        // แปลง String ที่ได้รับกลับเป็น double
+                        double price = Double.parseDouble(item);
+                        // จัดรูปแบบให้มี , แบ่งหลักและทศนิยม 2 ตำแหน่ง แล้วแสดงผล
+                        setText(String.format("%,.2f", price));
+                    } catch (NumberFormatException e) {
+                        // หากแปลงค่าไม่ได้ให้แสดงค่าเดิมไปก่อน
+                        setText(item);
+                    }
+                }
+            }
+        };
+    });
 
         bookingTable.setItems(homeBookingList);
 
@@ -189,6 +212,9 @@ public class HomeController implements Initializable, HotelObserver {
         checkoutTimeCombobox1.setItems(timeCheckout);
         roomTypeComboBox.setItems(roomType);
         numberPeopleComboBox.setItems(people);
+        checkinTimeCombobox1.setPromptText("เลือกเวลา");
+        checkoutTimeCombobox1.setPromptText("เลือกเวลา");
+
         loadCountriesFromCSV();
         addFiterListeners();
         updateAvailableRoom();
@@ -204,6 +230,8 @@ public class HomeController implements Initializable, HotelObserver {
 
             checkinDatePicker.setDayCellFactory(factory);
             checkoutDatePicker.setDayCellFactory(factory);
+            checkinDatePicker1.setDayCellFactory(factory);
+            checkoutDatePicker1.setDayCellFactory(factory);
             getDataFormRoomSelected(newVal);
             
         });
@@ -326,25 +354,18 @@ public class HomeController implements Initializable, HotelObserver {
         //ดึงข้อมูลมาเพื่อจะเช็ค
         String selectedRoomType = roomTypeComboBox.getValue();
         Integer selectedNumberPeople = numberPeopleComboBox.getValue();
-
-        //แปลงให้เป็น double ก่อน
-        Double minPrice = null ;
+        Double minPrice = null;
         Double maxPrice = null;
         try {
-            
             if (minRangeField.getText() != null && !minRangeField.getText().isEmpty()) {
                 minPrice = Double.parseDouble(minRangeField.getText());
             }
-
             if (maxRangeField.getText() != null && !maxRangeField.getText().isEmpty()) {
                 maxPrice = Double.parseDouble(maxRangeField.getText());
             }
-
         } catch (Exception e) {
-            System.out.println("Invalid price format.");
             new Alert(Alert.AlertType.WARNING, "รูปแบบราคาห้องไม่ถูกต้อง กรุณากรอกเฉพาะตัวเลข").showAndWait();
         }
-
         List<String> selectedProperties = new ArrayList<>();
         if (jacuzziCheckBox.isSelected()) selectedProperties.add("Jacuzzi");
         if (lakeViewCheckBox.isSelected()) selectedProperties.add("Lake View");
@@ -353,138 +374,116 @@ public class HomeController implements Initializable, HotelObserver {
         if (tvCheckBox.isSelected()) selectedProperties.add("TV 58” 4K UHD LED");
         if (wifiCheckBox.isSelected()) selectedProperties.add("WIFI");
 
-        LocalDate checkinDate = checkinDatePicker.getValue();
-        LocalDate checkoutDate = checkoutDatePicker.getValue();
-
-        //แปลงให้เป็น LocalTime ก่อน
-        LocalTime checkinTime = null;
-        LocalTime checkoutTime = null ;
-
-        try {
-            if (checkinTimeCombobox.getValue() != null) {
-                checkinTime = LocalTime.parse(checkinTimeCombobox.getValue());
-            }
-
-            if (checkoutTimeCombobox.getValue() != null) {
-                checkoutTime = LocalTime.parse(checkoutTimeCombobox.getValue());
-            }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+        LocalDateTime desiredStartDateTime = null;
+        if (checkinDatePicker.getValue() != null) {
+            LocalTime startTime = (checkinTimeCombobox.getValue() != null) ? LocalTime.parse(checkinTimeCombobox.getValue()) : LocalTime.of(14, 0);
+            desiredStartDateTime = LocalDateTime.of(checkinDatePicker.getValue(), startTime);
         }
 
-        // วน Loop เพื่อกรองห้องที่เข้าเงื่อนไข
+        LocalDateTime desiredEndDateTime = null;
+        if (checkoutDatePicker.getValue() != null) {
+            LocalTime endTime = (checkoutTimeCombobox.getValue() != null) ? LocalTime.parse(checkoutTimeCombobox.getValue()) : LocalTime.of(12, 0);
+            desiredEndDateTime = LocalDateTime.of(checkoutDatePicker.getValue(), endTime);
+        }
+
+        // วน Loop กรองห้อง
         List<Room> availableRooms = new ArrayList<>();
-        for (Room room : allRooms){
-        
-                boolean match = true;
-
-                if (selectedRoomType != null){ 
-                    if(!room.getType().equalsIgnoreCase(selectedRoomType))
-                        match = false;
-                }
-
-                if (selectedNumberPeople != null){
-                    if (room.getPeople() < selectedNumberPeople) {
-                        match = false;
-                    }
-                }  
-                
-                if ( minPrice != null) {
-                    if (room.getPrice() < minPrice) {
-                        match = false;
-                    }
-                }
-
-                if (maxPrice !=null) {
-                    if (room.getPrice() > maxPrice) {
-                        match = false;
-                    }
-                }
-
-                if (!selectedProperties.isEmpty()) {
-                    if (!room.getProperties().containsAll(selectedProperties)) {
-                        match = false;
-                    }
-                }
-
-                RoomStatus realTimeStatus = roomService.getRealTimeStatus(room);
-                //ข้ามห้องนี้ไปเลยถ้าซ่อมอยู่
-                if (realTimeStatus == RoomStatus.MAINTENANCE){
-                    continue;
-                }
-                
-                if(realTimeStatus == RoomStatus.OCCUPIED) {
-                    match = false;
-                }
-
-                if (checkinDate != null && checkoutDate != null && checkinTime != null && checkoutTime != null){
-                    if (!isRoomAvailable(room, checkinDate, checkinTime, checkoutDate, checkoutTime)) {
-                        match = false;
-                    }
-                }  
-
-                if (match) {
-                    availableRooms.add(room);
-                }
-
+        for (Room room : allRooms) {
+            // กรอง
+            if (selectedRoomType != null && !room.getType().equalsIgnoreCase(selectedRoomType)) {
+                continue; // ไม่ตรงประเภท ข้ามไปห้องถัดไป
+            }
+            if (selectedNumberPeople != null && room.getPeople() < selectedNumberPeople) {
+                continue; // รองรับคนได้ไม่พอ ข้ามไป
+            }
+            if (minPrice != null && room.getPrice() < minPrice) {
+                continue; // ราคาต่ำไป ข้ามไป
+            }
+            if (maxPrice != null && room.getPrice() > maxPrice) {
+                continue; // ราคาสูงไป ข้ามไป
+            }
+            if (!selectedProperties.isEmpty() && !room.getProperties().containsAll(selectedProperties)) {
+                continue; // ไม่มีคุณสมบัติครบ ข้ามไป
             }
 
-        // จัดการกรณีที่ไม่ได้เลือก Filter ใดๆ
-        boolean FilterSelected = selectedRoomType != null || selectedNumberPeople !=null || minPrice != null 
-                                || maxPrice != null || !selectedProperties.isEmpty() || (checkinDate != null && checkoutDate != null && checkinTime != null && checkoutTime != null) ;
+            // --- ขั้นตอนที่ 2: กรองตามสถานะปัจจุบันและวันที่ที่เลือก ---
+            RoomStatus realTimeStatus = roomService.getRealTimeStatus(room);
+            if (realTimeStatus == RoomStatus.MAINTENANCE) {
+                continue; // ห้องซ่อมบำรุง ข้ามไปเสมอ
+            }
 
-        //ถ้าไม่ได้เลือกค้นห้อง ให้ข้ามห้องที่ซ่อมไปด้วย ให้มันไม่แสดง
-        if (!FilterSelected) {
-            availableRooms = allRooms.stream()
-                            .filter(room -> room.getStatus() != RoomStatus.MAINTENANCE)
-                            //เป็นการสร้างตัวเปรียบเทียบ (Comparator) ที่บอกกับ .sorted() ว่า "ให้เรียงลำดับ Stream นี้ โดยใช้ค่าที่ได้จากการเรียกเมธอด getNumberRoom ของแต่ละอ็อบเจกต์ Room มาเปรียบเทียบกัน
-                            .sorted(Comparator.comparing(Room::getNumberRoom))
-                            .collect(Collectors.toList());
+            // เรียก isRoomAvailable เพื่อเช็คการจองซ้อนทับตามวันที่ที่ผู้ใช้เลือก
+            if (!isRoomAvailable(room, desiredStartDateTime, desiredEndDateTime)) {
+                continue; // ห้องไม่ว่างในช่วงเวลานี้ ข้ามไป
+            }
+
+             availableRooms.add(room);
         }
 
-        // อัปเดตผลลัพธ์ใน ComboBox
+        //อัปเดต ComboBox 
         roomNoComboBox.setItems(FXCollections.observableArrayList(
-            availableRooms.stream().map(Room::getNumberRoom).toList()
+                availableRooms.stream()
+                            .map(Room::getNumberRoom)
+                            .sorted()
+                            .toList()
         ));
-       
-
-        
-        
     }
 
     /**
      * ตรวจสอบว่าห้องที่ระบุว่างในช่วงเวลาที่ต้องการจองหรือไม่ โดยเช็คการจองซ้อนทับ
      * @param room          ห้องพักที่ต้องการตรวจสอบ
-     * @param checkinDate   วันที่เช็คอินที่ต้องการ
-     * @param checkinTime   เวลาเช็คอินที่ต้องการ
-     * @param checkoutDate  วันที่เช็คเอาท์ที่ต้องการ
-     * @param checkoutTime  เวลาเช็คเอาท์ที่ต้องการ
+     * @param checkin       วันเวลาที่เช็คอินที่ต้องการ
+     * @param checkout      วันเวลาที่เช็คเอาส์ที่ต้องการ
      * @return true ถ้าห้องว่างในช่วงเวลาดังกล่าว, false ถ้ามีการจองซ้อนทับ
      */
-    private boolean isRoomAvailable(Room room, LocalDate checkinDate, LocalTime checkinTime, LocalDate checkoutDate, LocalTime checkoutTime){
+    private boolean isRoomAvailable(Room room, LocalDateTime checkin, LocalDateTime checkout){
         
-        //ต่อวันกับเวลาเข้ากัน
-        LocalDateTime checkin = checkinDate.atTime(checkinTime);
-        LocalDateTime checkout = checkoutDate.atTime(checkoutTime);
-
+        // ถ้าไม่ได้ระบุวันที่ที่ต้องการค้นหาเลย ก็ไม่ต้องตรวจสอบ ให้ถือว่าผ่านเงื่อนไขนี้ไป
+        if(checkin == null && checkout == null){
+            return true;
+        }
         // วน Loop ตรวจสอบกับการจองทั้งหมดที่มีอยู่ในระบบ
         for(Bookings booking : bookingRepository.getAllBookings()){
             //เพิ่มกรณีช่วงทำความสะอาดห้องด้วยให้จองไม่ได้
             if (booking.getRoom().getNumberRoom().equals(room.getNumberRoom())) {
+                if (booking.getCheckinDateTime() == null || booking.getCheckoutDateTime() == null ) {
+                    continue; // ข้ามการจองที่มีข้อมูลไม่ครบถ้วน
+                }
+
                 if (booking.getStatus() == BookingStatus.CONFIRMED || booking.getStatus() == BookingStatus.CHECKED_IN || booking.getStatus() == BookingStatus.CHECKED_OUT) {
-                    LocalDateTime existingStart = booking.getDateCheckin().atTime(booking.getTimeCheckin());
-                    LocalDateTime existingEnd = booking.getDateCheckout().atTime(booking.getTimeCheckout());
-        
+                    LocalDateTime existingStart = booking.getCheckinDateTime();
+                    LocalDateTime existingEnd = booking.getCheckoutDateTime();
+                
                     // เพิ่มกฎ "ช่วงเวลาทำความสะอาด" 30 นาที ต่อท้ายการจองเดิม
                     LocalDateTime effectiveEnd = existingEnd.plusMinutes(30);
+
                     // เงื่อนไขการทับซ้อน: (StartA < EndB) and (EndA > StartB)
-                    if (checkin.isBefore(effectiveEnd) && checkout.isAfter(existingStart)) {
-                    return false; //ทับกัน
-                    }                    
+                    // กรณีที่ 1: ผู้ใช้เลือกครบทั้ง check-in และ check-out 
+                    if (checkin != null && checkout != null) {
+                        if (checkin.isBefore(effectiveEnd) && checkout.isAfter(existingStart)) {    
+                            return false; //ทับกัน
+                        }
+                    } else if (checkin != null) { // กรณีที่ 2: ผู้ใช้เลือกเฉพาะ check-in
+                        LocalDate desiredDate = checkin.toLocalDate();
+                        LocalDateTime startOfDay = desiredDate.atStartOfDay();
+                        LocalDateTime endOfDay = desiredDate.plusDays(1).atStartOfDay();
+
+                        // ตรวจสอบว่าช่วงเวลาการจองเดิมทับกับวันที่ผู้ใช้เลือกหรือไม่
+                        // ไม่ว่าง ถ้า: เวลาเริ่มต้นเดิม < เวลาสิ้นสุดของวันที่เลือก และ เวลาสิ้นสุดเดิม > เวลาเริ่มต้นของวันที่เลือก
+                        if (existingStart.isBefore(endOfDay) && effectiveEnd.isAfter(startOfDay)) {
+                            return false; //ทับกัน
+                    } else if (checkout != null) { // กรณีที่ 3: ผู้ใช้เลือกเฉพาะ check-out
+                        if (checkout.isAfter(existingStart) && !checkout.isAfter(effectiveEnd)) {
+
+                            return false; //ทับกัน
+                        }
+
+                    }                  
                 }
 
             }
         }
+    }
         return true; //ว่าง ไม่มีเวลาทับซ้อน
     }
 
@@ -506,7 +505,7 @@ public class HomeController implements Initializable, HotelObserver {
         };
     }
 
-    /**
+      /**
      * สร้าง DayCellFactory แบบไดนามิก ที่ปิดการเลือกวันในอดีตและวันที่ถูกจองไปแล้วสำหรับห้องพักที่ระบุ
      * @param roomToCheck ห้องพักที่ต้องการตรวจสอบตารางการจอง
      * @return Callback ที่สามารถสร้าง DateCell พร้อมกฎที่กำหนดเองได้
@@ -568,7 +567,8 @@ public class HomeController implements Initializable, HotelObserver {
         Callback<DatePicker, DateCell> defaultFactory = createDefaultDayCellFactory();
         checkinDatePicker.setDayCellFactory(defaultFactory);
         checkoutDatePicker.setDayCellFactory(defaultFactory);
-        checkinDatePicker1.setDayCellFactory(createDefaultDayCellFactory());
+        checkinDatePicker1.setDayCellFactory(defaultFactory);
+        checkoutDatePicker1.setDayCellFactory(defaultFactory);
 
         // เพิ่ม Listener เพื่อสร้างความสัมพันธ์ระหว่าง check-in และ check-out ในฟอร์มการจอง 
         checkinDatePicker1.valueProperty().addListener((obs, oldDate, newDate) -> {
@@ -584,6 +584,57 @@ public class HomeController implements Initializable, HotelObserver {
                         setDisable(empty || date.isBefore(newDate.plusDays(1)));
                     }else {
                         // ถ้ายังไม่ได้เลือก check-in ให้ใช้กฎเริ่มต้น
+                        setDisable(empty || date.isBefore(LocalDate.now()));
+                    }
+                }
+            };
+            checkoutDatePicker1.setDayCellFactory(dayCellFactory);
+        });
+
+
+        checkinDatePicker1.valueProperty().addListener((obs, oldDate, newDate) -> {
+
+            // ล้างค่าเวลา
+            checkinTimeCombobox1.setValue(null);
+            ObservableList<String> allTimes = FXCollections.observableArrayList(
+                "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00",
+                "17:30", "18:00", "18:30", "19:00", "19:30", "20:00"
+            );
+
+            // 3. ตรวจสอบวันที่ที่ผู้ใช้เลือก
+            if (newDate != null) {
+                checkinTimeCombobox1.setDisable(false);
+                // ถ้าวันที่เลือกคือ "วันนี้"
+                if (newDate.isEqual(LocalDate.now())) {
+                    LocalTime now = LocalTime.now();
+                    // กรองเวลาที่ผ่านไปแล้วออก
+                    ObservableList<String> futureTimes = allTimes.stream()
+                            .filter(timeStr -> LocalTime.parse(timeStr).isAfter(now))
+                            .collect(Collectors.toCollection(FXCollections::observableArrayList));
+                    checkinTimeCombobox1.setItems(futureTimes);
+                    // กรณีไม่มีเวลาเหลือให้เลือกสำหรับวันนี้
+                    if (futureTimes.isEmpty()) {
+                        checkinTimeCombobox1.setPromptText("ไม่มีเวลาว่างสำหรับวันนี้");
+                        checkinTimeCombobox1.setDisable(true);
+                    } else {
+                        checkinTimeCombobox1.setPromptText("เลือกเวลา");
+                    }
+                } else { // ถ้าวันที่เลือกเป็นวันในอนาคต
+                    checkinTimeCombobox1.setItems(allTimes); // แสดงเวลาทั้งหมด
+                    checkinTimeCombobox1.setPromptText("เลือกเวลา");
+                }
+            } 
+
+
+            // จัดการ checkoutDatePicker1 (ทำงานเหมือนเดิม)
+            checkoutDatePicker1.setValue(null);
+            final Callback<DatePicker, DateCell> dayCellFactory = picker -> new DateCell() {
+                @Override
+                public void updateItem(LocalDate date, boolean empty) {
+                    super.updateItem(date, empty);
+                    if (newDate != null) {
+                        setDisable(empty || date.isBefore(newDate.plusDays(1)));
+                    } else {
                         setDisable(empty || date.isBefore(LocalDate.now()));
                     }
                 }
@@ -739,8 +790,31 @@ public class HomeController implements Initializable, HotelObserver {
             return; // หยุดทำงาน
         }
 
+        if (checkinDatePicker1.getValue() == null || checkinTimeCombobox1.getValue() == null) {
+            new Alert(Alert.AlertType.WARNING, "กรุณาเลือกวันและเวลาที่ต้องการเช็คอินให้ครบถ้วน").showAndWait();
+            return;
+        }
+
+        if (checkoutDatePicker1.getValue() == null || checkoutTimeCombobox1.getValue() == null) {
+            new Alert(Alert.AlertType.WARNING, "กรุณาเลือกวันและเวลาที่ต้องการเช็คเอาส์ให้ครบถ้วน").showAndWait();
+            return;
+        }
+
+        // รวมวันและเวลาที่ผู้ใช้เลือก
+        LocalDateTime desiredCheckinDateTime = checkinDatePicker1.getValue().atTime(LocalTime.parse(checkinTimeCombobox1.getValue()));
+        LocalDateTime now = LocalDateTime.now();
+
+        // เปรียบเทียบกับเวลาปัจจุบัน
+        if (desiredCheckinDateTime.isBefore(now)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("ข้อมูลวันและเวลาเช็คอินไม่ถูกต้อง");
+            alert.setHeaderText("ไม่สามารถเลือกเวลาเช็คอินย้อนหลังได้");
+            alert.setContentText("กรุณาเลือกเวลาที่เป็นปัจจุบัน หรือในอนาคต");
+            alert.showAndWait();
+            return; // หยุดการทำงานทันที
+        }
         // ตรวจสอบความว่างของห้องครั้งสุดท้าย
-        if (!isRoomAvailable(newBookings.getRoom(), newBookings.getDateCheckin(), newBookings.getTimeCheckin(), newBookings.getDateCheckout(), newBookings.getTimeCheckout())) {
+        if (!isRoomAvailable(newBookings.getRoom(), newBookings.getCheckinDateTime(), newBookings.getCheckoutDateTime())) {
             new Alert(Alert.AlertType.ERROR, "ขอโทษค่ะ ห้องหมายเลข : " + newBookings.getRoom().getNumberRoom() + " ไม่สามารถจองได้อีกต่อไปในช่วงเวลาที่เลือก กรุณาเลือกอีกครั้ง").showAndWait();
             updateAvailableRoom(); // รีเฟรชรายการห้องว่างให้ผู้ใช้เห็น
             return ; // หยุดทำงาน
@@ -779,7 +853,7 @@ public class HomeController implements Initializable, HotelObserver {
         confirmationDialog.setHeaderText("กรุณาตรวจสอบรายละเอียดการจองก่อนบันทึก");
         confirmationDialog.setContentText("ลูกค้า: " + newCustomer.getFullName() + "\n" +
                                      "ห้อง: " + newBookings.getRoom().getNumberRoom() + "\n\n" +
-                                     "ยอดรวม: " + String.format("%.2f",finalTotalCostAfterDiscount)+ " บาท\n\n" +
+                                     "ยอดรวม: " + String.format("%,.2f",finalTotalCostAfterDiscount)+ " บาท\n\n" +
                                      "ยืนยันเพื่อบันทึกข้อมูล");
 
         Optional<ButtonType> result = confirmationDialog.showAndWait();
@@ -978,7 +1052,7 @@ public class HomeController implements Initializable, HotelObserver {
         double totalCost = calculateTotalCost();
 
         // อัปเดต Label ที่แสดงยอดรวมสุดท้าย
-        totalLabel.setText("฿ " + String.format("%.2f", totalCost));
+        totalLabel.setText("฿ " + String.format("%,.2f", totalCost));
 
         // Logic เฉพาะสำหรับการแสดงผลราคาย่อยของ meal CheckBox
         if (mealCheckBox.isSelected()) {
@@ -995,7 +1069,7 @@ public class HomeController implements Initializable, HotelObserver {
             if (mealDay > 0) {
 
                 // ถ้ามีจำนวนวันที่ถูกต้อง ให้คำนวณและแสดงราคาของบริการ meal CheckBox
-                dayMealLabel.setText("฿" + String.format("%.2f", 500.0*mealDay));
+                dayMealLabel.setText("฿" + String.format("%,.2f", 500.0*mealDay));
                 dayMealLabel.setVisible(true);
             }else {
                 // ถ้าจำนวนวันเป็น 0 หรือไม่ถูกต้อง ให้แสดง Label แต่ไม่เปลี่ยนข้อความ
@@ -1028,7 +1102,7 @@ public class HomeController implements Initializable, HotelObserver {
         if (selectedRoom != null) {
             selectedRoomTypeLabel.setText(selectedRoom.getType());
             selectedRoomPeopleLabel.setText(String.valueOf(selectedRoom.getPeople()) + " people");
-            selectedRoomPriceLabel.setText("฿ " + String.format("%.2f", selectedRoom.getPrice()));
+            selectedRoomPriceLabel.setText("฿ " + String.format("%,.2f", selectedRoom.getPrice()));
 
             if (selectedRoom.getProperties() != null && !selectedRoom.getProperties().isEmpty()) {
                 selectedRoomPropertiesLabel.setText(String.join(", ", selectedRoom.getProperties()));
@@ -1195,7 +1269,7 @@ public class HomeController implements Initializable, HotelObserver {
         double finalPriceRoom = calculator.calculateFinalPrice(roomForBill, newBookings, discountStrategy);
         
         // คำนวณยอดรวมสุดท้าย
-        double totalCostAfterDiscount = finalPriceRoom + depositRoom.getCost();  
+        double totalCostAfterDiscount = finalPriceRoom  + depositRoom.getCost();  
         double finalTotalCostAfterDiscount = Math.round(totalCostAfterDiscount*100.0) /100.0 ;
         // แสดงหน้าต่างเพื่อขอคำยืนยันจากผู้ใช้
         Alert confirmationDialog = new Alert(Alert.AlertType.CONFIRMATION);
@@ -1203,7 +1277,7 @@ public class HomeController implements Initializable, HotelObserver {
         confirmationDialog.setHeaderText("กรุณาตรวจสอบรายละเอียดการจองก่อนบันทึก");
         confirmationDialog.setContentText("ลูกค้า: " + newCustomer.getFullName() + "\n" +
                                      "ห้อง: " + newBookings.getRoom().getNumberRoom() + "\n\n" +
-                                     "ยอดรวม: " + String.format("%.2f",finalTotalCostAfterDiscount)+ " บาท\n\n" +
+                                     "ยอดรวม: " + String.format("%,.2f",finalTotalCostAfterDiscount)+ " บาท\n\n" +
                                      "ยืนยันเพื่อบันทึกข้อมูลและพิมพ์ใบเสร็จ?");
 
         Optional<ButtonType> result = confirmationDialog.showAndWait();

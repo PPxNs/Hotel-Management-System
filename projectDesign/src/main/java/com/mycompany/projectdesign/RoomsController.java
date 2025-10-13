@@ -187,6 +187,29 @@ public class RoomsController implements Initializable, HotelObserver {
         }
         );
 
+        priceColumn.setCellFactory(column -> {
+        return new TableCell<RoomsTableView, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (item == null || empty) {
+                    setText(null);
+                } else {
+                    try {
+                        // แปลง String ที่ได้รับกลับเป็น double
+                        double price = Double.parseDouble(item);
+                        // จัดรูปแบบให้มี , แบ่งหลักและทศนิยม 2 ตำแหน่ง แล้วแสดงผล
+                        setText(String.format("%,.2f", price));
+                    } catch (NumberFormatException e) {
+                        // หากแปลงค่าไม่ได้ให้แสดงค่าเดิมไปก่อน
+                        setText(item);
+                    }
+                }
+            }
+        };
+    });
+    
         // โหลดข้อมูลจาก Repository มาใส่ใน List
         for (Room room : roomRepository.getAllRooms()) {
             roomList.add(new RoomsTableView(room)); 
@@ -326,6 +349,8 @@ public class RoomsController implements Initializable, HotelObserver {
         };
     });
 
+
+
         // กำหนด Logic ที่จะทำงานหลังจากแก้ไขสถานะเสร็จ
         statusColumn.setOnEditCommit(event -> {
             RoomsTableView roomView = event.getRowValue();
@@ -355,6 +380,8 @@ public class RoomsController implements Initializable, HotelObserver {
                             LocalDateTime.now()
                         );
                         HotelEventManager.getInstance().notifyObserver(maintenanceEvent);
+                        roomUpdate.addNotifiedBookingId(booking.getBookingID());
+
                     }
                 }
             }

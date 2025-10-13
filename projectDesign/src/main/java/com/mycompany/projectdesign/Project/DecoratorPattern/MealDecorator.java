@@ -20,7 +20,7 @@ public class MealDecorator extends DepositDecorator {
     }
 
     public String getDescription(){
-        return super.getDescription() + "\n + Meal (" + days + " days) = " + 500.0*days +"0" ; //พอดีอยากได้ทศนิยม 2 ตำแหน่ง
+        return super.getDescription() + "\n\n + Meal (" + days + " days) = " + String.format("%,.2f", 500.0 * days);
 
     }
 
