@@ -18,11 +18,12 @@ public class DiscountSelector {
      */
     public static DiscountStrategy getStrategy(Room room, Bookings booking) {
         
-        if (booking.getDateStay() >= 2) {
-            return new StayMoreDiscount();
-        } else if (booking.getDaysBeforeCheckin() >= 30) {
+        if (booking.getDaysBeforeCheckin() >= 30) {
             return new EarlyBirdDiscount();
+        } else if (booking.getDateStay() >= 2) {
+            return new StayMoreDiscount();
         }
         return new DefaultDiscount();
     }
 }
+
