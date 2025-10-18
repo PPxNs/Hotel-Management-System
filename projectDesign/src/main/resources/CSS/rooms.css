@@ -203,9 +203,9 @@
 }
 
 /*
- * =========================================
+ * 
  * สไตล์สำหรับ TitledPane (แถบพับ Add Room)
- * =========================================
+ *
  */
 
 /* สไตล์โดยรวมของ TitledPane */
@@ -215,7 +215,7 @@
 
 /* 1. ส่วนหัวข้อ (Title Bar) */
 .titled-pane > .title {
-    -fx-background-color: #E50914; /* << เปลี่ยนสีพื้นหลังหัวข้อที่นี่ */
+    -fx-background-color: #E50914; /* สีพื้นหลังหัวข้อ*/
     -fx-background-radius: 2px 2px 0 0; /* ทำให้มุมบนโค้งมน */
     -fx-border-color: #E50914;
     -fx-border-radius: 2px 2px 0 0;
@@ -223,28 +223,28 @@
 
 /* 2. สีของลูกศร (Arrow) */
 .titled-pane > .title > .arrow-button .arrow {
-    -fx-background-color: white; /* << เปลี่ยนสีลูกศรที่นี่ */
+    -fx-background-color: white; /* สีลูกศร*/
 }
 
 /* 3. ส่วนเนื้อหา (Content Area) */
 .titled-pane > .content {
-    -fx-background-color: #F9FAFB; /* << เปลี่ยนสีพื้นหลังเนื้อหาที่นี่ */
+    -fx-background-color: #F9FAFB; /*สีพื้นหลังเนื้อหา */
     -fx-padding: 5px;
     -fx-border-color: #D1D5DB;
     -fx-border-width: 0 1px 1px 1px; /* ใส่เส้นขอบเฉพาะด้านข้างและล่าง */
 }
 
 /*
- * =========================================
+ * 
  * สไตล์สำหรับ TableView (ตารางแสดงข้อมูล)
- * =========================================
+ * 
  */
 
 /* 1. ภาพรวมและพื้นหลังของตาราง */
 .table-view {
-    /* ทำให้พื้นหลังโปร่งใส เพื่อให้เข้ากับ .card */
+    /* ทำให้พื้นหลังโปร่งใส*/
     -fx-background-color: transparent;
-    -fx-background-radius: 12px; /* ทำให้มุมโค้งมนเหมือน card */
+    -fx-background-radius: 12px; /* ทำให้มุมโค้งมน*/
     -fx-border-color: #E2E8F0; /* สีขอบเทาอ่อนๆ */
     -fx-border-radius: 12px;
 }
@@ -284,7 +284,7 @@
     -fx-background-color: white;
     -fx-border-color: transparent transparent #F1F5F9 transparent; /* เส้นคั่นแนวนอน */
     -fx-border-width: 1px;
-    -fx-padding: 4px 0px; /* ลด padding แนวตั้งเล็กน้อย */
+    -fx-padding: 4px 0px; /* ลด padding แนวตั้ง*/
 }
 
 /* เอฟเฟกต์เมื่อเอาเมาส์ชี้แถว */
@@ -303,7 +303,7 @@
 
 /* 4. เซลล์ข้อมูล (Data Cells) */
 .table-view .table-cell {
-    -fx-padding: 12px 12px; /* เพิ่มระยะห่างให้ข้อมูลไม่อึดอัด */
+    -fx-padding: 12px 12px; /* เพิ่มระยะห่างให้ข้อมูล*/
     -fx-text-fill: #2D3748;
     -fx-border-color: transparent; /* เอาเส้นขอบแนวตั้งออก */
     -fx-font-size: 13px;
@@ -341,7 +341,7 @@
 }
 
 .action-button:hover {
-    /* สถานะเมื่อเมาส์ชี้: ใช้สีแดงอ่อนๆ จากธีม */
+    /* สถานะเมื่อเมาส์ชี้*/
     -fx-background-color: #FFF5F5; /* สีพื้นหลังตอน hover แถวตาราง */
     -fx-border-color: #E50914;  /* ใช้สีแดงหลักเป็นเส้นขอบ */
     -fx-border-width: 1px;

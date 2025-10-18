@@ -62,7 +62,7 @@
 
 /* --- สไตล์ปุ่ม --- */
 .notification-button {
-    -fx-background-color: #E50914; /* สีแดง Netflix */
+    -fx-background-color: #E50914; /* สีแดง*/
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-font-size: 14px;
@@ -73,7 +73,7 @@
 }
 
 .delete-notification-button {
-    -fx-background-color: #E50914; /* สีแดง Netflix */
+    -fx-background-color: #E50914; /* สีแดง*/
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-font-size: 14px;

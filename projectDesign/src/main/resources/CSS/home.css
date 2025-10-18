@@ -165,9 +165,9 @@
     -fx-border-radius: 0 8 8 0;
 }
 /*
- * =========================================
+ * 
  * สไตล์สำหรับ TitledPane (แถบพับ Add Room)
- * =========================================
+ * 
  */
 
 /* สไตล์โดยรวมของ TitledPane */
@@ -177,7 +177,7 @@
 
 /* 1. ส่วนหัวข้อ (Title Bar) */
 .titled-pane > .title {
-    -fx-background-color: #E50914; /* << เปลี่ยนสีพื้นหลังหัวข้อที่นี่ */
+    -fx-background-color: #E50914; /*สีพื้นหลังหัวข้อ*/
     -fx-background-radius: 2px 2px 0 0; /* ทำให้มุมบนโค้งมน */
     -fx-border-color: #E50914;
     -fx-border-radius: 2px 2px 0 0;
@@ -185,51 +185,51 @@
 
 /* 2. สีของลูกศร (Arrow) */
 .titled-pane > .title > .arrow-button .arrow {
-    -fx-background-color: white; /* << เปลี่ยนสีลูกศรที่นี่ */
+    -fx-background-color: white; /*สีลูกศร*/
 }
 
 /* 3. ส่วนเนื้อหา (Content Area) */
 .titled-pane > .content {
-    -fx-background-color: #F9FAFB; /* << เปลี่ยนสีพื้นหลังเนื้อหาที่นี่ */
+    -fx-background-color: #F9FAFB; /*สีพื้นหลังเนื้อหา*/
     -fx-padding: 5px;
     -fx-border-color: #D1D5DB;
     -fx-border-width: 0 1px 1px 1px; /* ใส่เส้นขอบเฉพาะด้านข้างและล่าง */
 }
 
 /*
- * =========================================
+ * 
  * สไตล์สำหรับ CheckBox
- * =========================================
+ * 
  */
 
 /* 1. สไตล์ของกล่องสี่เหลี่ยม (box) ตอนยังไม่ถูกเลือก (unchecked) */
 .check-box .box {
-    -fx-background-color: #F9FAFB; /* สีพื้นหลังเหมือน .form-field */
-    -fx-border-color: #D1D5DB;      /* สีขอบเหมือน .form-field */
-    -fx-border-radius: 4px;         /* ทำให้มุมมนเล็กน้อย */
+    -fx-background-color: #F9FAFB; /* สีพื้นหลังเหมือน*/
+    -fx-border-color: #D1D5DB;      /* สีขอบเหมือน*/
+    -fx-border-radius: 4px;         /* ทำให้มุมมน*/
     -fx-background-radius: 4px;
 }
 
 /* 2. สไตล์ของกล่องสี่เหลี่ยม เมื่อถูกเลือก (checked) */
 .check-box:selected .box {
-    -fx-background-color: -main-red; /* << เปลี่ยนสีพื้นหลังตอนติ๊กเลือกที่นี่ */
-    -fx-border-color: -main-red;     /* << เปลี่ยนสีขอบตอนติ๊กเลือกที่นี่ */
+    -fx-background-color: -main-red; /*สีพื้นหลังตอนติ๊กเลือก*/
+    -fx-border-color: -main-red;     /*นสีขอบตอนติ๊กเลือก*/
 }
 
 /* 3. สไตล์ของเครื่องหมายถูก (mark) ข้างใน */
 .check-box:selected .box .mark {
-    -fx-background-color: white; /* ทำให้เครื่องหมายถูกเป็นสีขาว จะได้เห็นชัดบนพื้นหลังสีแดง */
+    -fx-background-color: white; /* ทำให้เครื่องหมายถูกเป็นสีขาว*/
 }
 
-/* 4. (ทางเลือก) เพิ่มสไตล์เมื่อเอาเมาส์ไปชี้ (hover) เพื่อ UX ที่ดีขึ้น */
+/* 4. (ทางเลือก) เพิ่มสไตล์เมื่อเอาเมาส์ไปชี้ (hover)*/
 .check-box:hover .box {
     -fx-border-color: #b20710; /* ทำให้ขอบเปลี่ยนสีเมื่อเมาส์ชี้ */
 }
 
 /*
- * =========================================
+ * 
  * สไตล์สำหรับ RadioButton (แก้ไขเป็นวงกลม)
- * =========================================
+ * 
  */
 
 /* 1. สไตล์ของวงกลม (radio) ตอนยังไม่ถูกเลือก */
@@ -239,10 +239,10 @@
     -fx-background-color: #F9FAFB;
     -fx-padding: 3px;
 
-    /* --- ส่วนที่เพิ่มเข้ามาเพื่อให้เป็นวงกลม --- */
+  
     -fx-background-radius: 100%; 
     -fx-border-radius: 100%;
-    /* ------------------------------------ */
+
 
     -fx-transition: all 0.2s ease-in-out;
 }
@@ -344,9 +344,9 @@
     -fx-border-color: transparent; /* ไม่ต้องมีขอบซ้อนกัน */
 }
 /*
- * =========================================
+ * 
  * สไตล์สำหรับ DatePicker (ภายนอกและไอคอน)
- * =========================================
+ * 
  */
 
 /* 1. จัดการ Layout โดยรวมและเส้นขอบเมื่อ Focus */
@@ -396,7 +396,7 @@
 }
 .date-picker .arrow-button:before {
     -fx-content: "";
-    -fx-background-color: -main-gray; /* << สีไอคอนปฏิทิน */
+    -fx-background-color: -main-gray; /*สีไอคอนปฏิทิน */
     
     /* SVG Path รูปปฏิทิน */
     -fx-shape: "M16 2h-1v-1c0-0.553-0.447-1-1-1s-1 0.447-1 1v1h-5v-1c0-0.553-0.447-1-1-1s-1 0.447-1 1v1h-1c-1.104 0-2 0.896-2 2v11c0 1.104 0.896 2 2 2h12c1.104 0 2-0.896 2-2v-11c0-1.104-0.896-2-2-2zM16 15c0 0.553-0.447 1-1 1h-10c-0.553 0-1-0.447-1-1v-7h12v7z";
@@ -417,16 +417,16 @@
 }
 
 /*
- * =========================================
+ * 
  * สไตล์สำหรับ TableView (ตารางแสดงข้อมูล)
- * =========================================
+ * 
  */
 
 /* 1. ภาพรวมและพื้นหลังของตาราง */
 .table-view {
-    /* ทำให้พื้นหลังโปร่งใส เพื่อให้เข้ากับ .card */
+    /* ทำให้พื้นหลังโปร่งใส*/
     -fx-background-color: transparent;
-    -fx-background-radius: 12px; /* ทำให้มุมโค้งมนเหมือน card */
+    -fx-background-radius: 12px; /* ทำให้มุมโค้งมน*/
     -fx-border-color: #E2E8F0; /* สีขอบเทาอ่อนๆ */
     -fx-border-radius: 12px;
 }
@@ -466,7 +466,7 @@
     -fx-background-color: white;
     -fx-border-color: transparent transparent #F1F5F9 transparent; /* เส้นคั่นแนวนอน */
     -fx-border-width: 1px;
-    -fx-padding: 4px 0px; /* ลด padding แนวตั้งเล็กน้อย */
+    -fx-padding: 4px 0px; /* ลด padding แนวตั้ง*/
 }
 
 /* เอฟเฟกต์เมื่อเอาเมาส์ชี้แถว */
@@ -485,7 +485,7 @@
 
 /* 4. เซลล์ข้อมูล (Data Cells) */
 .table-view .table-cell {
-    -fx-padding: 12px 12px; /* เพิ่มระยะห่างให้ข้อมูลไม่อึดอัด */
+    -fx-padding: 12px 12px; /* เพิ่มระยะห่างให้ข้อมูล*/
     -fx-text-fill: #2D3748;
     -fx-border-color: transparent; /* เอาเส้นขอบแนวตั้งออก */
     -fx-font-size: 13px;
@@ -506,9 +506,9 @@
 }
 
 /*
- * =========================================
+ * 
  * สไตล์สำหรับ ScrollPane และ Scrollbar (ปรับขนาด)
- * =========================================
+ * 
  */
 
 /* 1. สไตล์โดยรวมของ ScrollPane */
@@ -526,12 +526,12 @@
 .scroll-pane .scroll-bar:vertical {
     -fx-background-color: -main-panel;
     -fx-background-radius: 8px;
-    -fx-pref-width: 8px; /* << ปรับความกว้างของสกอลล์บาร์ที่นี่ (ค่าเดิมประมาณ 12-14px) */
+    -fx-pref-width: 8px; /*ความกว้างของสกอลล์บาร์*/
 }
 .scroll-pane .scroll-bar:horizontal {
     -fx-background-color: -main-panel;
     -fx-background-radius: 8px;
-    -fx-pref-height: 8px; /* << ปรับความสูงของสกอลล์บาร์ที่นี่ */
+    -fx-pref-height: 8px; /*ความสูงของสกอลล์บาร์*/
 }
 
 
@@ -542,7 +542,7 @@
     -fx-background-radius: 8px;
 }
 
-/* 5. แท่งเลื่อน (Thumb) ที่เราใช้ลาก */
+/* 5. แท่งเลื่อน (Thumb)*/
 .scroll-pane .scroll-bar .thumb {
     -fx-background-color: -main-white;
     -fx-background-insets: 2;
@@ -565,7 +565,7 @@
     -fx-padding: 0;
 }
 
-/* 7. มุมที่ Scrollbar มาเจอกัน */
+/* 7. มุมที่ Scrollbar*/
 .scroll-pane .corner {
     -fx-background-color: transparent;
 }
