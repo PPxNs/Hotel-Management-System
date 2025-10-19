@@ -15,7 +15,7 @@ public class HotelCalculator {
      */
     public double calculateFinalPrice(Room room, Bookings booking, DiscountStrategy strategy){
         // ดึงราคาพื้นฐานของห้องพัก
-        double roomPrice = room.getPrice();
+        double roomPrice = room.getPrice() * booking.getDateStay() ;
     
         // ส่งต่อการคำนวณทั้งหมดไปให้ strategy object ที่ได้รับมาเป็นคนจัดการ
         return strategy.applyDiscount(room, booking, roomPrice);

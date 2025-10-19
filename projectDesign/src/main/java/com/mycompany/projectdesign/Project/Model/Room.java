@@ -20,6 +20,7 @@ public class Room {
     private int people;                 // ตัวแปรเก็บข้อมูลจำนวนผู้เข้าพักสูงสุดที่ห้องสามารถรองรับได้
     private List<String> properties ;   // ตัวแปรเก็บรายการคุณสมบัติ/สิ่งอำนวยความสะดวกในห้อง
     private LocalDateTime lastCheckoutTime; // ตัวแปรเก็บข้อมูลวันที่และเวลาที่ลูกค้าคนล่าสุดทำการเช็คเอาท์จากห้องพัก
+    private List<String> notifiedBookingIds = new ArrayList<>(); //เก็บ ID ของการจองที่แจ้งเตือนแล้ว ของสถานะซ่อมแซม
 
     
     /**
@@ -137,11 +138,17 @@ public class Room {
     public void setPeople(int people) { this.people = people;}
 
     /**
-     * ตั้งค่าหรือเปลี่ยนแปลงสถานะของห้องพัก
+     * ตั้งค่าหรือเปลี่ยนแปลงสถานะของห้องพัก และ จะล้างสถานะการแจ้งเตือนเมื่อห้องซ่อมเสร็จ
      * @param status สถานะใหม่
      */
-    public void setStatus(RoomStatus status) {this.status = status; }
-
+    public void setStatus(RoomStatus status) {
+        // ตรวจสอบว่าห้องกำลังจะออกจากสถานะซ่อมบำรุงหรือไม่
+        if (this.status == RoomStatus.MAINTENANCE && status != RoomStatus.MAINTENANCE) {
+            // ถ้าใช่ ให้ล้างลิสต์การแจ้งเตือน เพื่อเตรียมพร้อมสำหรับการซ่อมครั้งหน้า
+            clearNotifiedBookingIds();
+        }
+        this.status = status;
+    }
     /**
      * ตั้งค่าหรือเปลี่ยนแปลงรายการคุณสมบัติทั้งหมดของห้อง
      * @param properties รายการคุณสมบัติใหม่
@@ -152,5 +159,29 @@ public class Room {
      * ตั้งค่าเวลาเช็คเอาท์ล่าสุด
      * @param lastCheckoutTime เวลาที่ทำการเช็คเอาท์
      */
-    public void setLastCheckoutTime(LocalDateTime lastCheckoutTime){ this.lastCheckoutTime = lastCheckoutTime ;}
+     public void setLastCheckoutTime(LocalDateTime lastCheckoutTime){ this.lastCheckoutTime = lastCheckoutTime ;}
+
+     /**
+     * ดึงรายการ ID ของการจองที่ได้รับการแจ้งเตือนเรื่องซ่อมบำรุงแล้ว
+     */
+    public List<String> getNotifiedBookingIds() {
+        return notifiedBookingIds;
+    }
+
+    /**
+     * เพิ่ม ID ของการจองเข้าไปในลิสต์ที่แจ้งเตือนแล้ว
+     */
+    public void addNotifiedBookingId(String bookingId) {
+        if (!this.notifiedBookingIds.contains(bookingId)) {
+            this.notifiedBookingIds.add(bookingId);
+        }
+    }
+
+    /**
+     * ล้างรายการ ID ของการจองที่เคยแจ้งเตือน (จะถูกเรียกเมื่อห้องซ่อมเสร็จ)
+     */
+    public void clearNotifiedBookingIds() {
+        this.notifiedBookingIds.clear();
+    }
+
 }

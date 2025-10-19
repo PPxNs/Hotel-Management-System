@@ -9,7 +9,7 @@ public class DoubleroomType implements DepositRoom{
 
     @Override
     public String getDescription() {
-       return "Deposit for the Double room = 1500.00" ;
+       return "\nDeposit for the Double room = 1,500.00" ;
     }
 
     @Override

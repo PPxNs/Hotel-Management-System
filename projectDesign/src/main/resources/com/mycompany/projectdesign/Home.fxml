@@ -24,7 +24,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="mainPane" minHeight="-Infinity" minWidth="-Infinity" prefHeight="733.0" prefWidth="1085.0" styleClass="root" stylesheets="@../../../CSS/home.css" xmlns="http://javafx.com/javafx/24" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.projectdesign.HomeController">
+<BorderPane fx:id="mainPane" minHeight="-Infinity" minWidth="-Infinity" prefHeight="733.0" prefWidth="1085.0" styleClass="root" stylesheets="@../../../CSS/home.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.projectdesign.HomeController">
    <right>
       <ScrollPane hbarPolicy="NEVER" vbarPolicy="ALWAYS" BorderPane.alignment="CENTER">
          <BorderPane.margin>
@@ -503,7 +503,7 @@
                                        <children>
                                           <CheckBox fx:id="cleaningRoomCheckBox" mnemonicParsing="false" text="CleaningRoom" />
                                           <Pane prefHeight="18.0" prefWidth="174.0" HBox.hgrow="ALWAYS" />
-                                          <Label prefHeight="17.0" prefWidth="65.0" text="฿‎1000.00" />
+                                          <Label prefHeight="17.0" prefWidth="65.0" text="฿‎1,000.00" />
                                        </children>
                                        <VBox.margin>
                                           <Insets />
@@ -542,7 +542,7 @@
                                  </font>
                               </Label>
                               <Region prefHeight="22.0" prefWidth="207.0" HBox.hgrow="ALWAYS" />
-                              <Label fx:id="totalLabel" prefHeight="15.0" prefWidth="109.0" text="฿‎______">
+                              <Label fx:id="totalLabel" prefHeight="30.0" prefWidth="135.0" text="฿‎____________">
                                  <font>
                                     <Font size="20.0" />
                                  </font>
